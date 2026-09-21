@@ -3,22 +3,449 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工具內嵌展示</title>
+    <title>搜博科技 - 行政法務作業系統</title>
     <style>
-        body {
-            font-family: sans-serif;
-            margin: 20px;
+        * { box-sizing: border-box; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; }
+        body { margin: 0; padding: 0; background-color: #f3f4f6; color: #1f2937; }
+        
+        /* 導覽列 */
+        .navbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        iframe {
+        .nav-brand { font-size: 18px; font-weight: bold; color: #1e40af; display: flex; align-items: center; gap: 8px; }
+        .nav-btn {
+            background: #f3f4f6; border: 1px solid #d1d5db; padding: 6px 14px;
+            border-radius: 6px; cursor: pointer; font-size: 14px;
+        }
+        .nav-btn:hover { background: #e5e7eb; }
+
+        /* 視圖切換容器 */
+        .view-panel { display: none; padding: 24px; }
+        .view-panel.active { display: block; }
+
+        /* 1. 首頁/法務主選單卡片 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+        .menu-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .menu-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .card-icon { font-size: 36px; margin-bottom: 12px; }
+        .card-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+        .card-desc { font-size: 14px; color: #6b7280; line-height: 1.5; }
+        .btn-enter {
+            margin-top: 16px; display: inline-block; background: #2563eb; color: #fff;
+            padding: 6px 16px; border-radius: 6px; font-size: 14px; font-weight: 500;
+        }
+
+        /* 2. 存證信函工作台（左右分欄） */
+        .workspace {
+            display: flex;
+            gap: 24px;
+            max-width: 1440px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+        .form-sidebar {
+            flex: 0 0 380px;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 20px;
+        }
+        .form-title { font-size: 16px; font-weight: bold; margin-bottom: 16px; color: #1e3a8a; border-bottom: 2px solid #3b82f6; padding-bottom: 6px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #374151; }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 8px 10px; font-size: 14px; border: 1px solid #d1d5db; border-radius: 6px;
+        }
+        .form-group input:focus { border-color: #2563eb; outline: none; }
+        .form-row { display: flex; gap: 8px; }
+        .form-row .form-group { flex: 1; }
+
+        .btn-print {
+            width: 100%; background: #059669; color: #fff; border: none; padding: 10px;
+            border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px;
+        }
+        .btn-print:hover { background: #047857; }
+
+        /* 3. 郵局存證信函用紙預覽區 */
+        .preview-area {
+            flex: 1;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+        .doc-page {
+            width: 780px;
+            margin: 0 auto;
+            border: 2px solid #000;
+            padding: 16px;
+            background: #fff;
+            color: #000;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+        .doc-header-table, .doc-info-table {
             width: 100%;
-            height: 80vh;
-            border: 2px solid #eaeaea;
-            border-radius: 8px;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        .doc-header-table td, .doc-info-table td {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            vertical-align: top;
+        }
+        .stamp-box {
+            height: 90px;
+            text-align: center;
+            vertical-align: middle !important;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+        .grid-header {
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 6px;
+            font-size: 16px;
+            padding: 4px 0;
+            border-bottom: 2px solid #000;
+            margin-bottom: 4px;
+        }
+        
+        /* 20格 x 10行 格線還原 */
+        .letter-grid-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+        }
+        .letter-grid-table td, .letter-grid-table th {
+            border: 1px solid #9ca3af;
+            height: 32px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 14px;
+            padding: 0;
+        }
+        .letter-grid-table th {
+            background-color: #f9fafb;
+            font-weight: normal;
+            font-size: 11px;
+            height: 22px;
+            border: 1px solid #6b7280;
+        }
+        .row-num {
+            width: 32px;
+            font-weight: bold;
+            background: #f9fafb;
+            border-right: 1.5px solid #000 !important;
+        }
+
+        /* 列印專屬設定 */
+        @media print {
+            body { background: #fff; }
+            .navbar, .form-sidebar, .btn-print, .no-print { display: none !important; }
+            .view-panel { padding: 0 !important; display: block !important; }
+            .workspace { display: block !important; }
+            .preview-area { padding: 0 !important; border: none !important; box-shadow: none !important; }
+            .doc-page { width: 100% !important; border: 2px solid #000 !important; margin: 0 !important; }
         }
     </style>
 </head>
 <body>
-    <h1>行政作業</h1>
-    <iframe src="https://tool-one-pi.vercel.app/" title="線上工具"></iframe>
+
+    <!-- 頂端導覽列 -->
+    <div class="navbar no-print">
+        <div class="nav-brand">
+            <span>搜博科技 客服行政作業系統</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="nav-btn" onclick="switchView('view-home')">🏠 系統首頁</button>
+            <button class="nav-btn" onclick="switchView('view-legal-menu')">⚖️ 法務作業目錄</button>
+        </div>
+    </div>
+
+    <!-- 視圖 1：系統首頁 -->
+    <div id="view-home" class="view-panel active">
+        <h2 style="text-align: center; margin-top: 20px;">請選擇作業類型</h2>
+        <div class="card-grid">
+            <div class="menu-card" onclick="alert('關鍵字報表功能連結正常')">
+                <div class="card-icon">📊</div>
+                <div class="card-title">關鍵字排名過濾</div>
+                <div class="card-desc">貼上系統報表，自動去除舊日期，精準留存關鍵字與今日純數字數據。</div>
+                <div class="btn-enter">進入</div>
+            </div>
+            <div class="menu-card" onclick="alert('用印單功能連結正常')">
+                <div class="card-icon">📝</div>
+                <div class="card-title">用印單</div>
+                <div class="card-desc">搜博科技專用格式，公司名稱全自動連動文件名稱與事由，一鍵匯出預覽。</div>
+                <div class="btn-enter">進入</div>
+            </div>
+            <div class="menu-card" onclick="switchView('view-legal-menu')">
+                <div class="card-icon">⚖️</div>
+                <div class="card-title">法務作業</div>
+                <div class="card-desc">存證信函、支付命令、債權憑證、申請書與相關費用試算。</div>
+                <div class="btn-enter">進入</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 視圖 2：法務作業主選單 -->
+    <div id="view-legal-menu" class="view-panel">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <button class="nav-btn no-print" onclick="switchView('view-home')">← 回到作業類型</button>
+            <h2 style="margin-top: 16px;">法務作業項目</h2>
+            <div class="card-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="menu-card" onclick="switchView('view-legal-cert')">
+                    <div class="card-icon">✉️</div>
+                    <div class="card-title">存證信函</div>
+                    <div class="card-desc">一模一樣還原郵局存證信函用紙格式，支援表單快速自動套印。</div>
+                    <div class="btn-enter">進入製作</div>
+                </div>
+                <div class="menu-card" onclick="alert('支付命令製作模組建置中')">
+                    <div class="card-icon">📜</div>
+                    <div class="card-title">支付命令</div>
+                    <div class="card-desc">民事陳報狀、聲請狀快速生成與補正文件製作。</div>
+                    <div class="btn-enter">即將推出</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 視圖 3：存證信函製作台（左側表單、右側預覽） -->
+    <div id="view-legal-cert" class="view-panel">
+        <div class="workspace">
+            
+            <!-- 左側輸入表單 -->
+            <div class="form-sidebar no-print">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <div class="form-title" style="margin:0;">存證信函內容填寫</div>
+                    <button class="nav-btn" onclick="switchView('view-legal-menu')" style="padding:2px 8px; font-size:12px;">返回</button>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>發函年份 (民國)</label>
+                        <input type="text" id="in-year" value="115" oninput="updateLetter()">
+                    </div>
+                    <div class="form-group">
+                        <label>發函月份</label>
+                        <input type="text" id="in-month" value="09" oninput="updateLetter()">
+                    </div>
+                    <div class="form-group">
+                        <label>發函日期</label>
+                        <input type="text" id="in-day" value="11" oninput="updateLetter()">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>欠款期間 (如: 115年5月至7月)</label>
+                    <input type="text" id="in-period" value="１１５年５月份至１１５年７月份" oninput="updateLetter()">
+                </div>
+
+                <div class="form-group">
+                    <label>收件人姓名 (公司名稱)</label>
+                    <input type="text" id="in-receiver-name" value="虹寬國際家具有限公司" oninput="updateLetter()">
+                </div>
+
+                <div class="form-group">
+                    <label>收件人代表人</label>
+                    <input type="text" id="in-receiver-boss" value="江慶寬" oninput="updateLetter()">
+                </div>
+
+                <div class="form-group">
+                    <label>收件人詳細地址</label>
+                    <input type="text" id="in-receiver-addr" value="新北市板橋區僑中一街124巷72之2號" oninput="updateLetter()">
+                </div>
+
+                <div class="form-group">
+                    <label>已出帳未繳納金額 (元)</label>
+                    <input type="text" id="in-debt-amount" value="１５６００" oninput="updateLetter()">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>合約第伍條第幾項</label>
+                        <input type="text" id="in-clause" value="第六項" oninput="updateLetter()">
+                    </div>
+                    <div class="form-group">
+                        <label>滿額費用 (元)</label>
+                        <input type="text" id="in-full-amount" value="１４６１２０" oninput="updateLetter()">
+                    </div>
+                </div>
+
+                <button class="btn-print" onclick="window.print()">🖨️ 列印存證信函 (轉存PDF)</button>
+            </div>
+
+            <!-- 右側：100% 還原郵局存證信函用紙格式 -->
+            <div class="preview-area">
+                <div class="doc-page">
+                    
+                    <!-- 頂部戳印與規費資訊 -->
+                    <table class="doc-header-table">
+                        <tr>
+                            <td class="stamp-box" style="width: 25%;">騎 縫 郵 戳</td>
+                            <td class="stamp-box" style="width: 35%;">郵 票 或 郵 資 券<br>黏 貼 處</td>
+                            <td style="font-size: 11px; line-height: 1.6; width: 40%;">
+                                本存證信函共 <u>１</u> 頁，正本 <u>１</u> 份，存證費____元，<br>
+                                副本____份，存證費____元，附件____張，<br>
+                                存證費____元，合計____元。<br>
+                                經 郵局 年 月 日證明 本內容完全相同 印<br>
+                                經辦員：_________ 主管：_________
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- 郵局注意事項 -->
+                    <div style="font-size: 11px; margin: 4px 0 8px 0; border: 1px solid #000; padding: 4px;">
+                        <b>備註：</b>一、存證信函需送交郵局辦理證明手續後始有效。二、在第__頁第__行第__格下塗改增刪__字印（每頁至多不得逾二十字）。三、每件一式三份，每格限書一字，字跡端正。
+                    </div>
+
+                    <!-- 寄件人 / 收件人 欄位 -->
+                    <table class="doc-info-table">
+                        <tr>
+                            <td style="width: 15%; font-weight: bold; text-align: center; vertical-align: middle;">一、寄件人</td>
+                            <td style="width: 85%;">
+                                <b>姓名：</b>搜博科技股份有限公司 （蓋章）<br>
+                                <b>代表人：</b>陳智國<br>
+                                <b>詳細地址：</b>新北市中和區中正路866號17樓
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold; text-align: center; vertical-align: middle;">二、收件人</td>
+                            <td>
+                                <b>姓名：</b><span id="disp-receiver-name">虹寬國際家具有限公司</span><br>
+                                <b>代表人：</b><span id="disp-receiver-boss">江慶寬</span><br>
+                                <b>詳細地址：</b><span id="disp-receiver-addr">新北市板橋區僑中一街124巷72之2號</span>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <!-- 用紙抬頭 -->
+                    <div class="grid-header">郵局存證信函用紙（第一頁）</div>
+
+                    <!-- 20格 x 10行 格線表格 (自動帶入填寫內容) -->
+                    <table class="letter-grid-table" id="letterGrid">
+                        <!-- 由 JavaScript 自動產生 20格排版 -->
+                    </table>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 頁面切換
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            if (viewId === 'view-legal-cert') {
+                updateLetter();
+            }
+        }
+
+        // 全形數字轉換工具
+        function toFullWidth(str) {
+            return String(str).replace(/[0-9]/g, function(s) {
+                return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
+            });
+        }
+
+        // 動態生成存證信函內文並填入 20格x10行
+        function updateLetter() {
+            // 取值
+            const year = toFullWidth(document.getElementById('in-year').value || '115');
+            const month = toFullWidth(document.getElementById('in-month').value || '09');
+            const day = toFullWidth(document.getElementById('in-day').value || '11');
+            const period = document.getElementById('in-period').value;
+            const rName = document.getElementById('in-receiver-name').value;
+            const rBoss = document.getElementById('in-receiver-boss').value;
+            const rAddr = document.getElementById('in-receiver-addr').value;
+            const debt = toFullWidth(document.getElementById('in-debt-amount').value);
+            const clause = document.getElementById('in-clause').value;
+            const fullAmt = toFullWidth(document.getElementById('in-full-amount').value);
+
+            // 更新基本資料欄位
+            document.getElementById('disp-receiver-name').innerText = rName;
+            document.getElementById('disp-receiver-boss').innerText = rBoss;
+            document.getElementById('disp-receiver-addr').innerText = rAddr;
+
+            // 組合範例的一模一樣內文
+            const lines = [
+                "敬啟者：",
+                `一、貴司民國${period}貨款共計新台幣${debt}元整尚未支付，經我司多次催繳貴司仍無回應，我司要求貴司依合約第壹條第三項應即刻匯款或支付即期支票共計新台幣${debt}元整，請於文到五日內完成支付動作。`,
+                `二、依雙方簽訂之合約第壹條第三項載明之指定關鍵字，服務起算後，各組關鍵字凡符合本條選項之內容，乙方得向甲方請領該組關鍵字費用。如貴司於文到後五日內仍未完成支付動作，我司得依合約第伍條${clause}，一次性請領剩餘期間之滿額費用共計新台幣${fullAmt}元整。`,
+                "三、我司為維持與客戶之和諧關係已盡力溝通，唯等待多日貴司仍無匯款，將依法提出民事訴訟，並加計拖延期間利息及訴訟費用。",
+                "",
+                "搜博科技股份有限公司",
+                `民國${year}年${month}月${day}日`
+            ];
+
+            // 依照每行 20 格切分字元
+            let gridRows = [];
+            lines.forEach(text => {
+                if (text === "") {
+                    gridRows.push("");
+                    return;
+                }
+                for (let i = 0; i < text.length; i += 20) {
+                    gridRows.push(text.substring(i, i + 20));
+                }
+            });
+
+            // 補足至少 10 行
+            while (gridRows.length < 10) {
+                gridRows.push("");
+            }
+
+            // 中文數字行號
+            const rowLabels = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二", "十三", "十四", "十五"];
+
+            // 渲染表格
+            let tableHtml = `<tr>
+                <th class="row-num">行\\格</th>
+                ${Array.from({length: 20}, (_, i) => `<th>${i+1}</th>`).join('')}
+            </tr>`;
+
+            gridRows.forEach((lineText, rIdx) => {
+                const rowName = rowLabels[rIdx] || (rIdx + 1);
+                const chars = Array.from(lineText);
+                let cellsHtml = '';
+                for (let c = 0; c < 20; c++) {
+                    const char = chars[c] || '';
+                    cellsHtml += `<td>${char}</td>`;
+                }
+                tableHtml += `<tr><td class="row-num">${rowName}</td>${cellsHtml}</tr>`;
+            });
+
+            document.getElementById('letterGrid').innerHTML = tableHtml;
+        }
+
+        // 初始化執行一次
+        updateLetter();
+    </script>
 </body>
 </html>

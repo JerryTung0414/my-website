@@ -67,7 +67,7 @@
     /* A4 紙張本體 (1:1 復刻 搜博科技用印申請單) */
     .a4-sheet { background: #fff; margin: 0 auto; width: 100%; max-width: 740px; min-height: 940px; padding: 40px 45px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); color: #000; font-family: "標楷體", "BiauKai", "DFKai-SB", "Microsoft JhengHei", serif; }
     
-    /* 搜博 Logo 刊頭容器：預覽直接使用 Logo.jpg */
+    /* 搜博 Logo 刊頭容器：直接使用 logo.jpg */
     .sober-header-svg-wrap { width: 100%; margin-bottom: 10px; }
     .sober-header-svg-wrap img { width: 100%; height: auto; display: block; object-fit: contain; }
     
@@ -80,38 +80,58 @@
     .th-header { text-align: center; font-weight: normal; width: 20%; letter-spacing: 2px; }
     .val-cell-large { height: 110px; vertical-align: top; padding: 10px; line-height: 1.6; }
 
-    /* 用印方式內層表格：所有分隔線都畫在 td，不畫在 tr，避免 rowspan 截圖時產生穿越線 */
     .seal-method-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .sober-table .seal-method-table td { border: none; }
-    .sober-table .seal-method-table .method-choice {
-      width: 22%;
-      text-align: center;
-      border-right: 1px solid #000;
-    }
-    .sober-table .seal-method-table .method-divider {
-      border-bottom: 1px solid #000;
-    }
+    .sober-table .seal-method-table .method-choice { width: 22%; text-align: center; border-right: 1px solid #000; }
+    .sober-table .seal-method-table .method-divider { border-bottom: 1px solid #000; }
     
     .matrix-table { width: 100%; border-collapse: collapse; margin: 0; }
     .matrix-table td, .matrix-table th { border: 1px solid #000; text-align: center; padding: 4px 2px; font-size: 13px; }
     .sign-row-box { height: 75px; vertical-align: top; }
 
-    /* PDF/預覽共用勾選框：用 CSS 畫方框，不使用 □ / ■ 字元，避免 html2canvas 字型 fallback 失真 */
-    .doc-check {
-      display: inline-block;
-      width: 11px;
-      height: 11px;
-      border: 1.4px solid #000;
-      vertical-align: -1px;
-      margin-right: 3px;
-      flex: 0 0 auto;
-    }
+    .doc-check { display: inline-block; width: 11px; height: 11px; border: 1.4px solid #000; vertical-align: -1px; margin-right: 3px; flex: 0 0 auto; }
     .doc-check.checked { background: #000; }
+
+    /* 存證信函專屬樣式 (100% 還原原始 .doc) */
+    .cert-sheet {
+      background: #fff;
+      margin: 0 auto;
+      width: 100%;
+      max-width: 760px;
+      padding: 30px;
+      color: #000;
+      font-family: "PMingLiU", "MingLiU", serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .cert-title-doc { font-size: 18px; font-weight: bold; margin-bottom: 10px; letter-spacing: 2px; }
+    .cert-header-box { display: flex; border: 1px solid #000; margin-bottom: 6px; }
+    .cert-stamp-1 { width: 18%; border-right: 1px solid #000; display: flex; align-items: center; justify-content: center; text-align: center; letter-spacing: 4px; font-weight: bold; padding: 10px; }
+    .cert-stamp-2 { width: 26%; border-right: 1px solid #000; display: flex; align-items: center; justify-content: center; text-align: center; letter-spacing: 2px; line-height: 1.8; padding: 10px; }
+    .cert-fee { width: 56%; padding: 8px 10px; font-size: 13px; line-height: 1.6; }
+    .cert-memo { border: 1px solid #000; padding: 6px 10px; font-size: 12px; line-height: 1.5; margin-bottom: 6px; }
+    .cert-info-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; border: 1px solid #000; }
+    .cert-info-table td { border: 1px solid #000; padding: 6px 8px; vertical-align: top; font-size: 14px; }
+    .cert-info-label { width: 14%; text-align: center; vertical-align: middle !important; font-weight: bold; }
+    .cert-paper-title { text-align: center; font-size: 16px; font-weight: bold; letter-spacing: 4px; padding: 6px 0; border-top: 1px solid #000; border-bottom: 1px solid #000; margin-bottom: 8px; }
+    .cert-seam { margin: 6px 0 14px 0; letter-spacing: 4px; font-weight: bold; }
+    .cert-body { font-size: 15px; line-height: 1.9; text-align: justify; }
+    .cert-body p { margin: 0 0 12px 0; }
+    .cert-sign { margin-top: 26px; line-height: 1.9; }
+
+    @media print {
+      body { background: #fff !important; }
+      .sidebar, .top-header, .editor-pane, .preview-toolbar, .back-btn, .no-print { display: none !important; }
+      .main { padding: 0 !important; }
+      .split-container { display: block !important; }
+      .preview-pane { padding: 0 !important; background: transparent !important; box-shadow: none !important; min-height: auto !important; }
+      .a4-sheet, .cert-sheet { box-shadow: none !important; max-width: 100% !important; padding: 0 !important; }
+    }
   </style>
 </head>
 <body>
 
-  <aside class="sidebar">
+  <aside class="sidebar no-print">
     <div>
       <div class="brand">
         <div class="logo-badge">CS</div>
@@ -124,13 +144,13 @@
         <li class="nav-item active" onclick="switchView('home')">🏠 首頁總覽</li>
         <li class="nav-item" onclick="switchView('tool-seo')">📊 關鍵字報表過濾</li>
         <li class="nav-item" onclick="switchView('tool-seal')">📝 用印單</li>
-        <li class="nav-item" onclick="switchView('placeholder', '法務作業')">⚖️ 法務作業</li>
+        <li class="nav-item" onclick="switchView('tool-legal')">⚖️ 法務作業</li>
       </ul>
     </div>
   </aside>
 
   <main class="main">
-    <div class="top-header">
+    <div class="top-header no-print">
       <div class="page-title">
         <h2 id="view-title">請選擇作業類型</h2>
         <p id="view-subtitle">客服部日常行政作業入口</p>
@@ -163,7 +183,7 @@
           <div class="card-title">法務作業</div>
           <div class="card-desc">存證、支付命令、債權憑證、申請書、委託書與費用計算。</div>
         </div>
-        <button class="card-btn" onclick="switchView('placeholder', '法務作業')">進入</button>
+        <button class="card-btn" onclick="switchView('tool-legal')">進入</button>
       </div>
     </div>
 
@@ -202,28 +222,20 @@
           <div class="field-group">
             <label>項目類別 (下拉選單)</label>
             <select id="select-doc-name" onchange="onSyncChange()">
-              <!-- 預設不帶入任何項目，避免畫面初始化時出現「訴訟用」 -->
               <option value="" selected>請選擇項目類別</option>
-              <!-- 3字 -->
               <option value="補證狀">補證狀</option>
               <option value="委任狀">委任狀</option>
               <option value="撤銷狀">撤銷狀</option>
               <option value="陳報狀">陳報狀</option>
               <option value="起訴狀">起訴狀</option>
               <option value="更正狀">更正狀</option>
-              <!-- 4字 -->
               <option value="支付命令">支付命令</option>
-              <!-- 5字 -->
               <option value="強制執行狀">強制執行狀</option>
               <option value="移轉管轄狀">移轉管轄狀</option>
               <option value="戶謄委託書">戶謄委託書</option>
-              <!-- 7字 -->
               <option value="申請地謄委託書">申請地謄委託書</option>
-              <!-- 8字 -->
               <option value="調解意願通知單">調解意願通知單</option>
-              <!-- 9字 -->
               <option value="核發債權憑證聲請狀">核發債權憑證聲請狀</option>
-              <!-- 10字 -->
               <option value="抄錄申請書與委託書">抄錄申請書與委託書</option>
               <option value="財產所得申請書(搜秀)">財產所得申請書(搜秀)</option>
               <option value="財產所得申請書(搜博)">財產所得申請書(搜博)</option>
@@ -275,40 +287,33 @@
 
           <!-- A4 紙張本體 -->
           <div class="a4-sheet" id="print-area">
-            <!-- 搜博官方 Logo：與 index.html 同資料夾的 Logo.jpg -->
+            <!-- 搜博官方 Logo：自動讀取同層資料夾內的 logo.jpg -->
             <div class="sober-header-svg-wrap">
-              <img id="sober-header-logo" src="./Logo.jpg" alt="搜博科技股份有限公司 Logo">
+              <img id="sober-header-logo" src="./logo.jpg" onerror="this.src='./Logo.jpg'" alt="搜博科技股份有限公司 Logo">
             </div>
 
             <div class="doc-form-title">用 印 申 請 單</div>
             <div class="doc-form-no">編號：</div>
 
-            <!-- 主表格 -->
             <table class="sober-table">
-              <!-- 文件名稱 -->
               <tr>
                 <th class="th-header" style="height: 90px;">文件名稱</th>
                 <td class="val-cell-large" id="prev-doc-name"></td>
               </tr>
-              <!-- 用印事由 -->
               <tr>
                 <th class="th-header" style="height: 100px;">用印事由</th>
                 <td class="val-cell-large" id="prev-purpose"></td>
               </tr>
-              <!-- 用印方式 -->
               <tr>
                 <th class="th-header">用印方式</th>
                 <td style="padding: 0;">
                   <table class="seal-method-table">
                     <tr>
-                      <!-- 第一列分隔線只畫在儲存格本身，不使用 tr border -->
                       <td class="method-choice method-divider"><span class="doc-check checked"></span>蓋印</td>
                       <td class="method-divider" style="padding: 6px 8px;">蓋印日期： <span id="prev-date-roc">115 年 09 月 07 日</span></td>
                     </tr>
                     <tr>
-                      <!-- rowspan=2 的「借印」只保留右側直線；中間橫線不會穿過這格 -->
                       <td class="method-choice" rowspan="2"><span class="doc-check"></span>借印</td>
-                      <!-- 借出期間與簽名之間的橫線，只畫在右側內容格 -->
                       <td class="method-divider" style="padding: 6px 8px; font-size: 13px;">借出期間：借出日 1xx/xx/xx 使用日 1xx/xx/xx 歸還日 ________</td>
                     </tr>
                     <tr>
@@ -317,7 +322,6 @@
                   </table>
                 </td>
               </tr>
-              <!-- 使用印信別 -->
               <tr>
                 <th class="th-header">使用印信別</th>
                 <td style="padding: 10px 8px;" id="prev-seal-type">
@@ -327,7 +331,6 @@
                   <span class="doc-check checked"></span>4. 合約專用章
                 </td>
               </tr>
-              <!-- 批示簽核列 -->
               <tr>
                 <td colspan="2" style="padding: 0;">
                   <table class="matrix-table">
@@ -378,6 +381,183 @@
       </div>
     </div>
 
+    <!-- 法務作業目錄 -->
+    <div id="view-tool-legal" style="display: none;">
+      <div class="back-btn" onclick="switchView('home')">← 返回作業列表</div>
+      <div class="cards-grid">
+        <div class="card">
+          <div>
+            <div class="card-icon">✉️</div>
+            <div class="card-title">存證信函</div>
+            <div class="card-desc">1:1 還原郵局存證信函用紙格式，支援自訂欄位連動修改與一鍵列印。</div>
+          </div>
+          <button class="card-btn" onclick="switchView('cert-editor')">進入製作</button>
+        </div>
+        <div class="card">
+          <div>
+            <div class="card-icon">📜</div>
+            <div class="card-title">支付命令</div>
+            <div class="card-desc">支付命令聲請狀、民事陳報狀、補正文件與訴訟金額試算。</div>
+          </div>
+          <button class="card-btn" onclick="alert('支付命令模組建置中')">即將推出</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 存證信函製作 (左側自由填寫、右側一模一樣) -->
+    <div id="view-cert-editor" style="display: none;">
+      <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
+      
+      <div class="split-container">
+        <!-- 左側自填欄位 -->
+        <div class="editor-pane no-print">
+          <div class="section-title">存證信函自訂欄位</div>
+          
+          <div style="display: flex; gap: 8px;">
+            <div class="field-group" style="flex: 1;">
+              <label>發函年 (民國)</label>
+              <input type="text" id="cert-year" value="１１５" oninput="updateCertDoc()">
+            </div>
+            <div class="field-group" style="flex: 1;">
+              <label>發函月</label>
+              <input type="text" id="cert-month" value="０９" oninput="updateCertDoc()">
+            </div>
+            <div class="field-group" style="flex: 1;">
+              <label>發函日</label>
+              <input type="text" id="cert-day" value="１１" oninput="updateCertDoc()">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>欠款期間</label>
+            <input type="text" id="cert-period" value="１１５年５月份至１１５年７月份" oninput="updateCertDoc()">
+          </div>
+
+          <div class="field-group">
+            <label>姓名 (公司名稱)</label>
+            <input type="text" id="cert-receiver-name" value="虹寬國際家具有限公司" oninput="updateCertDoc()">
+          </div>
+
+          <div class="field-group">
+            <label>代表人</label>
+            <input type="text" id="cert-receiver-boss" value="江慶寬" oninput="updateCertDoc()">
+          </div>
+
+          <div class="field-group">
+            <label>詳細地址</label>
+            <input type="text" id="cert-receiver-addr" value="新北市板橋區僑中一街124巷72之2號" oninput="updateCertDoc()">
+          </div>
+
+          <div class="field-group">
+            <label>已出帳未繳納金額</label>
+            <input type="text" id="cert-debt-amount" value="１５６００" oninput="updateCertDoc()">
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <div class="field-group" style="flex: 1;">
+              <label>合約第伍條第幾項</label>
+              <input type="text" id="cert-clause" value="第六項" oninput="updateCertDoc()">
+            </div>
+            <div class="field-group" style="flex: 1;">
+              <label>滿額費用</label>
+              <input type="text" id="cert-full-amount" value="１４６１２０" oninput="updateCertDoc()">
+            </div>
+          </div>
+
+          <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="window.print()">🖨️ 列印存證信函</button>
+        </div>
+
+        <!-- 右側：完全還原虹寬存證信函格式 -->
+        <div class="preview-pane">
+          <div class="preview-toolbar no-print">
+            <span style="font-weight: 700; font-size: 15px;">✉️ 郵局存證信函 1:1 預覽</span>
+            <button class="action-btn-export" style="background:#059669;" onclick="window.print()">🖨️ 列印</button>
+          </div>
+
+          <div class="cert-sheet">
+            <div class="cert-title-doc">存證信函格式</div>
+
+            <div class="cert-header-box">
+              <div class="cert-stamp-1">騎縫郵戳</div>
+              <div class="cert-stamp-2">郵 票 或<br>郵 資 券<br><br>黏<br><br>貼<br><br>處</div>
+              <div class="cert-fee">
+                本存證信函共&nbsp;&nbsp;&nbsp;&nbsp;頁，正本&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
+                副本&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
+                附件&nbsp;&nbsp;&nbsp;&nbsp;張，存證費&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
+                加具副本&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;元，合計&nbsp;&nbsp;&nbsp;&nbsp;元。<br>
+                經&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;郵局<br>
+                年&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;日證明&nbsp;&nbsp;本內容完全相同&nbsp;&nbsp;印<br><br>
+                經辦員&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;主管<br><br>
+                郵戳<br>
+                正<br>
+                副
+              </div>
+            </div>
+
+            <div class="cert-memo">
+              一、存證信函需送交郵局辦理證明手續後始有效，自交寄之日起由郵局保存之副本，於三年期滿後銷燬之。<br>
+              二、在&nbsp;&nbsp;&nbsp;&nbsp;頁&nbsp;&nbsp;行第&nbsp;&nbsp;格下&nbsp;&nbsp;塗改/增刪&nbsp;&nbsp;字&nbsp;&nbsp;印（如有修改應填註本欄並蓋用寄件人印章，但塗改增刪每頁至多不得逾二十字）。<br>
+              三、每件一式三份，用不脫色筆或打字機複寫，或書寫後複印、影印，每格限書一字，色澤明顯、字跡端正。<br>
+              <b>備&nbsp;&nbsp;註&nbsp;&nbsp;存證信函第&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;號&nbsp;&nbsp;&nbsp;&nbsp;郵&nbsp;&nbsp;局</b>
+            </div>
+
+            <table class="cert-info-table">
+              <tr>
+                <td colspan="2" style="font-size:12px; border-bottom:none; padding-bottom:2px;">
+                  〈寄件人如為機關、團體、學校、公司、商號請加蓋單位圖章及法定代理人簽名或蓋章〉
+                </td>
+              </tr>
+              <tr>
+                <td class="cert-info-label">一、寄件人</td>
+                <td>
+                  姓&nbsp;&nbsp;名：搜博科技股份有限公司&nbsp;&nbsp;印<br>
+                  代&nbsp;表&nbsp;人：陳智國<br>
+                  詳細地址：新北市中和區中正路866號17樓
+                </td>
+              </tr>
+              <tr>
+                <td class="cert-info-label">二、收件人</td>
+                <td>
+                  姓&nbsp;&nbsp;名：<span id="disp-cert-name">虹寬國際家具有限公司</span><br>
+                  代&nbsp;表&nbsp;人：<span id="disp-cert-boss">江慶寬</span><br>
+                  詳細地址：<span id="disp-cert-addr">新北市板橋區僑中一街124巷72之2號</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="cert-info-label">三、副&nbsp;&nbsp;本<br>(收件人)</td>
+                <td>
+                  姓&nbsp;&nbsp;名：<br>
+                  詳細地址：
+                </td>
+              </tr>
+            </table>
+
+            <div class="cert-paper-title">郵局存證信函用紙</div>
+            <div class="cert-seam">騎縫郵戳</div>
+
+            <div class="cert-body">
+              <p><b>敬啟者：</b></p>
+              <p id="disp-cert-p1">
+                一、貴司民國１１５年５月份至１１５年７月份貨款共計新台幣１５６００元整尚未支付，經我司多次催繳貴司仍無回應，我司要求貴司依合約第壹條第三項應即刻匯款或支付即期支票共計新台幣１５６００元整，請於文到五日內完成支付動作。
+              </p>
+              <p id="disp-cert-p2">
+                二、依雙方簽訂之合約第壹條第三項載明之指定關鍵字，服務起算後，各組關鍵字凡符合本條選項之內容，乙方得向甲方請領該組關鍵字費用。如貴司於文到後五日內仍未完成支付動作，我司得依合約第伍條第六項，一次性請領剩餘期間之滿額費用共計新台幣１４６１２０元整。
+              </p>
+              <p id="disp-cert-p3">
+                三、我司為維持與客戶之和諧關係已盡力溝通，唯等待多日貴司仍無匯款，將依法提出民事訴訟，並加計拖延期間利息及訴訟費用。
+              </p>
+              
+              <div class="cert-sign">
+                搜博科技股份有限公司<br>
+                民國<span id="disp-cert-year">１１５</span>年<span id="disp-cert-month">０９</span>月<span id="disp-cert-day">１１</span>日
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 佔位通用頁 -->
     <div id="view-placeholder" class="tool-panel" style="display: none;">
       <div class="back-btn" onclick="switchView('home')">← 返回作業列表</div>
@@ -420,25 +600,23 @@
       updatePreviewOnly();
     }
 
-    // 記住目前所在頁面，避免重新整理後跳回首頁。
     const CURRENT_VIEW_KEY = 'admin-current-view';
     const CURRENT_VIEW_TITLE_KEY = 'admin-current-view-title';
 
     // 視圖切換
     function switchView(viewName, title = '') {
-      // 每次切換頁面都記錄目前位置。
-      // localStorage 會保留在瀏覽器中，因此 F5 / Ctrl+F5 / Live Server 重整後仍可回到原頁面。
       try {
         localStorage.setItem(CURRENT_VIEW_KEY, viewName);
         localStorage.setItem(CURRENT_VIEW_TITLE_KEY, title || '');
       } catch (error) {
-        // 若瀏覽器停用 localStorage，仍維持原本切頁功能，不阻斷操作。
         console.warn('無法儲存目前頁面狀態：', error);
       }
 
       document.getElementById('view-home').style.display = viewName === 'home' ? 'grid' : 'none';
       document.getElementById('view-tool-seo').style.display = viewName === 'tool-seo' ? 'block' : 'none';
       document.getElementById('view-tool-seal').style.display = viewName === 'tool-seal' ? 'block' : 'none';
+      document.getElementById('view-tool-legal').style.display = viewName === 'tool-legal' ? 'block' : 'none';
+      document.getElementById('view-cert-editor').style.display = viewName === 'cert-editor' ? 'block' : 'none';
       document.getElementById('view-placeholder').style.display = viewName === 'placeholder' ? 'block' : 'none';
 
       const navItems = document.querySelectorAll('.nav-item');
@@ -446,7 +624,7 @@
       if (viewName === 'home') navItems[0].classList.add('active');
       else if (viewName === 'tool-seo') navItems[1].classList.add('active');
       else if (viewName === 'tool-seal') navItems[2].classList.add('active');
-      else navItems[3].classList.add('active');
+      else if (viewName === 'tool-legal' || viewName === 'cert-editor') navItems[3].classList.add('active');
 
       const titleElem = document.getElementById('view-title');
       const subElem = document.getElementById('view-subtitle');
@@ -460,16 +638,18 @@
         titleElem.textContent = '用印單即時作業';
         subElem.textContent = '搜博專用格式填報，自動連動文件名稱與事由';
         onSyncChange();
-      } else {
-        titleElem.textContent = title;
-        subElem.textContent = '功能模組';
-        document.getElementById('placeholder-title').textContent = title;
+      } else if (viewName === 'tool-legal') {
+        titleElem.textContent = '法務作業項目';
+        subElem.textContent = '存證信函、支付命令與相關法律文件管理';
+      } else if (viewName === 'cert-editor') {
+        titleElem.textContent = '存證信函製作作業';
+        subElem.textContent = '1:1 復刻郵局格式，支援自訂欄位連動與列印';
+        updateCertDoc();
       }
     }
 
-    // 頁面載入完成後，回到重新整理前所在的功能頁。
     function restoreCurrentView() {
-      const allowedViews = ['home', 'tool-seo', 'tool-seal', 'placeholder'];
+      const allowedViews = ['home', 'tool-seo', 'tool-seal', 'tool-legal', 'cert-editor', 'placeholder'];
       let savedView = 'home';
       let savedTitle = '';
 
@@ -480,7 +660,6 @@
         console.warn('無法讀取目前頁面狀態：', error);
       }
 
-      // 防止 localStorage 中有舊版或異常值。
       if (!allowedViews.includes(savedView)) {
         savedView = 'home';
       }
@@ -488,10 +667,9 @@
       switchView(savedView, savedTitle);
     }
 
-    // 目前 script 放在 body 最下方，DOM 已建立完成，可以直接還原頁面。
     restoreCurrentView();
 
-    // 更新預覽文字
+    // 更新用印單預覽文字
     function updatePreviewOnly() {
       const docName = document.getElementById('input-doc-name').value;
       const purpose = document.getElementById('input-purpose').value;
@@ -500,14 +678,12 @@
       document.getElementById('prev-doc-name').textContent = docName;
       document.getElementById('prev-purpose').textContent = purpose;
 
-      // 轉換民國年
       if (dateVal) {
         const parts = dateVal.split('-');
         const rocYear = parseInt(parts[0], 10) - 1911;
         document.getElementById('prev-date-roc').textContent = `${rocYear} 年 ${parts[1]} 月 ${parts[2]} 日`;
       }
 
-      // 印信別勾選呈現
       const selectedType = document.querySelector('input[name="seal-type"]:checked').value;
       const checkedClass = (num) => selectedType.includes(num) ? 'doc-check checked' : 'doc-check';
 
@@ -519,11 +695,40 @@
       `;
     }
 
-    // Word 匯出時使用的 Logo.jpg 備援資料。
-    // 預覽仍直接讀取 ./Logo.jpg；這份 Base64 只用於把預覽畫面轉成圖片，避免 file:// 的 Canvas CORS 限制。
-    const SOBER_LOGO_DATA_URL = 'data:image/jpeg;base64,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';
+    // 存證信函半形轉全形工具
+    function toFull(val) {
+      return String(val || '').replace(/[0-9]/g, function(s) {
+        return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
+      });
+    }
 
-    // 等待預覽中的圖片載入完成，避免下載 Word 時 Logo 尚未出現。
+    // 更新存證信函內容 (與原始 doc 100% 一模一樣)
+    function updateCertDoc() {
+      const year = toFull(document.getElementById('cert-year').value);
+      const month = toFull(document.getElementById('cert-month').value);
+      const day = toFull(document.getElementById('cert-day').value);
+      const period = toFull(document.getElementById('cert-period').value);
+      const rName = document.getElementById('cert-receiver-name').value;
+      const rBoss = document.getElementById('cert-receiver-boss').value;
+      const rAddr = document.getElementById('cert-receiver-addr').value;
+      const debt = toFull(document.getElementById('cert-debt-amount').value);
+      const clause = document.getElementById('cert-clause').value;
+      const fullAmt = toFull(document.getElementById('cert-full-amount').value);
+
+      document.getElementById('disp-cert-name').innerText = rName;
+      document.getElementById('disp-cert-boss').innerText = rBoss;
+      document.getElementById('disp-cert-addr').innerText = rAddr;
+
+      document.getElementById('disp-cert-p1').innerText = `一、貴司民國${period}貨款共計新台幣${debt}元整尚未支付，經我司多次催繳貴司仍無回應，我司要求貴司依合約第壹條第三項應即刻匯款或支付即期支票共計新台幣${debt}元整，請於文到五日內完成支付動作。`;
+      document.getElementById('disp-cert-p2').innerText = `二、依雙方簽訂之合約第壹條第三項載明之指定關鍵字，服務起算後，各組關鍵字凡符合本條選項之內容，乙方得向甲方請領該組關鍵字費用。如貴司於文到後五日內仍未完成支付動作，我司得依合約第伍條${clause}，一次性請領剩餘期間之滿額費用共計新台幣${fullAmt}元整。`;
+      
+      document.getElementById('disp-cert-year').innerText = year;
+      document.getElementById('disp-cert-month').innerText = month;
+      document.getElementById('disp-cert-day').innerText = day;
+    }
+
+    const SOBER_LOGO_DATA_URL = 'data:image/jpeg;base64,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';
+
     async function waitForPreviewImages(root) {
       const images = [...root.querySelectorAll('img')];
       await Promise.all(images.map(img => {
@@ -535,8 +740,6 @@
       }));
     }
 
-    // 把 #print-area 依照瀏覽器目前實際排版轉成 PNG。
-    // 使用本機 html2canvas，避免 Word 自己重新排版造成預覽與下載結果不同。
     async function renderPreviewToPng(element) {
       if (typeof html2canvas !== 'function') {
         throw new Error('html2canvas 未載入，請確認 html2canvas.min.js 與 index.html 位於同一資料夾。');
@@ -546,8 +749,6 @@
       const width = Math.ceil(rect.width);
       const height = Math.ceil(element.scrollHeight);
 
-      // 複製目前真正的預覽 DOM，並放到畫面外側。
-      // 因為 clone 仍掛在同一份頁面裡，所以會吃到完全相同的 CSS。
       const wrapper = document.createElement('div');
       wrapper.style.position = 'fixed';
       wrapper.style.left = '-100000px';
@@ -563,7 +764,6 @@
       clone.style.maxWidth = `${width}px`;
       clone.style.minHeight = `${height}px`;
 
-      // 匯出用 clone 改成內嵌同一張 Logo.jpg，避免 file:// 開啟時產生圖片跨來源限制。
       const clonedLogo = clone.querySelector('#sober-header-logo');
       if (clonedLogo) {
         clonedLogo.setAttribute('src', SOBER_LOGO_DATA_URL);
@@ -599,8 +799,6 @@
       }
     }
 
-    // 下載 PDF：直接把目前右側預覽截成高解析 PNG，再完整放進 A4 PDF。
-    // PDF 不會像 Word 一樣重新排版，因此 Logo、表格、文字位置會保持一致。
     async function downloadPdf() {
       const button = document.getElementById('btn-download-pdf');
       const originalText = button.textContent;
@@ -609,12 +807,10 @@
         button.disabled = true;
         button.textContent = '產生 PDF 中...';
 
-        // jsPDF 使用 UMD 版本，會掛在 window.jspdf。
         if (!window.jspdf || typeof window.jspdf.jsPDF !== 'function') {
           throw new Error('jsPDF 未載入，請確認 jspdf.umd.min.js 與 index.html 位於同一資料夾。');
         }
 
-        // 確保下載內容就是目前預覽畫面上的最新資料。
         updatePreviewOnly();
 
         const printArea = document.getElementById('print-area');
@@ -623,7 +819,6 @@
 
         const { jsPDF } = window.jspdf;
 
-        // 建立 A4 直式 PDF，尺寸單位使用 mm，比較容易理解。
         const pdf = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',
@@ -631,11 +826,9 @@
           compress: true
         });
 
-        const pageWidth = pdf.internal.pageSize.getWidth();   // 約 210 mm
-        const pageHeight = pdf.internal.pageSize.getHeight(); // 約 297 mm
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
 
-        // PDF 四周保留 8mm 安全邊界。
-        // 預覽圖依原始比例等比例縮放，不會被拉長或壓扁。
         const margin = 8;
         const maxWidth = pageWidth - margin * 2;
         const maxHeight = pageHeight - margin * 2;
@@ -649,11 +842,9 @@
           imageWidth = imageHeight * imageRatio;
         }
 
-        // 水平、垂直置中。
         const x = (pageWidth - imageWidth) / 2;
         const y = (pageHeight - imageHeight) / 2;
 
-        // 使用 PNG，避免 JPG 壓縮讓細表格線或中文字變糊。
         pdf.addImage(
           preview.dataUrl,
           'PNG',
@@ -665,7 +856,6 @@
           'FAST'
         );
 
-        // 下載檔名固定為「搜創-用印單.pdf」。
         pdf.save('搜創-用印單.pdf');
       } catch (error) {
         console.error(error);
@@ -676,20 +866,16 @@
       }
     }
 
-    // 將 Data URL 轉成二進位資料，供 DOCX 內嵌圖片使用。
     function dataUrlToUint8Array(dataUrl) {
       const base64 = dataUrl.split(',')[1];
       const binary = atob(base64);
       const bytes = new Uint8Array(binary.length);
-
       for (let i = 0; i < binary.length; i++) {
         bytes[i] = binary.charCodeAt(i);
       }
-
       return bytes;
     }
 
-    // XML 特殊字元跳脫，避免使用者輸入內容破壞 Word OOXML。
     function escapeXml(value) {
       return String(value ?? '')
         .replace(/&/g, '&amp;')
@@ -699,14 +885,8 @@
         .replace(/'/g, '&apos;');
     }
 
-    // 建立 Word 文字 Runs。換行會轉成真正的 Word 換行，文字仍可編輯。
     function createWordRuns(text, options = {}) {
-      const {
-        bold = false,
-        size = 21,
-        characterSpacing = 0
-      } = options;
-
+      const { bold = false, size = 21, characterSpacing = 0 } = options;
       const runProperties = `
         <w:rPr>
           <w:rFonts w:ascii="DFKai-SB" w:hAnsi="DFKai-SB" w:eastAsia="標楷體"/>
@@ -725,18 +905,8 @@
         </w:r>`).join('');
     }
 
-    // 建立 Word 段落。
     function createWordParagraph(text, options = {}) {
-      const {
-        align = 'left',
-        bold = false,
-        size = 21,
-        before = 0,
-        after = 0,
-        line = 240,
-        characterSpacing = 0
-      } = options;
-
+      const { align = 'left', bold = false, size = 21, before = 0, after = 0, line = 240, characterSpacing = 0 } = options;
       return `
         <w:p>
           <w:pPr>
@@ -747,7 +917,6 @@
         </w:p>`;
     }
 
-    // 產生儲存格邊框 XML。
     function createCellBorders(borders = {}) {
       const sides = ['top', 'left', 'bottom', 'right'];
       const parts = sides.map(side => {
@@ -757,27 +926,12 @@
         const size = typeof value === 'number' ? value : 6;
         return `<w:${side} w:val="single" w:sz="${size}" w:space="0" w:color="000000"/>`;
       }).join('');
-
       return parts ? `<w:tcBorders>${parts}</w:tcBorders>` : '';
     }
 
-    // 建立 Word 表格儲存格。內容可以是段落或巢狀表格，全部都是真正 Word 物件。
     function createWordCell(contentXml, options = {}) {
-      const {
-        width,
-        gridSpan = 1,
-        vMerge = '',
-        vAlign = 'center',
-        margins = { top: 90, right: 120, bottom: 90, left: 120 },
-        borders = {}
-      } = options;
-
-      const mergeXml = vMerge === 'restart'
-        ? '<w:vMerge w:val="restart"/>'
-        : vMerge === 'continue'
-          ? '<w:vMerge/>'
-          : '';
-
+      const { width, gridSpan = 1, vMerge = '', vAlign = 'center', margins = { top: 90, right: 120, bottom: 90, left: 120 }, borders = {} } = options;
+      const mergeXml = vMerge === 'restart' ? '<w:vMerge w:val="restart"/>' : vMerge === 'continue' ? '<w:vMerge/>' : '';
       return `
         <w:tc>
           <w:tcPr>
@@ -797,7 +951,6 @@
         </w:tc>`;
     }
 
-    // 建立 Word 表格列，使用 exact 固定高度，盡量貼近瀏覽器預覽。
     function createWordRow(cellsXml, height = 0) {
       return `
         <w:tr>
@@ -806,13 +959,8 @@
         </w:tr>`;
     }
 
-    // 建立 Word 表格。
     function createWordTable(rowsXml, gridColumns, width, options = {}) {
-      const {
-        outerBorder = 0,
-        insideBorder = 0
-      } = options;
-
+      const { outerBorder = 0, insideBorder = 0 } = options;
       const tableBorders = outerBorder || insideBorder
         ? `<w:tblBorders>
             <w:top w:val="single" w:sz="${outerBorder || insideBorder}" w:space="0" w:color="000000"/>
@@ -847,7 +995,6 @@
         </w:tbl>`;
     }
 
-    // CRC32：DOCX 本質上是 ZIP，ZIP 每個檔案都需要 CRC32。
     const WORD_ZIP_CRC32_TABLE = (() => {
       const table = new Uint32Array(256);
       for (let n = 0; n < 256; n++) {
@@ -868,7 +1015,6 @@
       return (crc ^ 0xFFFFFFFF) >>> 0;
     }
 
-    // 將多個 Uint8Array 串成一個 Uint8Array。
     function concatBytes(parts) {
       const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
       const result = new Uint8Array(totalLength);
@@ -880,7 +1026,6 @@
       return result;
     }
 
-    // ZIP 使用 DOS 日期時間欄位。
     function getZipDosDateTime(date = new Date()) {
       const year = Math.max(1980, date.getFullYear());
       const dosTime = ((date.getHours() & 0x1F) << 11)
@@ -892,8 +1037,6 @@
       return { dosTime, dosDate };
     }
 
-    // 原生建立「不壓縮 STORE」ZIP。
-    // DOCX 不要求一定要 DEFLATE；STORE 仍是合法 ZIP，而且可避免 JSZip 在目前瀏覽器環境卡住。
     function buildStoredZip(entries) {
       const encoder = new TextEncoder();
       const localParts = [];
@@ -906,13 +1049,12 @@
         const dataBytes = typeof entry.data === 'string' ? encoder.encode(entry.data) : entry.data;
         const checksum = crc32(dataBytes);
 
-        // Local file header：30 bytes + UTF-8 filename + data。
         const localHeader = new Uint8Array(30);
         const localView = new DataView(localHeader.buffer);
         localView.setUint32(0, 0x04034B50, true);
-        localView.setUint16(4, 20, true);       // version needed
-        localView.setUint16(6, 0x0800, true);  // UTF-8 filename
-        localView.setUint16(8, 0, true);       // STORE / no compression
+        localView.setUint16(4, 20, true);
+        localView.setUint16(6, 0x0800, true);
+        localView.setUint16(8, 0, true);
         localView.setUint16(10, dosTime, true);
         localView.setUint16(12, dosDate, true);
         localView.setUint32(14, checksum, true);
@@ -923,25 +1065,24 @@
 
         localParts.push(localHeader, nameBytes, dataBytes);
 
-        // Central directory header：46 bytes + UTF-8 filename。
         const centralHeader = new Uint8Array(46);
         const centralView = new DataView(centralHeader.buffer);
         centralView.setUint32(0, 0x02014B50, true);
-        centralView.setUint16(4, 20, true);       // version made by
-        centralView.setUint16(6, 20, true);       // version needed
-        centralView.setUint16(8, 0x0800, true);   // UTF-8 filename
-        centralView.setUint16(10, 0, true);       // STORE
+        centralView.setUint16(4, 20, true);
+        centralView.setUint16(6, 20, true);
+        centralView.setUint16(8, 0x0800, true);
+        centralView.setUint16(10, 0, true);
         centralView.setUint16(12, dosTime, true);
         centralView.setUint16(14, dosDate, true);
         centralView.setUint32(16, checksum, true);
         centralView.setUint32(20, dataBytes.length, true);
         centralView.setUint32(24, dataBytes.length, true);
         centralView.setUint16(28, nameBytes.length, true);
-        centralView.setUint16(30, 0, true);        // extra length
-        centralView.setUint16(32, 0, true);        // comment length
-        centralView.setUint16(34, 0, true);        // disk number
-        centralView.setUint16(36, 0, true);        // internal attrs
-        centralView.setUint32(38, 0, true);        // external attrs
+        centralView.setUint16(30, 0, true);
+        centralView.setUint16(32, 0, true);
+        centralView.setUint16(34, 0, true);
+        centralView.setUint16(36, 0, true);
+        centralView.setUint32(38, 0, true);
         centralView.setUint32(42, localOffset, true);
         centralParts.push(centralHeader, nameBytes);
 
@@ -951,7 +1092,6 @@
       const localBytes = concatBytes(localParts);
       const centralBytes = concatBytes(centralParts);
 
-      // End of central directory。
       const end = new Uint8Array(22);
       const endView = new DataView(end.buffer);
       endView.setUint32(0, 0x06054B50, true);
@@ -966,7 +1106,6 @@
       return concatBytes([localBytes, centralBytes, end]);
     }
 
-    // 匯出「可編輯」Word：Logo 是圖片物件、文字是 Word 文字、表格是 Word 表格。
     async function downloadWordDoc() {
       const button = document.getElementById('btn-download-word');
       const originalText = button.textContent;
@@ -982,27 +1121,22 @@
         const dateText = document.getElementById('prev-date-roc').textContent.trim();
         const selectedType = document.querySelector('input[name="seal-type"]:checked')?.value || '';
 
-        // Word 使用與預覽相同的 Logo.jpg，但在 DOCX 中是獨立可調整的圖片物件。
         const logoElement = document.getElementById('sober-header-logo');
         await waitForPreviewImages(document.getElementById('print-area'));
         const logoBytes = dataUrlToUint8Array(SOBER_LOGO_DATA_URL);
         const logoNaturalWidth = logoElement.naturalWidth || 548;
         const logoNaturalHeight = logoElement.naturalHeight || 49;
 
-        // A4 直式：頁面 11906 × 16838 twips，四周 720 twips（0.5 inch）邊界。
-        // 這個比例接近目前 740px 紙張 + 45px 左右 padding 的預覽設定。
         const pageWidth = 11906;
         const pageHeight = 16838;
         const pageMargin = 720;
-        const contentWidth = pageWidth - pageMargin * 2; // 10466 twips
-        const leftColumn = 2093;  // 約 20%
+        const contentWidth = pageWidth - pageMargin * 2;
+        const leftColumn = 2093;
         const rightColumn = contentWidth - leftColumn;
 
-        // Logo 寬度等於文件內容寬度，保留原始長寬比。
         const logoWidthEmu = contentWidth * 635;
         const logoHeightEmu = Math.round(logoWidthEmu * logoNaturalHeight / logoNaturalWidth);
 
-        // 用印方式內層表格。
         const methodChoiceWidth = Math.round(rightColumn * 0.22);
         const methodDetailWidth = rightColumn - methodChoiceWidth;
         const methodRows = [
@@ -1044,28 +1178,17 @@
             })
           ], 450)
         ];
-        const methodTable = createWordTable(
-          methodRows,
-          [methodChoiceWidth, methodDetailWidth],
-          rightColumn,
-          { outerBorder: 0, insideBorder: 0 }
-        );
+        const methodTable = createWordTable(methodRows, [methodChoiceWidth, methodDetailWidth], rightColumn, { outerBorder: 0, insideBorder: 0 });
 
-        // 使用印信別：以 Word 文字呈現，可直接修改。
         const mark = (num) => selectedType.includes(num) ? '■' : '□';
         const sealTypeText = `${mark('1')} 1. 公司印信   ${mark('2')} 2. 發文章   ${mark('3')} 3. 發票章   ${mark('4')} 4. 合約專用章`;
 
-        // 批示簽核表格欄寬，依預覽比例正規化成固定 Word 寬度。
         const matrixColumns = [1550, 1550, 1550, 1550, 1550, 388, 388, 388, 388, 388, 776];
         const matrixWidth = matrixColumns.reduce((sum, value) => sum + value, 0);
         const matrixHeader = ['批示/報備', '決行', '會辦', '主管', '經辦', 'S', 'F', 'G', 'T', 'P', ''];
 
         const matrixHeaderCells = matrixHeader.map((text, index) =>
-          createWordCell(createWordParagraph(text, {
-            align: 'center',
-            bold: index < 5,
-            size: index < 5 ? 19 : 18
-          }), {
+          createWordCell(createWordParagraph(text, { align: 'center', bold: index < 5, size: index < 5 ? 19 : 18 }), {
             width: matrixColumns[index],
             margins: { top: 35, right: 20, bottom: 35, left: 20 }
           })
@@ -1123,14 +1246,8 @@
           ], 375)
         ];
 
-        const matrixTable = createWordTable(
-          matrixRows,
-          matrixColumns,
-          matrixWidth,
-          { outerBorder: 6, insideBorder: 6 }
-        );
+        const matrixTable = createWordTable(matrixRows, matrixColumns, matrixWidth, { outerBorder: 6, insideBorder: 6 });
 
-        // 主申請表格。
         const mainRows = [
           createWordRow([
             createWordCell(createWordParagraph('文件名稱', { align: 'center', size: 21, characterSpacing: 30 }), {
@@ -1183,12 +1300,7 @@
           ])
         ];
 
-        const mainTable = createWordTable(
-          mainRows,
-          [leftColumn, rightColumn],
-          contentWidth,
-          { outerBorder: 12, insideBorder: 6 }
-        );
+        const mainTable = createWordTable(mainRows, [leftColumn, rightColumn], contentWidth, { outerBorder: 12, insideBorder: 6 });
 
         const logoParagraph = `
           <w:p>
@@ -1201,12 +1313,12 @@
                 <wp:inline distT="0" distB="0" distL="0" distR="0">
                   <wp:extent cx="${logoWidthEmu}" cy="${logoHeightEmu}"/>
                   <wp:effectExtent l="0" t="0" r="0" b="0"/>
-                  <wp:docPr id="1" name="Logo.jpg" descr="搜博科技股份有限公司 Logo"/>
+                  <wp:docPr id="1" name="logo.jpg" descr="搜博科技股份有限公司 Logo"/>
                   <wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr>
                   <a:graphic>
                     <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
                       <pic:pic>
-                        <pic:nvPicPr><pic:cNvPr id="0" name="Logo.jpg"/><pic:cNvPicPr/></pic:nvPicPr>
+                        <pic:nvPicPr><pic:cNvPr id="0" name="logo.jpg"/><pic:cNvPicPr/></pic:nvPicPr>
                         <pic:blipFill>
                           <a:blip r:embed="rId1"/>
                           <a:stretch><a:fillRect/></a:stretch>
@@ -1243,7 +1355,6 @@
   </w:body>
 </w:document>`;
 
-        // DOCX 套件內容：所有文字與表格都在 document.xml，只有 Logo 是獨立圖片物件。
         const contentTypesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
@@ -1263,7 +1374,7 @@
 
         const documentRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/Logo.jpg"/>
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/logo.jpg"/>
 </Relationships>`;
 
         const nowIso = new Date().toISOString();
@@ -1292,7 +1403,7 @@
           { name: '_rels/.rels', data: rootRelsXml },
           { name: 'word/document.xml', data: documentXml },
           { name: 'word/_rels/document.xml.rels', data: documentRelsXml },
-          { name: 'word/media/Logo.jpg', data: logoBytes },
+          { name: 'word/media/logo.jpg', data: logoBytes },
           { name: 'docProps/core.xml', data: coreXml },
           { name: 'docProps/app.xml', data: appXml }
         ]);
@@ -1318,7 +1429,7 @@
       }
     }
 
-    // 關鍵字過濾邏輯（去除英文字母）
+    // 關鍵字過濾邏輯
     function runFilter() {
       const text = document.getElementById('raw-input').value;
       const targetDay = parseInt(document.getElementById('day-select').value, 10);

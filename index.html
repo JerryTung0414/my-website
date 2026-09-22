@@ -39,46 +39,28 @@
     .back-btn { display: inline-flex; align-items: center; gap: 6px; color: #64748b; text-decoration: none; font-size: 13px; margin-bottom: 16px; cursor: pointer; font-weight: 500; }
     .back-btn:hover { color: #1c64f2; }
 
-    /* 左右雙欄佈局 */
-    .split-container { display: flex; gap: 20px; align-items: flex-start; }
-    .editor-pane { width: 340px; flex-shrink: 0; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); }
-    .section-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
-    .field-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
-    .field-group label { font-size: 12px; font-weight: 600; color: #475569; }
-    .field-group input, .field-group select { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 13px; color: #334155; }
-
-    /* 右側預覽 */
-    .preview-pane { flex: 1; background: #cbd5e1; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; min-height: 850px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); overflow-x: auto; }
-    .preview-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-
-    /* 100% 原始存證信函格式 */
-    .doc-page {
-      background: #fff;
-      margin: 0 auto;
-      width: 790px;
-      padding: 40px;
-      color: #000;
-      font-family: "PMingLiU", "MingLiU", "新細明體", serif;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    /* 存證信函抓取容器 */
+    .cert-container { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 950px; }
+    .cert-toolbar {
+      background: #fff; padding: 14px 20px; border-radius: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
-    
-    .doc-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; }
-    .doc-table td { border: 1px solid #000; }
-    
-    /* 九宮格 */
-    .grid-table { width: 100%; border-collapse: collapse; border: 2px solid #000; text-align: center; }
-    .grid-table th, .grid-table td { border: 1px solid #000; padding: 0; }
-    .grid-table th { font-weight: normal; font-size: 12px; height: 26px; }
-    .col-row-head { width: 34px; font-size: 13px; }
-    .grid-table td { width: 36px; height: 36px; font-size: 16px; color: #000; }
+    .cert-frame-wrapper {
+      background: #fff; border-radius: 12px; padding: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      min-height: 1100px;
+    }
+    #cert-frame {
+      width: 100%; height: 1200px; border: none; display: block;
+    }
 
     @media print {
       body { background: #fff !important; }
-      .sidebar, .top-header, .editor-pane, .preview-toolbar, .back-btn, .no-print { display: none !important; }
+      .sidebar, .top-header, .cert-toolbar, .back-btn, .no-print { display: none !important; }
       .main { padding: 0 !important; }
-      .split-container { display: block !important; }
-      .preview-pane { padding: 0 !important; background: transparent !important; box-shadow: none !important; }
-      .doc-page { box-shadow: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; }
+      .cert-container { max-width: 100% !important; }
+      .cert-frame-wrapper { padding: 0 !important; box-shadow: none !important; }
     }
   </style>
 </head>
@@ -110,6 +92,7 @@
       </div>
     </div>
 
+    <!-- 首頁總覽 -->
     <div id="view-home" class="cards-grid">
       <div class="card locked">
         <div>
@@ -139,6 +122,7 @@
       </div>
     </div>
 
+    <!-- 法務作業目錄 -->
     <div id="view-tool-legal" style="display: none;">
       <div class="back-btn" onclick="switchView('home')">← 返回作業列表</div>
       <div class="cards-grid">
@@ -146,7 +130,7 @@
           <div>
             <div class="card-icon">✉️</div>
             <div class="card-title">存證信函</div>
-            <div class="card-desc">100% 完美還原官方存證信函格式（精準重現排版、間距與 20×10 實心黑線格），支援五間公司切換與連動列印。</div>
+            <div class="card-desc">直接讀取原始 Word 網頁範本，100% 原始排版不跑版，點擊即可直接打字修改並列印。</div>
           </div>
           <button class="card-btn" onclick="switchView('cert-editor')">進入製作</button>
         </div>
@@ -161,175 +145,31 @@
       </div>
     </div>
 
+    <!-- 存證信函製作台 (直接讀取檔案 + 畫面可點擊修改) -->
     <div id="view-cert-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
       
-      <div class="split-container">
-        <!-- 左側輸入區 -->
-        <div class="editor-pane no-print">
-          <div class="section-title">存證信函內容填寫</div>
-          
-          <div class="field-group" style="background: #eff6ff; padding: 10px; border-radius: 8px; border: 1px solid #bfdbfe;">
-            <label style="color: #1d4ed8; font-weight: bold;">🏢 選擇發函公司</label>
-            <select id="cert-company-select" onchange="changeCompanyTemplate()">
-              <option value="so创" selected>搜創網路行銷有限公司</option>
-              <option value="so博">搜博科技股份有限公司</option>
-              <option value="so秀">搜秀網路行銷有限公司</option>
-              <option value="创思">創思影像有限公司</option>
-              <option value="马雅">馬雅科技有限公司</option>
+      <div class="cert-container">
+        <!-- 頂部工具列 -->
+        <div class="cert-toolbar no-print">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <label style="font-weight: 600; color: #1e293b;">🏢 選擇發函公司範本：</label>
+            <select id="cert-file-select" onchange="loadCertTemplate()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px;">
+              <option value="cert_sober.html">搜博科技股份有限公司</option>
+              <option value="cert_sochuang.html">搜創網路行銷有限公司</option>
+              <option value="cert_soshow.html">搜秀網路行銷有限公司</option>
+              <option value="cert_chuangsi.html">創思影像有限公司</option>
+              <option value="cert_maya.html">馬雅科技有限公司</option>
             </select>
+            <span style="font-size: 12px; color: #64748b;">💡 畫面上任何文字皆可「直接點擊打字修改」</span>
           </div>
 
-          <div style="display: flex; gap: 6px;">
-            <div class="field-group" style="flex: 1;">
-              <label>發函年 (民國)</label>
-              <input type="text" id="cert-year" value="１１５" oninput="renderCertGrid()">
-            </div>
-            <div class="field-group" style="flex: 1;">
-              <label>發函月</label>
-              <input type="text" id="cert-month" value="０９" oninput="renderCertGrid()">
-            </div>
-            <div class="field-group" style="flex: 1;">
-              <label>發函日</label>
-              <input type="text" id="cert-day" value="１１" oninput="renderCertGrid()">
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label>欠款期間</label>
-            <input type="text" id="cert-period" value="１１５年５月份至１１５年７月份" oninput="renderCertGrid()">
-          </div>
-
-          <div class="field-group">
-            <label>姓名 (公司名稱)</label>
-            <input type="text" id="cert-receiver-name" value="虹寬國際家具有限公司" oninput="renderCertGrid()">
-          </div>
-
-          <div class="field-group">
-            <label>代表人</label>
-            <input type="text" id="cert-receiver-boss" value="江慶寬" oninput="renderCertGrid()">
-          </div>
-
-          <div class="field-group">
-            <label>詳細地址</label>
-            <input type="text" id="cert-receiver-addr" value="新北市板橋區僑中一街124巷72之2號" oninput="renderCertGrid()">
-          </div>
-
-          <div class="field-group">
-            <label>已出帳未繳納金額</label>
-            <input type="text" id="cert-debt-amount" value="１５６００" oninput="renderCertGrid()">
-          </div>
-
-          <div style="display: flex; gap: 6px;">
-            <div class="field-group" style="flex: 1;">
-              <label>合約第伍條第幾項</label>
-              <input type="text" id="cert-clause" value="第六項" oninput="renderCertGrid()">
-            </div>
-            <div class="field-group" style="flex: 1;">
-              <label>滿額費用</label>
-              <input type="text" id="cert-full-amount" value="１４６１２０" oninput="renderCertGrid()">
-            </div>
-          </div>
-
-          <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="window.print()">🖨️ 列印存證信函 (轉存PDF)</button>
+          <button class="card-btn" style="background: #059669; padding: 6px 16px;" onclick="printCertFrame()">🖨️ 列印存證信函</button>
         </div>
 
-        <!-- 右側：100% 絕對還原附件 -->
-        <div class="preview-pane">
-          <div class="preview-toolbar no-print">
-            <span style="font-weight: 700; font-size: 15px;">✉️ 郵局存證信函用紙 預覽</span>
-            <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="window.print()">🖨️ 列印</button>
-          </div>
-
-          <div class="doc-page">
-            
-            <!-- 第一部分：頂部郵票及規費 -->
-            <table class="doc-table" style="margin-bottom: 4px;">
-              <tr>
-                <td style="width: 8%; text-align: center; font-size: 14px; padding: 10px; letter-spacing: 5px; writing-mode: vertical-lr;">騎縫郵戳</td>
-                <td style="width: 12%; text-align: center; font-size: 14px; padding: 10px; line-height: 1.5;">
-                  郵&nbsp;&nbsp;&nbsp;&nbsp;票&nbsp;&nbsp;&nbsp;&nbsp;或<br>
-                  郵&nbsp;&nbsp;&nbsp;&nbsp;資&nbsp;&nbsp;&nbsp;&nbsp;券<br>
-                  黏<br>貼<br>處
-                </td>
-                <td style="width: 70%; padding: 10px; font-size: 14px; line-height: 1.8;">
-                  本存證信函共&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;頁，正本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
-                  <span style="display:inline-block; width:135px;"></span>副本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
-                  <span style="display:inline-block; width:135px;"></span>附件&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;張，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
-                  <span style="display:inline-block; width:100px;"></span>加具正本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
-                  <span style="display:inline-block; width:100px;"></span>加具副本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，合計&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元。<br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;經&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;郵局<br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;日證明&nbsp;&nbsp;本內容完全相同&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;印<br>
-                  經辦員&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;主管
-                </td>
-                <td style="width: 10%; text-align: center; vertical-align: top; padding: 10px; font-size: 14px; line-height: 2;">
-                  郵戳<br><br>正<br><br>副<br><br>正
-                </td>
-              </tr>
-            </table>
-
-            <!-- 第二部分：備註說明 -->
-            <div style="border: 1.5px solid #000; border-top: none; padding: 8px 10px; font-size: 14px; line-height: 1.7; margin-bottom: 4px;">
-              一、存證信函需送交郵局辦理證明手續後始有效，自交寄之日起由郵局保存之副本，於三年期滿後銷燬之。<br>
-              二、在  頁  行第   格下  字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;印( )<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;每頁至多不得逾二十字。<br>
-              三、每件一式三份，用不脫色筆或打字機複寫，或書寫後複印、影印，每格限書一字，色澤明顯、字跡端正。<br>
-              <div style="display: flex; margin-top: 5px;">
-                <div style="width: 50px;">備註</div>
-                <div style="flex: 1; text-align: center;">存證信函第&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;號</div>
-                <div style="width: 100px; text-align: right;">郵&nbsp;&nbsp;局</div>
-              </div>
-            </div>
-
-            <!-- 第三部分：寄件人及收件人表格 -->
-            <table class="doc-table" style="border-top: none; margin-bottom: 8px;">
-              <tr>
-                <td colspan="2" style="padding: 5px; text-align: center; font-size: 13px;">
-                  〈寄件人如為機關、團體、學校、公司、商號請加蓋單位圖章及法定代理人簽名或蓋章〉
-                </td>
-              </tr>
-              <tr>
-                <td style="width: 15%; text-align: center; vertical-align: top; padding-top: 10px; font-size: 15px;">一、寄件人</td>
-                <td style="padding: 10px; font-size: 15px; line-height: 1.8;">
-                  &nbsp;&nbsp;&nbsp;&nbsp;姓&nbsp;&nbsp;&nbsp;&nbsp;名：<span id="disp-sender-name">搜創網路行銷有限公司</span>&nbsp;&nbsp;印<br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;代 表 人：<span id="disp-sender-boss">陳智國</span><br>
-                  &nbsp;&nbsp;詳細地址：<span id="disp-sender-addr">高雄市苓雅區新光路38號24樓之4</span><br>
-                  <div id="disp-sender-comm" style="display:block;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;通訊地址:新北市中和區中正路866號17樓(搜博科技)</div>
-                </td>
-              </tr>
-              <tr>
-                <td style="text-align: center; vertical-align: top; padding-top: 10px; font-size: 15px;">二、收件人</td>
-                <td style="padding: 10px; font-size: 15px; line-height: 1.8;">
-                  &nbsp;&nbsp;&nbsp;&nbsp;姓&nbsp;&nbsp;&nbsp;&nbsp;名：<span id="disp-rcv-name">虹寬國際家具有限公司</span><br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;代 表 人：<span id="disp-rcv-boss">江慶寬</span><br>
-                  詳細地址：<span id="disp-rcv-addr">新北市板橋區僑中一街124巷72之2號</span>
-                </td>
-              </tr>
-              <tr>
-                <td style="text-align: center; vertical-align: top; padding-top: 10px; font-size: 15px;">三、</td>
-                <td style="padding: 10px; font-size: 15px; line-height: 1.8;">
-                  &nbsp;&nbsp;&nbsp;&nbsp;姓名：<br>
-                  （本欄姓名、地址不敷填寫時，請另紙聯記）
-                </td>
-              </tr>
-            </table>
-
-            <!-- 第四部分：標題與騎縫郵戳 -->
-            <div style="display: flex; align-items: center; margin: 16px 0;">
-              <div style="width: 10%; font-size: 14px; text-align: left; line-height: 1.3;">正<br>副<br>本</div>
-              <div style="width: 80%; text-align: center; font-size: 20px; font-weight: bold; letter-spacing: 15px; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 10px 0;">
-                郵局存證信函用紙
-              </div>
-              <div style="width: 10%;"></div>
-            </div>
-            <div style="font-size: 14px; letter-spacing: 5px; margin-bottom: 8px;">騎縫郵戳</div>
-
-            <!-- 第五部分：20格x10行 黑框九宮格本體 -->
-            <table class="grid-table" id="certGridTable">
-              <!-- 由 JS 動態產生格線與文字 -->
-            </table>
-
-          </div>
+        <!-- 檔案展示區 (直接抓取 Word 輸出的 HTML，絕對不跑版) -->
+        <div class="cert-frame-wrapper">
+          <iframe id="cert-frame" src="cert_sober.html" onload="enableInlineEdit()"></iframe>
         </div>
       </div>
     </div>
@@ -367,8 +207,7 @@
         subElem.textContent = '存證信函、支付命令與相關法律文件管理';
       } else if (viewName === 'cert-editor') {
         titleElem.textContent = '存證信函製作作業';
-        subElem.textContent = '100% 絕對還原郵局 20格×10行 規格用紙';
-        changeCompanyTemplate();
+        subElem.textContent = '讀取 Word 原始檔案，點擊文字即可直接修改';
       }
     }
 
@@ -383,130 +222,31 @@
 
     restoreView();
 
-    // 依據附件還原的五間公司設定
-    const COMPANY_PROFILES = {
-      "so创": {
-        name: "搜創網路行銷有限公司",
-        boss: "陳智國",
-        addr: "高雄市苓雅區新光路38號24樓之4",
-        comm: "通訊地址:新北市中和區中正路866號17樓(搜博科技)"
-      },
-      "so博": {
-        name: "搜博科技股份有限公司",
-        boss: "陳智國",
-        addr: "新北市中和區中正路866號17樓",
-        comm: ""
-      },
-      "so秀": {
-        name: "搜秀網路行銷有限公司",
-        boss: "臺芳蘭",
-        addr: "新北市中和區中正路866號17樓",
-        comm: ""
-      },
-      "创思": {
-        name: "創思影像有限公司",
-        boss: "陳智國",
-        addr: "新北市中和區中正路866號17樓",
-        comm: ""
-      },
-      "马雅": {
-        name: "馬雅科技有限公司",
-        boss: "陳智國",
-        addr: "新北市中和區中正路866號17樓",
-        comm: ""
-      }
-    };
-
-    function changeCompanyTemplate() {
-      const selected = document.getElementById('cert-company-select').value;
-      const comp = COMPANY_PROFILES[selected] || COMPANY_PROFILES["so创"];
-
-      document.getElementById('disp-sender-name').innerText = comp.name;
-      document.getElementById('disp-sender-boss').innerText = comp.boss;
-      document.getElementById('disp-sender-addr').innerText = comp.addr;
-      
-      const commEl = document.getElementById('disp-sender-comm');
-      if (comp.comm) {
-        commEl.innerHTML = `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${comp.comm}`;
-        commEl.style.display = 'block';
-      } else {
-        commEl.innerHTML = '';
-        commEl.style.display = 'none';
-      }
-
-      renderCertGrid();
+    // 切換下拉選單時，自動抓取該公司檔案
+    function loadCertTemplate() {
+      const fileName = document.getElementById('cert-file-select').value;
+      const frame = document.getElementById('cert-frame');
+      frame.src = fileName;
     }
 
-    function toFull(val) {
-      return String(val || '').replace(/[0-9]/g, function(s) {
-        return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
-      });
+    // 檔案載入完成後，開啟「點擊文字直接打字」功能
+    function enableInlineEdit() {
+      try {
+        const frame = document.getElementById('cert-frame');
+        const doc = frame.contentDocument || frame.contentWindow.document;
+        if (doc) {
+          doc.designMode = 'on'; // 讓整個頁面像 Word 一樣可以直接打字
+        }
+      } catch (e) {
+        console.warn('無法啟用即時打字修改：', e);
+      }
     }
 
-    // 將段落依照 20 格切分並精確填入 20x10 黑框表格
-    function renderCertGrid() {
-      const selected = document.getElementById('cert-company-select').value;
-      const comp = COMPANY_PROFILES[selected] || COMPANY_PROFILES["so创"];
-
-      const year = toFull(document.getElementById('cert-year').value);
-      const month = toFull(document.getElementById('cert-month').value);
-      const day = toFull(document.getElementById('cert-day').value);
-      const period = toFull(document.getElementById('cert-period').value);
-      const rName = document.getElementById('cert-receiver-name').value;
-      const rBoss = document.getElementById('cert-receiver-boss').value;
-      const rAddr = document.getElementById('cert-receiver-addr').value;
-      const debt = toFull(document.getElementById('cert-debt-amount').value);
-      const clause = document.getElementById('cert-clause').value;
-      const fullAmt = toFull(document.getElementById('cert-full-amount').value);
-
-      document.getElementById('disp-rcv-name').innerText = rName;
-      document.getElementById('disp-rcv-boss').innerText = rBoss;
-      document.getElementById('disp-rcv-addr').innerText = rAddr;
-
-      const paragraphs = [
-        "敬啟者：",
-        `一、貴司民國${period}貨款共計新台幣${debt}元整尚未支付，經我司多次催繳貴司仍無回應，我司要求貴司依合約第壹條第三項應即刻匯款或支付即期支票共計新台幣${debt}元整，請於文到五日內完成支付動作。`,
-        `二、依雙方簽訂之合約第壹條第三項載明之指定關鍵字，服務起算後，各組關鍵字凡符合本條選項之內容，乙方得向甲方請領該組關鍵字費用。如貴司於文到後五日內仍未完成支付動作，我司得依合約第伍條${clause}，一次性請領剩餘期間之滿額費用共計新台幣${fullAmt}元整。`,
-        "三、我司為維持與客戶之和諧關係已盡力溝通，唯等待多日貴司仍無匯款，將依法提出民事訴訟，並加計拖延期間利息及訴訟費用。",
-        "",
-        comp.name,
-        `民國${year}年${month}月${day}日`
-      ];
-
-      let gridLines = [];
-      paragraphs.forEach(p => {
-        if (p === "") {
-          gridLines.push("");
-          return;
-        }
-        for (let i = 0; i < p.length; i += 20) {
-          gridLines.push(p.substring(i, i + 20));
-        }
-      });
-
-      // 保持至少 10 行
-      while (gridLines.length < 10) {
-        gridLines.push("");
-      }
-
-      const rowChineseNums = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二", "十三", "十四", "十五", "十六"];
-
-      let html = `<tr>
-        <th class="col-row-head">格<br>行</th>
-        ${Array.from({length: 20}, (_, i) => `<th>${i+1}</th>`).join('')}
-      </tr>`;
-
-      gridLines.forEach((lineText, rIdx) => {
-        const rowLabel = rowChineseNums[rIdx] || (rIdx + 1);
-        const chars = Array.from(lineText);
-        let tds = '';
-        for (let c = 0; c < 20; c++) {
-          tds += `<td>${chars[c] || ''}</td>`;
-        }
-        html += `<tr><td class="col-row-head">${rowLabel}</td>${tds}</tr>`;
-      });
-
-      document.getElementById('certGridTable').innerHTML = html;
+    // 列印當前 iframe 中的存證信函
+    function printCertFrame() {
+      const frame = document.getElementById('cert-frame');
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
     }
   </script>
 </body>

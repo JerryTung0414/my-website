@@ -105,6 +105,31 @@
     .body-content p { margin-bottom: 10px; text-align: justify; }
     .signature-area { margin-top: 30px; line-height: 2; font-size: 16px; }
 
+    /* 存證信函：螢幕與列印共用實體紙張尺寸與字型。 */
+    #view-cert-editor .preview-pane { min-width: 0; }
+    #cert-pages { flex: none; }
+    #cert-pages .a4-paper { width: 210mm; height: 297mm; min-height: 297mm; padding: 15mm; margin: 0 auto 6mm; position: relative; }
+    #cert-pages .a4-paper, #cert-pages .a4-paper * { font-family: "PMingLiU", "MingLiU", "新細明體", serif; }
+    .cert-page-content { height: 267mm; display: flow-root; overflow-wrap: anywhere; }
+    .cert-page-number { position: absolute; bottom: 6mm; left: 15mm; right: 15mm; text-align: center; font-size: 10pt; }
+    #cert-pages table { table-layout: fixed; }
+    #cert-pages .post-table td { padding: 2mm; }
+    #cert-pages .post-table .col-stamp-1 { writing-mode: horizontal-tb; }
+    #cert-pages .col-stamp-1 span { writing-mode: vertical-rl; }
+    #cert-pages .col-fee { font-size: 9pt; line-height: 1.5; }
+    .fee-line { display: flex; justify-content: space-between; gap: 2mm; }
+    .cert-blank { display: inline-block; width: 7mm; }
+    #cert-pages .party-title { width: 26mm; }
+    #cert-pages .party-table td { overflow-wrap: anywhere; }
+    #cert-pages .body-content { margin-top: 0; }
+    #cert-pages .title-banner { margin-top: 0; }
+    .cert-print-help, #cert-layout-status { font-size: 13px; line-height: 1.6; margin-bottom: 8px; }
+    @media screen and (max-width: 1100px) {
+      #view-cert-editor .split-container { flex-direction: column; }
+      #view-cert-editor .editor-pane, #view-cert-editor .preview-pane { width: 100%; }
+    }
+    @page cert-letter { size: A4 portrait; margin: 0; }
+
     /* 列印樣式 */
     @media print {
       body { background: #fff !important; }
@@ -113,6 +138,10 @@
       .split-container { display: block !important; }
       .preview-pane { padding: 0 !important; background: transparent !important; box-shadow: none !important; }
       .a4-sheet, .a4-paper { box-shadow: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: auto !important; }
+      body:has(#view-cert-editor:not([style*="display: none"])) { display: block; }
+      #view-cert-editor .preview-pane { display: block; overflow: visible; min-height: 0; border-radius: 0; }
+      #cert-pages .a4-paper { page: cert-letter; width: 210mm !important; height: 297mm !important; min-height: 297mm !important; padding: 15mm !important; margin: 0 !important; break-after: page; break-inside: avoid; }
+      #cert-pages .a4-paper:last-child { break-after: auto; }
     }
   </style>
 </head>
@@ -358,7 +387,7 @@
           <div>
             <div class="card-icon">✉️</div>
             <div class="card-title">存證信函</div>
-            <div class="card-desc">100% 完美還原官方存證信函「純段落排版」，支援五間公司切換與連動修改，絕不跑版。</div>
+            <div class="card-desc">存證信函段落公版，支援五間公司切換、資料連動與 A4 自動分頁預覽。</div>
           </div>
           <button class="card-btn" onclick="switchView('cert-editor')">進入製作</button>
         </div>
@@ -373,7 +402,7 @@
       </div>
     </div>
 
-    <!-- 存證信函製作台 (左側輸入、右側 100% 原始檔案版型) -->
+    <!-- 存證信函製作台：左側輸入、右側 A4 分頁預覽 -->
     <div id="view-cert-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
       
@@ -444,18 +473,21 @@
             </div>
           </div>
 
-          <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="window.print()">🖨️ 列印存證信函</button>
+          <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="printCert()">🖨️ 列印存證信函</button>
         </div>
 
-        <!-- 右側：100% A4純文字版型還原 (無九宮格) -->
+        <!-- 右側：A4 段落版型與分頁預覽 -->
         <div class="preview-pane">
           <div class="preview-toolbar no-print">
-            <span style="font-weight: 700; font-size: 15px;">✉️ 存證信函 1:1 格式預覽 (純文字排版)</span>
-            <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="window.print()">🖨️ 列印</button>
+            <span style="font-weight: 700; font-size: 15px;">✉️ 存證信函 A4 分頁預覽</span>
+            <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="printCert()">🖨️ 列印</button>
           </div>
 
           <!-- A4 紙張本體 -->
-          <div class="a4-paper">
+          <p class="no-print cert-print-help">列印請選 A4、縮放 100%，並關閉頁首及頁尾；也可在列印視窗另存 PDF。</p>
+          <p id="cert-layout-status" class="no-print" role="status"></p>
+          <div id="cert-pages" aria-label="存證信函分頁預覽"></div>
+          <div id="cert-source" hidden>
             <div class="doc-header-title">存證信函格式</div>
 
             <!-- 第一部分：頂部郵票及規費 -->
@@ -464,14 +496,17 @@
                 <td class="col-stamp-1">騎縫郵戳</td>
                 <td class="col-stamp-2">郵 票 或<br>郵 資 券<br><br>黏<br><br>貼<br><br>處</td>
                 <td class="col-fee">
-                  本存證信函共&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;頁，正本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
-                  <span style="display:inline-block; width:135px;"></span>副本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
-                  <span style="display:inline-block; width:135px;"></span>附件&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;張，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
-                  <span style="display:inline-block; width:100px;"></span>加具正本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
-                  <span style="display:inline-block; width:100px;"></span>加具副本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，合計&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元。<br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;經&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;郵局<br>
-                  &nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;日證明&nbsp;&nbsp;本內容完全相同&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;印<br>
-                  經辦員&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;主管
+                  本存證信函共<span class="cert-blank"></span>頁
+                  <div class="fee-line"><span>正本<span class="cert-blank"></span>份</span><span>存證費<span class="cert-blank"></span>元</span></div>
+                  <div class="fee-line"><span>副本<span class="cert-blank"></span>份</span><span>存證費<span class="cert-blank"></span>元</span></div>
+                  <div class="fee-line"><span>附件<span class="cert-blank"></span>張</span><span>存證費<span class="cert-blank"></span>元</span></div>
+                  <div class="fee-line"><span>加具正本<span class="cert-blank"></span>份</span><span>存證費<span class="cert-blank"></span>元</span></div>
+                  <div class="fee-line"><span>加具副本<span class="cert-blank"></span>份</span><span>存證費<span class="cert-blank"></span>元</span></div>
+                  <div style="text-align:right">合計<span class="cert-blank"></span>元</div>
+                  <div>經<span class="cert-blank"></span>郵局</div>
+                  <div>年<span class="cert-blank"></span>月<span class="cert-blank"></span>日證明</div>
+                  <div class="fee-line"><span>本內容完全相同</span><span>印</span></div>
+                  <div class="fee-line"><span>經辦員</span><span>主管</span></div>
                 </td>
                 <td class="col-stamp-3">郵戳<br><br><br>正<br><br><br>副<br><br><br>正</td>
               </tr>
@@ -480,18 +515,18 @@
             <!-- 第二部分：備註說明 -->
             <div class="note-box">
               一、存證信函需送交郵局辦理證明手續後始有效，自交寄之日起由郵局保存之副本，於三年期滿後銷燬之。<br>
-              二、在  頁  行第   格下  塗改/增刪  字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;印(如有修改應填註本欄並蓋用寄件人印章，<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;但塗改增刪每頁至多不得逾二十字)。<br>
+              二、在<span class="cert-blank"></span>頁<span class="cert-blank"></span>行第<span class="cert-blank"></span>格下 塗改／增刪<span class="cert-blank"></span>字，印（如有修改應填註本欄並蓋用寄件人印章，但塗改增刪每頁至多不得逾二十字）。<br>
               三、每件一式三份，用不脫色筆或打字機複寫，或書寫後複印、影印，每格限書一字，色澤明顯、字跡端正。<br>
               <div class="note-footer">
                 <div style="width: 50px;">備註</div>
-                <div style="flex: 1; text-align: center;">存證信函第&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;號</div>
+                <div style="flex: 1; text-align: center;">存證信函第<span class="cert-blank" style="width:30mm"></span>號</div>
                 <div style="width: 100px; text-align: right;">郵&nbsp;&nbsp;局</div>
               </div>
             </div>
 
             <!-- 第三部分：寄件人及收件人表格 -->
             <table class="party-table">
+              <colgroup><col style="width:26mm"><col></colgroup>
               <tr>
                 <td colspan="2" style="border-bottom:none; text-align:center; font-size:13px; padding: 4px;">
                   〈寄件人如為機關、團體、學校、公司、商號請加蓋單位圖章及法定代理人簽名或蓋章〉
@@ -601,7 +636,7 @@
         subElem.textContent = '存證信函、支付命令與相關法律文件管理';
       } else if (viewName === 'cert-editor') {
         titleElem.textContent = '存證信函製作作業';
-        subElem.textContent = '100% 還原原始純段落版型 (無九宮格)';
+        subElem.textContent = 'A4 段落版型，依內容自動分頁';
         updateDoc();
       }
     }
@@ -614,7 +649,7 @@
       if (!['home', 'tool-seal', 'tool-legal', 'cert-editor'].includes(saved)) saved = 'home';
       switchView(saved);
     }
-    restoreView();
+    // 初始化移至公司資料宣告之後，避免重新整理存證信函頁時發生 TDZ 錯誤。
 
     // ==========================================
     // 模組 1：用印單邏輯 (Seal Application)
@@ -880,6 +915,10 @@
       }
     };
 
+    function toFull(value) {
+      return String(value).replace(/[0-9]/g, digit => String.fromCharCode(digit.charCodeAt(0) + 0xFEE0));
+    }
+
     function updateDoc() {
       // 1. 公司資料更新
       const selected = document.getElementById('cert-company-select').value;
@@ -921,7 +960,86 @@
       document.getElementById('disp-sign-year').innerText = year;
       document.getElementById('disp-sign-month').innerText = month;
       document.getElementById('disp-sign-day').innerText = day;
+      paginateCert();
     }
+
+    // 原稿保留唯一 id；分頁使用副本，避免更新誤寫入預覽節點。
+    function paginateCert() {
+      if (document.getElementById('view-cert-editor').style.display === 'none') return;
+      const output = document.getElementById('cert-pages');
+      output.replaceChildren();
+      let content;
+      let oversized = false;
+      const newPage = () => {
+        const page = document.createElement('div');
+        page.className = 'a4-paper';
+        content = document.createElement('div');
+        content.className = 'cert-page-content';
+        page.append(content);
+        output.append(page);
+      };
+      newPage();
+      const blocks = [];
+      const source = document.getElementById('cert-source');
+      for (const node of source.children) {
+        if (node.classList.contains('body-content')) {
+          for (const [index, paragraph] of [...node.children].entries()) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'body-content';
+            wrapper.append(paragraph.cloneNode(true));
+            if (index < 2) blocks[blocks.length - 1].append(wrapper);
+            else blocks.push(wrapper);
+          }
+        } else if (node.classList.contains('title-banner')) {
+          // 標題、騎縫郵戳、敬啟者與首段保持在同一頁。
+          const group = document.createElement('div');
+          group.append(node.cloneNode(true), node.nextElementSibling.cloneNode(true));
+          blocks.push(group);
+        } else if (!node.previousElementSibling?.classList.contains('title-banner')) {
+          blocks.push(node.cloneNode(true));
+        }
+      }
+      for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+        block.removeAttribute('id');
+        block.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+        const stamp = block.querySelector('.col-stamp-1');
+        if (stamp) stamp.innerHTML = '<span>騎縫郵戳</span>';
+        content.append(block);
+        if (content.scrollHeight > content.clientHeight + 1) {
+          if (content.children.length > 1) {
+            block.remove();
+            newPage();
+            content.append(block);
+          }
+        }
+        if (content.scrollHeight > content.clientHeight + 1) oversized = true;
+      }
+      const pages = [...output.children];
+      pages.forEach((page, i) => {
+        const footer = document.createElement('div');
+        footer.className = 'cert-page-number';
+        footer.textContent = '第 ' + (i + 1) + ' 頁／共 ' + pages.length + ' 頁';
+        page.append(footer);
+      });
+      output.dataset.overflow = String(oversized);
+      document.getElementById('cert-layout-status').textContent = oversized
+        ? '部分欄位過長，超出單頁容量，請縮短內容後再列印。'
+        : '共 ' + pages.length + ' 頁，預覽與列印使用相同 A4 尺寸。';
+    }
+
+    async function printCert() {
+      await document.fonts.ready;
+      paginateCert();
+      if (document.getElementById('cert-pages').dataset.overflow === 'true') {
+        alert('部分欄位過長，超出單頁容量。請縮短內容後再列印，避免內容截斷。');
+        return;
+      }
+      window.print();
+    }
+    window.addEventListener('beforeprint', paginateCert);
+    document.fonts.ready.then(paginateCert);
+    restoreView();
   </script>
 </body>
 </html>

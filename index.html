@@ -39,28 +39,66 @@
     .back-btn { display: inline-flex; align-items: center; gap: 6px; color: #64748b; text-decoration: none; font-size: 13px; margin-bottom: 16px; cursor: pointer; font-weight: 500; }
     .back-btn:hover { color: #1c64f2; }
 
-    /* 存證信函抓取容器 */
-    .cert-container { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 950px; }
-    .cert-toolbar {
-      background: #fff; padding: 14px 20px; border-radius: 12px;
-      display: flex; justify-content: space-between; align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    /* 左右雙欄佈局 */
+    .split-container { display: flex; gap: 20px; align-items: flex-start; }
+    .editor-pane { width: 340px; flex-shrink: 0; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); }
+    .section-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+    .field-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+    .field-group label { font-size: 12px; font-weight: 600; color: #475569; }
+    .field-group input, .field-group select { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 13px; color: #334155; }
+
+    /* 右側預覽區 */
+    .preview-pane { flex: 1; background: #cbd5e1; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; min-height: 850px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); overflow-x: auto; }
+    .preview-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+
+    /* A4 原始存證信函版型 (純文字段落版) */
+    .a4-paper {
+      background: #fff;
+      margin: 0 auto;
+      width: 794px; /* A4 寬度 */
+      min-height: 1123px; /* A4 高度 */
+      padding: 50px 60px; /* 模擬 Word 邊界 */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      font-family: "PMingLiU", "MingLiU", "新細明體", serif;
+      color: #000;
     }
-    .cert-frame-wrapper {
-      background: #fff; border-radius: 12px; padding: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-      min-height: 1100px;
-    }
-    #cert-frame {
-      width: 100%; height: 1200px; border: none; display: block;
-    }
+
+    .doc-header-title { font-size: 15px; font-weight: bold; margin-bottom: 6px; }
+    
+    /* 頂部郵政表格 */
+    .post-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 6px; }
+    .post-table td { border: 1px solid #000; padding: 8px; }
+    .col-stamp-1 { width: 10%; text-align: center; font-size: 14px; letter-spacing: 5px; writing-mode: vertical-lr; padding: 15px 0; }
+    .col-stamp-2 { width: 15%; text-align: center; font-size: 14px; line-height: 1.5; }
+    .col-fee { width: 65%; font-size: 13px; line-height: 1.8; }
+    .col-stamp-3 { width: 10%; text-align: center; font-size: 14px; line-height: 2; vertical-align: top; padding-top: 15px; }
+
+    /* 備註框 */
+    .note-box { border: 1px solid #000; padding: 8px 12px; font-size: 13px; line-height: 1.6; margin-bottom: 6px; }
+    .note-footer { display: flex; margin-top: 6px; font-weight: bold; }
+
+    /* 寄件人/收件人表格 */
+    .party-table { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 12px; }
+    .party-table td { border: 1px solid #000; padding: 8px 10px; font-size: 14px; vertical-align: top; }
+    .party-title { width: 15%; text-align: center; vertical-align: middle !important; font-weight: bold; }
+
+    /* 中央大標題 */
+    .title-banner { display: flex; align-items: center; margin: 20px 0 10px 0; }
+    .title-left { width: 50px; text-align: center; font-size: 13px; line-height: 1.2; }
+    .title-center { flex: 1; text-align: center; font-size: 22px; font-weight: bold; letter-spacing: 12px; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 10px 0; }
+    
+    /* 內文段落區 (完全比照原檔案) */
+    .body-content { font-size: 16px; line-height: 2; margin-top: 20px; }
+    .body-content p { margin-bottom: 10px; text-align: justify; }
+    .signature-area { margin-top: 30px; line-height: 2; font-size: 16px; }
 
     @media print {
       body { background: #fff !important; }
-      .sidebar, .top-header, .cert-toolbar, .back-btn, .no-print { display: none !important; }
+      .sidebar, .top-header, .editor-pane, .preview-toolbar, .back-btn, .no-print { display: none !important; }
       .main { padding: 0 !important; }
-      .cert-container { max-width: 100% !important; }
-      .cert-frame-wrapper { padding: 0 !important; box-shadow: none !important; }
+      .split-container { display: block !important; }
+      .preview-pane { padding: 0 !important; background: transparent !important; box-shadow: none !important; }
+      .a4-paper { box-shadow: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: auto !important; }
     }
   </style>
 </head>
@@ -130,7 +168,7 @@
           <div>
             <div class="card-icon">✉️</div>
             <div class="card-title">存證信函</div>
-            <div class="card-desc">直接讀取原始 Word 網頁範本，100% 原始排版不跑版，點擊即可直接打字修改並列印。</div>
+            <div class="card-desc">100% 完美還原官方存證信函「純段落排版」，支援五間公司切換與連動修改，絕不跑版。</div>
           </div>
           <button class="card-btn" onclick="switchView('cert-editor')">進入製作</button>
         </div>
@@ -145,31 +183,185 @@
       </div>
     </div>
 
-    <!-- 存證信函製作台 (直接讀取檔案 + 畫面可點擊修改) -->
+    <!-- 存證信函製作台 (左側輸入、右側 100% 原始檔案版型) -->
     <div id="view-cert-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
       
-      <div class="cert-container">
-        <!-- 頂部工具列 -->
-        <div class="cert-toolbar no-print">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <label style="font-weight: 600; color: #1e293b;">🏢 選擇發函公司範本：</label>
-            <select id="cert-file-select" onchange="loadCertTemplate()" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px;">
-              <option value="cert_sober.html">搜博科技股份有限公司</option>
-              <option value="cert_sochuang.html">搜創網路行銷有限公司</option>
-              <option value="cert_soshow.html">搜秀網路行銷有限公司</option>
-              <option value="cert_chuangsi.html">創思影像有限公司</option>
-              <option value="cert_maya.html">馬雅科技有限公司</option>
+      <div class="split-container">
+        <!-- 左側輸入區 -->
+        <div class="editor-pane no-print">
+          <div class="section-title">存證信函內容填寫</div>
+          
+          <div class="field-group" style="background: #eff6ff; padding: 10px; border-radius: 8px; border: 1px solid #bfdbfe;">
+            <label style="color: #1d4ed8; font-weight: bold;">🏢 選擇發函公司</label>
+            <select id="cert-company-select" onchange="updateDoc()">
+              <option value="so博" selected>搜博科技股份有限公司</option>
+              <option value="so创">搜創網路行銷有限公司</option>
+              <option value="so秀">搜秀網路行銷有限公司</option>
+              <option value="创思">創思影像有限公司</option>
+              <option value="马雅">馬雅科技有限公司</option>
             </select>
-            <span style="font-size: 12px; color: #64748b;">💡 畫面上任何文字皆可「直接點擊打字修改」</span>
           </div>
 
-          <button class="card-btn" style="background: #059669; padding: 6px 16px;" onclick="printCertFrame()">🖨️ 列印存證信函</button>
+          <div style="display: flex; gap: 6px;">
+            <div class="field-group" style="flex: 1;">
+              <label>發函年 (民國)</label>
+              <input type="text" id="cert-year" value="１１５" oninput="updateDoc()">
+            </div>
+            <div class="field-group" style="flex: 1;">
+              <label>發函月</label>
+              <input type="text" id="cert-month" value="０９" oninput="updateDoc()">
+            </div>
+            <div class="field-group" style="flex: 1;">
+              <label>發函日</label>
+              <input type="text" id="cert-day" value="１１" oninput="updateDoc()">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>欠款期間</label>
+            <input type="text" id="cert-period" value="１１５年５月份至１１５年７月份" oninput="updateDoc()">
+          </div>
+
+          <div class="field-group">
+            <label>姓名 (公司名稱)</label>
+            <input type="text" id="cert-receiver-name" value="虹寬國際家具有限公司" oninput="updateDoc()">
+          </div>
+
+          <div class="field-group">
+            <label>代表人</label>
+            <input type="text" id="cert-receiver-boss" value="江慶寬" oninput="updateDoc()">
+          </div>
+
+          <div class="field-group">
+            <label>詳細地址</label>
+            <input type="text" id="cert-receiver-addr" value="新北市板橋區僑中一街124巷72之2號" oninput="updateDoc()">
+          </div>
+
+          <div class="field-group">
+            <label>已出帳未繳納金額</label>
+            <input type="text" id="cert-debt-amount" value="１５６００" oninput="updateDoc()">
+          </div>
+
+          <div style="display: flex; gap: 6px;">
+            <div class="field-group" style="flex: 1;">
+              <label>合約第伍條第幾項</label>
+              <input type="text" id="cert-clause" value="第六項" oninput="updateDoc()">
+            </div>
+            <div class="field-group" style="flex: 1;">
+              <label>滿額費用</label>
+              <input type="text" id="cert-full-amount" value="１４６１２０" oninput="updateDoc()">
+            </div>
+          </div>
+
+          <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="window.print()">🖨️ 列印存證信函</button>
         </div>
 
-        <!-- 檔案展示區 (直接抓取 Word 輸出的 HTML，絕對不跑版) -->
-        <div class="cert-frame-wrapper">
-          <iframe id="cert-frame" src="cert_sober.html" onload="enableInlineEdit()"></iframe>
+        <!-- 右側：100% A4純文字版型還原 (無九宮格) -->
+        <div class="preview-pane">
+          <div class="preview-toolbar no-print">
+            <span style="font-weight: 700; font-size: 15px;">✉️ 存證信函 1:1 格式預覽 (純文字排版)</span>
+            <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="window.print()">🖨️ 列印</button>
+          </div>
+
+          <!-- A4 紙張本體 -->
+          <div class="a4-paper">
+            <div class="doc-header-title">存證信函格式</div>
+
+            <!-- 第一部分：頂部郵票及規費 -->
+            <table class="post-table">
+              <tr>
+                <td class="col-stamp-1">騎縫郵戳</td>
+                <td class="col-stamp-2">郵 票 或<br>郵 資 券<br><br>黏<br><br>貼<br><br>處</td>
+                <td class="col-fee">
+                  本存證信函共&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;頁，正本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
+                  <span style="display:inline-block; width:135px;"></span>副本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
+                  <span style="display:inline-block; width:135px;"></span>附件&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;張，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
+                  <span style="display:inline-block; width:100px;"></span>加具正本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，<br>
+                  <span style="display:inline-block; width:100px;"></span>加具副本&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;份，存證費&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元，合計&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;元。<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;經&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;郵局<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;日證明&nbsp;&nbsp;本內容完全相同&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;印<br>
+                  經辦員&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;主管
+                </td>
+                <td class="col-stamp-3">郵戳<br><br><br>正<br><br><br>副<br><br><br>正</td>
+              </tr>
+            </table>
+
+            <!-- 第二部分：備註說明 -->
+            <div class="note-box">
+              一、存證信函需送交郵局辦理證明手續後始有效，自交寄之日起由郵局保存之副本，於三年期滿後銷燬之。<br>
+              二、在  頁  行第   格下  塗改/增刪  字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;印(如有修改應填註本欄並蓋用寄件人印章，<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;但塗改增刪每頁至多不得逾二十字)。<br>
+              三、每件一式三份，用不脫色筆或打字機複寫，或書寫後複印、影印，每格限書一字，色澤明顯、字跡端正。<br>
+              <div class="note-footer">
+                <div style="width: 50px;">備註</div>
+                <div style="flex: 1; text-align: center;">存證信函第&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;號</div>
+                <div style="width: 100px; text-align: right;">郵&nbsp;&nbsp;局</div>
+              </div>
+            </div>
+
+            <!-- 第三部分：寄件人及收件人表格 -->
+            <table class="party-table">
+              <tr>
+                <td colspan="2" style="border-bottom:none; text-align:center; font-size:13px; padding: 4px;">
+                  〈寄件人如為機關、團體、學校、公司、商號請加蓋單位圖章及法定代理人簽名或蓋章〉
+                </td>
+              </tr>
+              <tr>
+                <td class="party-title">一、寄件人</td>
+                <td style="line-height: 1.8;">
+                  &nbsp;&nbsp;&nbsp;&nbsp;姓&nbsp;&nbsp;&nbsp;&nbsp;名：<span id="disp-sender-name">搜博科技股份有限公司</span>&nbsp;&nbsp;印<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;代 表 人：<span id="disp-sender-boss">陳智國</span><br>
+                  &nbsp;&nbsp;詳細地址：<span id="disp-sender-addr">新北市中和區中正路866號17樓</span><br>
+                  <div id="disp-sender-comm" style="display:none;"></div>
+                </td>
+              </tr>
+              <tr>
+                <td class="party-title">二、收件人</td>
+                <td style="line-height: 1.8;">
+                  &nbsp;&nbsp;&nbsp;&nbsp;姓&nbsp;&nbsp;&nbsp;&nbsp;名：<span id="disp-rcv-name">虹寬國際家具有限公司</span><br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;代 表 人：<span id="disp-rcv-boss">江慶寬</span><br>
+                  &nbsp;&nbsp;詳細地址：<span id="disp-rcv-addr">新北市板橋區僑中一街124巷72之2號</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="party-title">三、副&nbsp;&nbsp;本<br>(收件人)</td>
+                <td style="line-height: 1.8;">
+                  &nbsp;&nbsp;&nbsp;&nbsp;姓&nbsp;&nbsp;&nbsp;&nbsp;名：<br>
+                  &nbsp;&nbsp;詳細地址：<br>
+                  （本欄姓名、地址不敷填寫時，請另紙聯記）
+                </td>
+              </tr>
+            </table>
+
+            <!-- 第四部分：標題 -->
+            <div class="title-banner">
+              <div class="title-left">正<br>副<br>本</div>
+              <div class="title-center">郵局存證信函用紙</div>
+              <div style="width: 50px;"></div>
+            </div>
+            <div style="font-size: 15px; letter-spacing: 5px; font-weight: bold; margin-bottom: 10px;">騎縫郵戳</div>
+
+            <!-- 第五部分：純文字正文段落 (不再有九宮格干擾) -->
+            <div class="body-content">
+              <p><b>敬啟者：</b></p>
+              <p id="disp-p1">
+                一、貴司民國１１５年５月份至１１５年７月份貨款共計新台幣１５６００元整尚未支付，經我司多次催繳貴司仍無回應，我司要求貴司依合約第壹條第三項應即刻匯款或支付即期支票共計新台幣１５６００元整，請於文到五日內完成支付動作。
+              </p>
+              <p id="disp-p2">
+                二、依雙方簽訂之合約第壹條第三項載明之指定關鍵字，服務起算後，各組關鍵字凡符合本條選項之內容，乙方得向甲方請領該組關鍵字費用。如貴司於文到後五日內仍未完成支付動作，我司得依合約第伍條第六項，一次性請領剩餘期間之滿額費用共計新台幣１４６１２０元整。
+              </p>
+              <p id="disp-p3">
+                三、我司為維持與客戶之和諧關係已盡力溝通，唯等待多日貴司仍無匯款，將依法提出民事訴訟，並加計拖延期間利息及訴訟費用。
+              </p>
+              
+              <div class="signature-area">
+                <span id="disp-sign-comp">搜博科技股份有限公司</span><br>
+                民國<span id="disp-sign-year">１１５</span>年<span id="disp-sign-month">０９</span>月<span id="disp-sign-day">１１</span>日
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
@@ -207,7 +399,8 @@
         subElem.textContent = '存證信函、支付命令與相關法律文件管理';
       } else if (viewName === 'cert-editor') {
         titleElem.textContent = '存證信函製作作業';
-        subElem.textContent = '讀取 Word 原始檔案，點擊文字即可直接修改';
+        subElem.textContent = '100% 還原原始純段落版型 (無九宮格)';
+        updateDoc();
       }
     }
 
@@ -222,32 +415,92 @@
 
     restoreView();
 
-    // 切換下拉選單時，自動抓取該公司檔案
-    function loadCertTemplate() {
-      const fileName = document.getElementById('cert-file-select').value;
-      const frame = document.getElementById('cert-frame');
-      frame.src = fileName;
-    }
-
-    // 檔案載入完成後，開啟「點擊文字直接打字」功能
-    function enableInlineEdit() {
-      try {
-        const frame = document.getElementById('cert-frame');
-        const doc = frame.contentDocument || frame.contentWindow.document;
-        if (doc) {
-          doc.designMode = 'on'; // 讓整個頁面像 Word 一樣可以直接打字
-        }
-      } catch (e) {
-        console.warn('無法啟用即時打字修改：', e);
+    // 依據附件建立的五間公司設定檔
+    const COMPANY_PROFILES = {
+      "so博": {
+        name: "搜博科技股份有限公司",
+        boss: "陳智國",
+        addr: "新北市中和區中正路866號17樓",
+        comm: ""
+      },
+      "so创": {
+        name: "搜創網路行銷有限公司",
+        boss: "陳智國",
+        addr: "高雄市苓雅區新光路38號24樓之4",
+        comm: "通訊地址:新北市中和區中正路866號17樓(搜博科技)"
+      },
+      "so秀": {
+        name: "搜秀網路行銷有限公司",
+        boss: "臺芳蘭",
+        addr: "新北市中和區中正路866號17樓",
+        comm: ""
+      },
+      "创思": {
+        name: "創思影像有限公司",
+        boss: "陳智國",
+        addr: "新北市中和區中正路866號17樓",
+        comm: ""
+      },
+      "马雅": {
+        name: "馬雅科技有限公司",
+        boss: "陳智國",
+        addr: "新北市中和區中正路866號17樓",
+        comm: ""
       }
+    };
+
+    function toFull(val) {
+      return String(val || '').replace(/[0-9]/g, function(s) {
+        return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
+      });
     }
 
-    // 列印當前 iframe 中的存證信函
-    function printCertFrame() {
-      const frame = document.getElementById('cert-frame');
-      frame.contentWindow.focus();
-      frame.contentWindow.print();
+    // 左側表單變更時，即時更新到右側的純段落排版中
+    function updateDoc() {
+      // 1. 公司資料更新
+      const selected = document.getElementById('cert-company-select').value;
+      const comp = COMPANY_PROFILES[selected] || COMPANY_PROFILES["so博"];
+
+      document.getElementById('disp-sender-name').innerText = comp.name;
+      document.getElementById('disp-sender-boss').innerText = comp.boss;
+      document.getElementById('disp-sender-addr').innerText = comp.addr;
+      
+      const commEl = document.getElementById('disp-sender-comm');
+      if (comp.comm) {
+        commEl.innerHTML = `&nbsp;&nbsp;${comp.comm}`;
+        commEl.style.display = 'block';
+      } else {
+        commEl.innerHTML = '';
+        commEl.style.display = 'none';
+      }
+      document.getElementById('disp-sign-comp').innerText = comp.name;
+
+      // 2. 表單自填變數更新
+      const year = toFull(document.getElementById('cert-year').value);
+      const month = toFull(document.getElementById('cert-month').value);
+      const day = toFull(document.getElementById('cert-day').value);
+      const period = toFull(document.getElementById('cert-period').value);
+      const rName = document.getElementById('cert-receiver-name').value;
+      const rBoss = document.getElementById('cert-receiver-boss').value;
+      const rAddr = document.getElementById('cert-receiver-addr').value;
+      const debt = toFull(document.getElementById('cert-debt-amount').value);
+      const clause = document.getElementById('cert-clause').value;
+      const fullAmt = toFull(document.getElementById('cert-full-amount').value);
+
+      document.getElementById('disp-rcv-name').innerText = rName;
+      document.getElementById('disp-rcv-boss').innerText = rBoss;
+      document.getElementById('disp-rcv-addr').innerText = rAddr;
+
+      document.getElementById('disp-p1').innerText = `一、貴司民國${period}貨款共計新台幣${debt}元整尚未支付，經我司多次催繳貴司仍無回應，我司要求貴司依合約第壹條第三項應即刻匯款或支付即期支票共計新台幣${debt}元整，請於文到五日內完成支付動作。`;
+      document.getElementById('disp-p2').innerText = `二、依雙方簽訂之合約第壹條第三項載明之指定關鍵字，服務起算後，各組關鍵字凡符合本條選項之內容，乙方得向甲方請領該組關鍵字費用。如貴司於文到後五日內仍未完成支付動作，我司得依合約第伍條${clause}，一次性請領剩餘期間之滿額費用共計新台幣${fullAmt}元整。`;
+
+      document.getElementById('disp-sign-year').innerText = year;
+      document.getElementById('disp-sign-month').innerText = month;
+      document.getElementById('disp-sign-day').innerText = day;
     }
+    
+    // 初始化執行一次
+    updateDoc();
   </script>
 </body>
 </html>

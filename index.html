@@ -63,8 +63,15 @@
 
     /* =============== A4 狀紙共用排版 =============== */
     .a4-paper {
-      background: #fff; margin: 0 auto; width: 794px; min-height: 1123px; padding: 50px 70px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      background: #fff; margin: 0 auto; width: 794px; min-height: 1123px; padding: 60px 80px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       font-family: "PMingLiU", "MingLiU", "新細明體", serif; color: #000;
+    }
+
+    /* 支付命令專用字體與排版 (100% 絕對還原附件字形、半形、空格) */
+    .pay-order-a4 {
+      background: #fff; margin: 0 auto; width: 794px; min-height: 1123px; padding: 60px 80px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      font-family: "標楷體", "BiauKai", "DFKai-SB", serif; color: #000;
+      font-size: 18px; line-height: 1.6;
     }
 
     /* 存證信函專屬樣式 */
@@ -113,7 +120,7 @@
       .main { padding: 0 !important; }
       .split-container { display: block !important; }
       .preview-pane { padding: 0 !important; background: transparent !important; box-shadow: none !important; }
-      .a4-sheet, .a4-paper { box-shadow: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: auto !important; }
+      .a4-sheet, .a4-paper, .pay-order-a4 { box-shadow: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: auto !important; }
     }
   </style>
 </head>
@@ -191,14 +198,14 @@
           <div>
             <div class="card-icon">📜</div>
             <div class="card-title">支付命令</div>
-            <div class="card-desc">100% 還原「玩髮櫥窗髮型」支付命令狀純文字版型，自訂控制台即時連動套印。</div>
+            <div class="card-desc">100% 絕對還原「玩髮櫥窗髮型」支付命令狀，字形、全半形、標點符號與空格完美對位。</div>
           </div>
           <button class="card-btn" onclick="switchView('pay-order-editor')">進入製作</button>
         </div>
       </div>
     </div>
 
-    <!-- ==================== 模組：支付命令 ==================== -->
+    <!-- ==================== 模組：支付命令 (絕對還原版) ==================== -->
     <div id="view-pay-order-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
       
@@ -208,7 +215,7 @@
           <div class="section-title">支付命令 內容填寫</div>
           
           <div class="field-group">
-            <label>標的金額 (如: 78,421)</label>
+            <label>標的金額</label>
             <input type="text" id="pay-target-amount" value="78,421" oninput="updatePayOrder()">
           </div>
 
@@ -269,7 +276,7 @@
           </div>
 
           <div class="field-group" style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
-            <label>請求標的金額 (如: 78,421)</label>
+            <label>請求標的金額</label>
             <input type="text" id="pay-req-amount" value="78,421" oninput="updatePayOrder()">
           </div>
 
@@ -290,15 +297,15 @@
 
           <div style="display: flex; gap: 6px;">
             <div class="field-group" style="flex: 1;">
-              <label>年 (民國)</label>
+              <label>年 (半形數字)</label>
               <input type="text" id="pay-year" value="115" oninput="updatePayOrder()">
             </div>
             <div class="field-group" style="flex: 1;">
-              <label>月</label>
+              <label>月 (半形數字)</label>
               <input type="text" id="pay-month" value="09" oninput="updatePayOrder()">
             </div>
             <div class="field-group" style="flex: 1;">
-              <label>日</label>
+              <label>日 (半形數字)</label>
               <input type="text" id="pay-day" value="15" oninput="updatePayOrder()">
             </div>
           </div>
@@ -306,56 +313,60 @@
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="window.print()">🖨️ 列印支付命令狀</button>
         </div>
 
-        <!-- 右側：1:1 絕對還原 PDF 排版 -->
+        <!-- 右側：1:1 絕對還原附件排版 (全半形、空格、字體完全一致) -->
         <div class="preview-pane">
           <div class="preview-toolbar no-print">
-            <span style="font-weight: 700; font-size: 15px;">📜 支付命令狀 1:1 預覽</span>
+            <span style="font-weight: 700; font-size: 15px;">📜 支付命令狀 1:1 原文預覽</span>
             <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="window.print()">🖨️ 列印</button>
           </div>
 
-          <div class="a4-paper">
-            <!-- 標題 -->
-            <div style="text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin-bottom: 25px;">
-              民事申請支付命令狀
-            </div>
+          <!-- 專屬 A4 狀紙容器 -->
+          <div class="pay-order-a4">
             
-            <!-- 上半部當事人資料 -->
-            <div style="font-size: 16px; line-height: 1.8;">
-              標的金額:新台幣<span id="out-target-amount"></span>元整<br>
-              聲請人:<span id="out-applicant"></span><br>
-              設 <span id="out-applicant-addr"></span><br>
-              法定代理人:<span id="out-applicant-boss"></span>地址同上<br>
-              送達代收人:<span id="out-agent"></span><br>
-              送達處所:<span id="out-agent-addr"></span><br>
-              電&nbsp;&nbsp;&nbsp;&nbsp;話:<span id="out-phone"></span>&nbsp;&nbsp;&nbsp;&nbsp;傳真:<span id="out-fax"></span><br>
-              相對人:<span id="out-respondent"></span><br>
-              統一編號:<span id="out-taxid"></span><br>
-              設<span id="out-reg-addr"></span><br>
-              住<span id="out-res-addr"></span><br>
-            </div>
+            <div style="text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 20px;">民事申請支付命令狀</div>
+            
+            <div>標的金額:新台幣<span id="out-target-amount"></span>元整</div>
+            <div>聲請人:<span id="out-applicant"></span></div>
+            <div>設 <span id="out-applicant-addr"></span></div>
+            <div>法定代理人:<span id="out-applicant-boss"></span>地址同上</div>
+            <div>送達代收人:<span id="out-agent"></span></div>
+            <div>送達處所:<span id="out-agent-addr"></span></div>
+            <div>電&nbsp;&nbsp;&nbsp;&nbsp;話:<span id="out-phone"></span> 傳真:<span id="out-fax"></span></div>
+            <div>相對人:<span id="out-respondent"></span></div>
+            <div>統一編號:<span id="out-taxid"></span></div>
+            <div>設<span id="out-reg-addr"></span></div>
+            <div>住<span id="out-res-addr"></span></div>
+            
+            <div style="margin-top: 20px;">為聲請發支付命令事:</div>
+            
+            <div>一、請求標的</div>
+            <div>(一)債務人應給付債權人(即聲請人)新台幣<span id="out-req-amount"></span>元整,</div>
+            <div>即自本件支付命令送達之翌日起至清償日止,按年利率</div>
+            <div>百分之五計算之利息。</div>
+            <div>(二)督促程序費用由債務人負擔。</div>
+            
+            <div>二、請求原因及事實</div>
+            <div style="text-align: justify;">(一)聲請人屢次請求債務人按時支付貨款,均不得結果。為</div>
+            <div style="text-align: justify;">此,聲請人實有督促其履行之必要(聲證一號)。依聲請</div>
+            <div style="text-align: justify;">人及相對人雙方簽訂之網站優化服務委託合約(聲證二</div>
+            <div style="text-align: justify;">號)<span id="out-clause"></span>所欠金額點載明,若相對人無故拖延</div>
+            <div style="text-align: justify;">付款,聲請人在確認已完成之關鍵字排名目標後,得請</div>
+            <div style="text-align: justify;">領剩餘期間所有服務費用,共計新台幣<span id="out-req-amount-2"></span>元整。</div>
+            <div style="text-align: justify;">(二)本案係請求給付一定金錢,為求簡速,特依民事訴訟法</div>
+            <div style="text-align: justify;">第五百零八條及第五百一十條之規定,狀請鈞院鑒核,</div>
+            <div style="text-align: justify;">迅賜對債務人發給支付命令,限令如數清償本息,並負擔</div>
+            <div style="text-align: justify;">督促程序費用,以保聲請人權益,實為法便。</div>
+            
+            <div style="margin-top: 15px;">聲證一號:中和郵局存證信函(號碼<span id="out-cert-num"></span>號)影本乙份。</div>
+            <div>聲證二號:合約書影本乙份。</div>
+            
+            <div style="margin-top: 20px;">謹狀</div>
+            <div><span id="out-court"></span>公鑒</div>
+            
+            <div style="margin-top: 20px;">中 華 民 國 <span id="out-year"></span> 年 <span id="out-month"></span>月 <span id="out-day"></span> 日</div>
+            <div>具狀人<span id="out-applicant-sign"></span></div>
+            <div>法定代理人<span id="out-applicant-boss-sign"></span></div>
 
-            <!-- 下半部正文內容 -->
-            <div style="font-size: 16px; line-height: 1.9; margin-top: 25px;">
-              <p>為聲請發支付命令事:</p>
-              
-              <p>一、請求標的</p>
-              <p style="padding-left: 2em; text-align: justify;">(一)債務人應給付債權人(即聲請人)新台幣<span id="out-req-amount"></span>元整,即自本件支付命令送達之翌日起至清償日止,按年利率百分之五計算之利息。</p>
-              <p style="padding-left: 2em; text-align: justify;">(二)督促程序費用由債務人負擔。</p>
-              
-              <p>二、請求原因及事實</p>
-              <p style="padding-left: 2em; text-align: justify;">(一)聲請人屢次請求債務人按時支付貨款,均不得結果。為此,聲請人實有督促其履行之必要(聲證一號)。依聲請人及相對人雙方簽訂之網站優化服務委託合約(聲證二號)<span id="out-clause"></span>所欠金額點載明,若相對人無故拖延付款,聲請人在確認已完成之關鍵字排名目標後,得請領剩餘期間所有服務費用,共計新台幣<span id="out-req-amount-2"></span>元整。</p>
-              <p style="padding-left: 2em; text-align: justify;">(二)本案係請求給付一定金錢,為求簡速,特依民事訴訟法第五百零八條及第五百一十條之規定,狀請鈞院鑒核,迅賜對債務人發給支付命令,限令如數清償本息,並負擔督促程序費用,以保聲請人權益,實為法便。</p>
-              
-              <p style="margin-top: 15px;">聲證一號:中和郵局存證信函(號碼<span id="out-cert-num"></span>號)影本乙份。</p>
-              <p>聲證二號:合約書影本乙份。</p>
-              
-              <p style="margin-top: 25px;">謹狀</p>
-              <p><span id="out-court"></span> 公鑒</p>
-              
-              <p style="margin-top: 35px;">中&nbsp;&nbsp;&nbsp;&nbsp;華&nbsp;&nbsp;&nbsp;&nbsp;民&nbsp;&nbsp;&nbsp;&nbsp;國 <span id="out-year"></span> 年 <span id="out-month"></span> 月 <span id="out-day"></span> 日</p>
-              <p>具狀人<span id="out-applicant-sign"></span></p>
-              <p>法定代理人<span id="out-applicant-boss-sign"></span></p>
-            </div>
           </div>
         </div>
       </div>
@@ -365,7 +376,6 @@
     <div id="view-tool-seal" style="display: none;">
       <div class="back-btn" onclick="switchView('home')">← 返回作業列表</div>
       <div class="split-container">
-        <!-- 左側填寫區 -->
         <div class="editor-pane">
           <div class="section-title">用印單資料設定</div>
           <div class="field-group">
@@ -404,7 +414,6 @@
             </div>
           </div>
         </div>
-        <!-- 右側：搜博 1:1 實體預覽 -->
         <div class="preview-pane">
           <div class="preview-toolbar">
             <div>
@@ -412,7 +421,6 @@
               <span class="badge">1:1 排版規格</span>
             </div>
           </div>
-          <!-- A4 紙張本體 -->
           <div class="a4-sheet" id="print-area">
             <div class="sober-header-svg-wrap">
               <img id="sober-header-logo" src="./logo.jpg" onerror="this.src='./Logo.jpg'" alt="搜博科技股份有限公司 Logo">
@@ -506,12 +514,9 @@
     <!-- ==================== 模組：存證信函 ==================== -->
     <div id="view-cert-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
-      
       <div class="split-container">
-        <!-- 左側輸入區 -->
         <div class="editor-pane no-print">
           <div class="section-title">存證信函內容填寫</div>
-          
           <div class="field-group" style="background: #eff6ff; padding: 10px; border-radius: 8px; border: 1px solid #bfdbfe;">
             <label style="color: #1d4ed8; font-weight: bold;">🏢 選擇發函公司</label>
             <select id="cert-company-select" onchange="updateCertDoc()">
@@ -522,7 +527,6 @@
               <option value="马雅">馬雅科技有限公司</option>
             </select>
           </div>
-
           <div style="display: flex; gap: 6px;">
             <div class="field-group" style="flex: 1;">
               <label>發函年 (民國)</label>
@@ -537,32 +541,26 @@
               <input type="text" id="cert-day" value="１１" oninput="updateCertDoc()">
             </div>
           </div>
-
           <div class="field-group">
             <label>欠款期間</label>
             <input type="text" id="cert-period" value="１１５年５月份至１１５年７月份" oninput="updateCertDoc()">
           </div>
-
           <div class="field-group">
             <label>姓名 (公司名稱)</label>
             <input type="text" id="cert-receiver-name" value="虹寬國際家具有限公司" oninput="updateCertDoc()">
           </div>
-
           <div class="field-group">
             <label>代表人</label>
             <input type="text" id="cert-receiver-boss" value="江慶寬" oninput="updateCertDoc()">
           </div>
-
           <div class="field-group">
             <label>詳細地址</label>
             <input type="text" id="cert-receiver-addr" value="新北市板橋區僑中一街124巷72之2號" oninput="updateCertDoc()">
           </div>
-
           <div class="field-group">
             <label>已出帳未繳納金額</label>
             <input type="text" id="cert-debt-amount" value="１５６００" oninput="updateCertDoc()">
           </div>
-
           <div style="display: flex; gap: 6px;">
             <div class="field-group" style="flex: 1;">
               <label>合約第伍條第幾項</label>
@@ -573,20 +571,15 @@
               <input type="text" id="cert-full-amount" value="１４６１２０" oninput="updateCertDoc()">
             </div>
           </div>
-
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="window.print()">🖨️ 列印存證信函</button>
         </div>
-
-        <!-- 右側：存證信函 100% 純文字預覽 -->
         <div class="preview-pane">
           <div class="preview-toolbar no-print">
             <span style="font-weight: 700; font-size: 15px;">✉️ 存證信函 1:1 格式預覽</span>
             <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="window.print()">🖨️ 列印</button>
           </div>
-
           <div class="a4-paper">
             <div class="doc-header-title">存證信函格式</div>
-
             <table class="post-table">
               <tr>
                 <td class="col-stamp-1">騎縫郵戳</td>
@@ -604,7 +597,6 @@
                 <td class="col-stamp-3">郵戳<br><br><br>正<br><br><br>副<br><br><br>正</td>
               </tr>
             </table>
-
             <div class="note-box">
               一、存證信函需送交郵局辦理證明手續後始有效，自交寄之日起由郵局保存之副本，於三年期滿後銷燬之。<br>
               二、在  頁  行第   格下  塗改/增刪  字&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;印(如有修改應填註本欄並蓋用寄件人印章，<br>
@@ -616,7 +608,6 @@
                 <div style="width: 100px; text-align: right;">郵&nbsp;&nbsp;局</div>
               </div>
             </div>
-
             <table class="party-table">
               <tr>
                 <td colspan="2" style="border-bottom:none; text-align:center; font-size:13px; padding: 4px;">
@@ -649,26 +640,22 @@
                 </td>
               </tr>
             </table>
-
             <div class="title-banner">
               <div class="title-left">正<br>副<br>本</div>
               <div class="title-center">郵局存證信函用紙</div>
               <div style="width: 50px;"></div>
             </div>
             <div style="font-size: 15px; letter-spacing: 5px; font-weight: bold; margin-bottom: 10px;">騎縫郵戳</div>
-
             <div class="body-content">
               <p><b>敬啟者：</b></p>
               <p id="disp-p1"></p>
               <p id="disp-p2"></p>
               <p id="disp-p3"></p>
-              
               <div class="signature-area">
                 <span id="disp-sign-comp">搜博科技股份有限公司</span><br>
                 民國<span id="disp-sign-year"></span>年<span id="disp-sign-month"></span>月<span id="disp-sign-day"></span>日
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -719,13 +706,8 @@
     }
     restoreView();
 
-    function toFull(val) {
-      return String(val || '').replace(/[0-9]/g, function(s) {
-        return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
-      });
-    }
-
-    /* ================= 支付命令邏輯 ================= */
+    /* ================= 支付命令邏輯 (嚴格還原半形與全形) ================= */
+    // 注意：此處已移除 toFull() 轉換，保證左側輸入什麼，右側就完全相同
     function updatePayOrder() {
       const fields = [
         'target-amount', 'applicant', 'applicant-addr', 'applicant-boss',
@@ -793,6 +775,12 @@
       "创思": { name: "創思影像有限公司", boss: "陳智國", addr: "新北市中和區中正路866號17樓", comm: "" },
       "马雅": { name: "馬雅科技有限公司", boss: "陳智國", addr: "新北市中和區中正路866號17樓", comm: "" }
     };
+
+    function toFull(val) {
+      return String(val || '').replace(/[0-9]/g, function(s) {
+        return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
+      });
+    }
 
     function updateCertDoc() {
       const selected = document.getElementById('cert-company-select').value;

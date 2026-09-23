@@ -146,18 +146,27 @@
        ★ 支付命令專用版型 (100% 絕對還原附件：兩張獨立A4) ★
        ======================================================= */
     .pay-order-a4 {
-      background: #fff; margin: 0 auto 20px auto; width: 794px; height: 1123px; padding: 75px 95px; 
+      background: #fff; margin: 0 auto 20px auto; width: 794px; height: 1123px; padding: 72px 88px 60px 88px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      /* 強制使用新細明體，符合附件字形 */
-      font-family: "PMingLiU", "MingLiU", "新細明體", serif; 
+      font-family: "PMingLiU", "MingLiU", "新細明體", "Times New Roman", serif;
       color: #000;
-      font-size: 20px; /* 放大字體比例以吻合 PDF 行寬 */
-      line-height: 1.65; /* 精準控制行距 */
-      page-break-after: always; /* 列印時強制換頁 */
+      font-size: 18px;
+      line-height: 1.85;
+      page-break-after: always;
+      letter-spacing: 0.5px;
     }
-    
-    .pay-title-box { text-align: center; font-size: 26px; font-weight: bold; letter-spacing: 2px; margin-bottom: 35px; }
-    .pay-line { white-space: pre-wrap; margin: 0; padding: 0; } /* 保證斷行不跑版 */
+    .pay-title-box {
+      text-align: center; font-size: 24px; font-weight: bold;
+      letter-spacing: 6px; margin-bottom: 28px;
+    }
+    .pay-line { white-space: pre-wrap; margin: 0; padding: 0; word-break: break-all; }
+    .pay-indent { padding-left: 2em; }
+    .pay-indent-lg { padding-left: 4em; }
+    .pay-spacer { height: 1.2em; }
+    .pay-spacer-lg { height: 2.4em; }
+    .pay-sign-block { margin-top: 48px; text-align: right; padding-right: 2em; }
+    .pay-date-block { margin-top: 36px; text-align: center; letter-spacing: 4px; }
+    .pay-court-block { margin-top: 28px; }
 
     /* 列印相關 */
     @media screen and (max-width: 1100px) {
@@ -177,7 +186,7 @@
       #view-cert-editor .preview-pane { display: block; overflow: visible; min-height: 0; border-radius: 0; }
       #cert-pages .a4-paper { page: cert-letter; width: 210mm !important; height: 297mm !important; min-height: 297mm !important; padding: 0 !important; margin: 0 !important; break-after: page; break-inside: avoid; }
       #cert-pages .a4-paper:last-child { break-after: auto; }
-      .pay-order-a4 { margin-bottom: 0 !important; padding: 75px 95px !important; }
+      .pay-order-a4 { margin-bottom: 0 !important; padding: 72px 88px 60px 88px !important; height: auto !important; }
     }
   </style>
 </head>
@@ -441,7 +450,7 @@
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
       
       <div class="split-container">
-        <!-- 左側輸入區：依照要求提供之完整欄位 -->
+        <!-- 左側輸入區：即時連動右側預覽 -->
         <div class="editor-pane no-print">
           <div class="section-title">支付命令 內容填寫</div>
           
@@ -512,7 +521,7 @@
           </div>
 
           <div class="field-group">
-            <label>委託合約條款</label>
+            <label>委託合約條款 (如: 第伍條第四項)</label>
             <input type="text" id="pay-clause" value="第伍條第四項" oninput="updatePayOrder()">
           </div>
 
@@ -528,15 +537,15 @@
 
           <div style="display: flex; gap: 6px;">
             <div class="field-group" style="flex: 1;">
-              <label>年 (半形數字)</label>
+              <label>年 (民國半形)</label>
               <input type="text" id="pay-year" value="115" oninput="updatePayOrder()">
             </div>
             <div class="field-group" style="flex: 1;">
-              <label>月 (半形數字)</label>
+              <label>月 (半形)</label>
               <input type="text" id="pay-month" value="09" oninput="updatePayOrder()">
             </div>
             <div class="field-group" style="flex: 1;">
-              <label>日 (半形數字)</label>
+              <label>日 (半形)</label>
               <input type="text" id="pay-day" value="15" oninput="updatePayOrder()">
             </div>
           </div>
@@ -544,65 +553,72 @@
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="window.print()">🖨️ 列印支付命令狀</button>
         </div>
 
-        <!-- 右側：1:1 絕對還原 PDF 排版 (強制拆分為兩張 A4，絕對套版) -->
+        <!-- 右側：1:1 絕對還原 PDF / Word 排版（兩頁 A4，斷頁與附件一致） -->
         <div class="preview-pane" style="align-items: center;">
           <div class="preview-toolbar no-print" style="width: 100%; max-width: 794px;">
             <span style="font-weight: 700; font-size: 15px;">📜 支付命令狀 1:1 兩頁預覽</span>
             <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="window.print()">🖨️ 列印</button>
           </div>
 
-          <!-- 第一頁 A4 -->
-          <div class="pay-order-a4">
+          <!-- 第一頁 A4：標題～請求標的 -->
+          <div class="pay-order-a4" id="pay-page-1">
             <div class="pay-title-box">民事申請支付命令狀</div>
-            
-            <div class="pay-line">標的金額:新台幣<span id="out-target-amount"></span>元整</div>
-            <div class="pay-line">聲請人:<span id="out-applicant"></span></div>
-            <div class="pay-line">設 <span id="out-applicant-addr"></span></div>
-            <div class="pay-line">法定代理人:<span id="out-applicant-boss"></span>地址同上</div>
-            <div class="pay-line">送達代收人:<span id="out-agent"></span></div>
-            <div class="pay-line">送達處所:<span id="out-agent-addr"></span></div>
-            <div class="pay-line">電</div>
-            <div class="pay-line">話:<span id="out-phone"></span> 傳真:<span id="out-fax"></span></div>
-            <div class="pay-line">相對人:<span id="out-respondent"></span></div>
-            <div class="pay-line">統一編號:<span id="out-taxid"></span></div>
-            <div class="pay-line">設<span id="out-reg-addr"></span></div>
-            <div class="pay-line">住<span id="out-res-addr"></span></div>
-            
-            <div class="pay-line" style="margin-top: 30px;">為聲請發支付命令事:</div>
-            
+
+            <div class="pay-line">標 的 金 額：新台幣<span id="out-target-amount">78,421</span> 元整</div>
+            <div class="pay-line">聲&nbsp;&nbsp;&nbsp;請&nbsp;&nbsp;人：<span id="out-applicant">搜創網路行銷有限公司</span></div>
+            <div class="pay-line pay-indent">設 <span id="out-applicant-addr">高雄市苓雅區新光路38號20樓之5</span></div>
+            <div class="pay-line">法定代理人：<span id="out-applicant-boss">陳智國</span> 地址同上</div>
+            <div class="pay-line">送達代收人：<span id="out-agent">李唐宇</span></div>
+            <div class="pay-line">送 達 處 所：<span id="out-agent-addr">新北市中和區中正路866號17樓(搜博科技)</span></div>
+            <div class="pay-line">電&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;話：<span id="out-phone">02-22082928#201</span>&nbsp;&nbsp;傳真：<span id="out-fax">02-22081865</span></div>
+            <div class="pay-line">相&nbsp;&nbsp;對&nbsp;&nbsp;人：<span id="out-respondent">玩髮櫥窗髮型</span></div>
+            <div class="pay-line">統 一 編號：<span id="out-taxid">81228511</span></div>
+            <div class="pay-line pay-indent">設 <span id="out-reg-addr">臺南市永康區安康里中華路621號1樓</span></div>
+            <div class="pay-line pay-indent">住 <span id="out-res-addr">臺南市永康區安康里中華路621號1樓</span></div>
+
+            <div class="pay-spacer"></div>
+            <div class="pay-line">為聲請發支付命令事：</div>
+            <div class="pay-spacer"></div>
             <div class="pay-line">一、請求標的</div>
-            <div class="pay-line">(一)債務人應給付債權人(即聲請人)新台幣<span id="out-req-amount"></span>元整,</div>
-            <div class="pay-line">即自本件支付命令送達之翌日起至清償日止,按年利率</div>
+            <div class="pay-line">（一）債務人應給付債權人（即聲請人）新台幣<span id="out-req-amount">78,421</span> 元整，</div>
+            <div class="pay-line">即自本件支付命令送達之翌日起至清償日止，按年利率</div>
             <div class="pay-line">百分之五計算之利息。</div>
-            <div class="pay-line">(二)督促程序費用由債務人負擔。</div>
-            
-            <div class="pay-line">二、請求原因及事實</div>
-            <div class="pay-line">(一)聲請人屢次請求債務人按時支付貨款,均不得結果。為</div>
-            <div class="pay-line">此,聲請人實有督促其履行之必要(聲證一號)。依聲請</div>
-            <div class="pay-line">人及相對人雙方簽訂之網站優化服務委託合約(聲證二</div>
-            <div class="pay-line">號)<span id="out-clause"></span>所欠金額點載明,若相對人無故拖延</div>
-            <div class="pay-line">付款,聲請人在確認已完成之關鍵字排名目標後,得請</div>
-            <div class="pay-line">領剩餘期間所有服務費用,共計新台幣<span id="out-req-amount-2"></span>元整。</div>
-            <div class="pay-line">(二)本案係請求給付一定金錢,為求簡速,特依民事訴訟法</div>
-            <div class="pay-line">第五百零八條及第五百一十條之規定,狀請鈞院鑒核,</div>
-            <div class="pay-line">迅賜對債務人發給支付命令,限令如數清償本息,並負擔</div>
-            <div class="pay-line">督促程序費用,以保聲請人權益,實為法便。</div>
+            <div class="pay-line">（二）督促程序費用由債務人負擔。</div>
           </div>
 
-          <!-- 第二頁 A4 -->
-          <div class="pay-order-a4">
-            <div class="pay-line">聲證一號:中和郵局存證信函(號碼<span id="out-cert-num"></span>號)影本乙份。</div>
-            <div class="pay-line">聲證二號:合約書影本乙份。</div>
-            
-            <div class="pay-line" style="margin-top: 40px;">謹狀</div>
-            <div class="pay-line"><span id="out-court"></span>公鑒</div>
-            
-            <div class="pay-line" style="margin-top: 60px;">中</div>
-            <div class="pay-line">華</div>
-            <div class="pay-line">民</div>
-            <div class="pay-line">國 <span id="out-year"></span> 年 <span id="out-month"></span>月 <span id="out-day"></span> 日</div>
-            <div class="pay-line">具狀人<span id="out-applicant-sign"></span></div>
-            <div class="pay-line">法定代理人<span id="out-applicant-boss-sign"></span></div>
+          <!-- 第二頁 A4：請求原因及事實～具狀人 -->
+          <div class="pay-order-a4" id="pay-page-2">
+            <div class="pay-line">二、請求原因及事實</div>
+            <div class="pay-line">（一）聲請人屢次請求債務人按時支付貨款，均不得結果。為</div>
+            <div class="pay-line">此，聲請人實有督促其履行之必要（聲證一號）。依聲請</div>
+            <div class="pay-line">人及相對人雙方簽訂之網站優化服務委託合約（聲證二</div>
+            <div class="pay-line">號）<span id="out-clause">第伍條第四項</span>所欠金額點載明，若相對人無故拖延</div>
+            <div class="pay-line">付款，聲請人在確認已完成之關鍵字排名目標後，得請</div>
+            <div class="pay-line">領剩餘期間所有服務費用，共計新台幣<span id="out-req-amount-2">78,421</span> 元整。</div>
+            <div class="pay-spacer"></div>
+            <div class="pay-line">（二）本案係請求給付一定金錢，為求簡速，特依民事訴訟法</div>
+            <div class="pay-line">第五百零八條及第五百一十條之規定，狀請 鈞院鑒核，</div>
+            <div class="pay-line">迅賜對債務人發給支付命令，限令如數清償本息，並負擔</div>
+            <div class="pay-line">督促程序費用，以保聲請人權益，實為法便。</div>
+
+            <div class="pay-spacer-lg"></div>
+            <div class="pay-line">聲證一號：中和郵局 存證信函(號碼 <span id="out-cert-num">000319</span> 號)影本乙份。</div>
+            <div class="pay-line">聲證二號：合約書影本乙份。</div>
+
+            <div class="pay-court-block">
+              <div class="pay-line" style="text-align: center; letter-spacing: 8px;">謹  狀</div>
+              <div class="pay-line" style="text-align: center; margin-top: 8px;"><span id="out-court">臺灣臺南地方法院</span> 公鑒</div>
+            </div>
+
+            <div class="pay-date-block">
+              <div class="pay-line">中&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;華&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;民&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;國&nbsp;&nbsp;&nbsp;<span id="out-year">115</span>&nbsp;&nbsp;&nbsp;年</div>
+              <div class="pay-line"><span id="out-month">09</span>&nbsp;&nbsp;月&nbsp;<span id="out-day">15</span>&nbsp;&nbsp;日</div>
+            </div>
+
+            <div class="pay-sign-block">
+              <div class="pay-line">具狀人&nbsp;&nbsp;&nbsp;<span id="out-applicant-sign">搜創網路行銷有限公司</span></div>
+              <div class="pay-line">法定代理人&nbsp;<span id="out-applicant-boss-sign">陳智國</span></div>
+            </div>
           </div>
           
         </div>
@@ -816,27 +832,33 @@
     }
     
     // ==========================================
-    // 模組 3：支付命令邏輯 (嚴格還原半形、空格、分頁)
+    // 模組 3：支付命令邏輯 (嚴格還原半形、空格、分頁，與附件 PDF/Word 一致)
     // ==========================================
     function updatePayOrder() {
       const fields = [
         'target-amount', 'applicant', 'applicant-addr', 'applicant-boss',
-        'agent', 'agent-addr', 'phone', 'fax', 'respondent', 'taxid', 
-        'reg-addr', 'res-addr', 'req-amount', 'clause', 'cert-num', 
+        'agent', 'agent-addr', 'phone', 'fax', 'respondent', 'taxid',
+        'reg-addr', 'res-addr', 'req-amount', 'clause', 'cert-num',
         'court', 'year', 'month', 'day'
       ];
-      
       fields.forEach(field => {
         const inputElem = document.getElementById('pay-' + field);
-        if(!inputElem) return;
-        
-        let val = inputElem.value;
+        if (!inputElem) return;
+        const val = inputElem.value;
         const outputElem = document.getElementById('out-' + field);
-        if (outputElem) outputElem.innerText = val;
-        
-        if (field === 'req-amount') document.getElementById('out-req-amount-2').innerText = val;
-        if (field === 'applicant') document.getElementById('out-applicant-sign').innerText = val;
-        if (field === 'applicant-boss') document.getElementById('out-applicant-boss-sign').innerText = val;
+        if (outputElem) outputElem.textContent = val;
+        if (field === 'req-amount') {
+          const el2 = document.getElementById('out-req-amount-2');
+          if (el2) el2.textContent = val;
+        }
+        if (field === 'applicant') {
+          const el = document.getElementById('out-applicant-sign');
+          if (el) el.textContent = val;
+        }
+        if (field === 'applicant-boss') {
+          const el = document.getElementById('out-applicant-boss-sign');
+          if (el) el.textContent = val;
+        }
       });
     }
 

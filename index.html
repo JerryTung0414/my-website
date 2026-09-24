@@ -71,10 +71,10 @@
     
     .tracker-wrapper { overflow-x: auto; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 10px; }
     .tracker-table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
-    .tracker-table th, .tracker-table td { border: 1px solid #cbd5e1; text-align: center; white-space: nowrap; }
-    .tracker-table th { background: #f8fafc; padding: 8px 12px; font-weight: 600; color: #334155; }
+    .tracker-table th, .tracker-table td { border: 1px solid #cbd5e1; text-align: center; white-space: nowrap; padding: 8px 12px; }
+    .tracker-table th { background: #f8fafc; font-weight: 600; color: #334155; }
     .tracker-table th.today-col { background: #dbeafe; color: #1e40af; }
-    .tracker-table td:first-child { position: sticky; left: 0; background: #fff; font-weight: bold; z-index: 1; padding: 0 12px; text-align: left; border-right: 2px solid #cbd5e1; }
+    .tracker-table td:first-child { position: sticky; left: 0; background: #fff; font-weight: bold; z-index: 1; text-align: left; border-right: 2px solid #cbd5e1; }
     .tracker-table th:first-child { position: sticky; left: 0; z-index: 2; border-right: 2px solid #cbd5e1; }
     .tracker-select { width: 100%; height: 100%; min-height: 32px; border: none; outline: none; padding: 0 8px; text-align: center; font-weight: 600; cursor: pointer; -webkit-appearance: none; appearance: none; }
     .tracker-select option { background: #fff; color: #000; font-weight: normal; }
@@ -309,7 +309,7 @@
         <div>
           <div class="card-icon">⚖️</div>
           <div class="card-title">法務作業</div>
-          <div class="card-desc">存證信函、支付命令、名單整理、相關費用計算。</div>
+          <div class="card-desc">存證信函、支付命令、存證名單整理與費用計算。</div>
         </div>
         <button class="card-btn" onclick="switchView('tool-legal')">進入</button>
       </div>
@@ -319,13 +319,11 @@
     <div id="view-tool-seo" style="display: none;">
       <div class="back-btn" onclick="switchView('home')">← 返回作業列表</div>
       
-      <!-- 雙分頁導覽 -->
       <div class="seo-tabs no-print">
         <button class="seo-tab-btn active" id="tab-btn-filter" onclick="switchSeoTab('filter')">當日排名過濾</button>
         <button class="seo-tab-btn" id="tab-btn-tracker" onclick="switchSeoTab('tracker')">關鍵字完成率達程表</button>
       </div>
 
-      <!-- 分頁 A：排名過濾 -->
       <div id="seo-tab-filter" class="workspace-pane">
         <div class="section-title">SEO 關鍵字當日排名過濾</div>
         <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">直接將系統上的多日表格複製貼在下方：</p>
@@ -341,19 +339,17 @@
         <textarea id="clean-output" rows="7" readonly placeholder="提取結果將出現在這裡（可直接貼入 Excel）..."></textarea>
       </div>
 
-      <!-- 分頁 B：完成率達程表 -->
       <div id="seo-tab-tracker" class="workspace-pane" style="display: none;">
         <div class="split-container">
           <div class="editor-pane no-print" style="width: 280px;">
             <div class="section-title">載入今日名單</div>
-            <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">每日貼上 10~20 家客戶名單，系統將自動剔除 (G)(g)(Y)，過濾重複並自動推進天數。</p>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">每日貼上 10~20 家客戶名單，系統將自動全域剔除 (G)(g)(Y)，過濾重複並自動推進天數。</p>
             <textarea id="tracker-paste-input" rows="15" placeholder="貼上今日名單..."></textarea>
             <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="processTrackerList()">載入今日達標名單</button>
           </div>
           
           <div class="tracker-wrapper" style="flex: 1;">
             <table class="tracker-table" id="tracker-table">
-              <!-- JS 動態生成表頭與內容 -->
             </table>
           </div>
         </div>
@@ -545,14 +541,14 @@
           <div>
             <div class="card-icon">📂</div>
             <div class="card-title">存證名單整理</div>
-            <div class="card-desc">匯入 Excel 報表，自訂月份區間，自動篩選欠款達三個月以上之名單，並保留業務與客戶資訊。</div>
+            <div class="card-desc">匯入催款 Excel 報表，自動從【款項】解析月份，精確篩選欠款滿 3 個月客戶並可一鍵帶入存證信函。</div>
           </div>
           <button class="card-btn" onclick="switchView('legal-list')">進入製作</button>
         </div>
       </div>
     </div>
 
-    <!-- ==================== 新增模組：存證名單整理 ==================== -->
+    <!-- ==================== 模組：存證名單整理 (專用 Excel 解析) ==================== -->
     <div id="view-legal-list" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
       <div class="split-container">
@@ -560,35 +556,24 @@
           <div class="section-title">名單篩選設定</div>
           
           <div class="field-group">
-            <label>1. 匯入報表 (Excel / CSV)</label>
+            <label>1. 匯入催款報表 (Excel)</label>
             <input type="file" id="legal-list-file" accept=".xlsx, .xls, .csv">
           </div>
 
           <div style="display: flex; gap: 6px; margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 15px;">
             <div class="field-group" style="flex: 1;">
-              <label>篩選起始月份</label>
-              <input type="number" id="legal-start-month" value="5">
+              <label>起始月份</label>
+              <input type="number" id="legal-start-month" value="5" min="1" max="12">
             </div>
             <div class="field-group" style="flex: 1;">
-              <label>篩選結束月份</label>
-              <input type="number" id="legal-end-month" value="7">
+              <label>結束月份</label>
+              <input type="number" id="legal-end-month" value="7" min="1" max="12">
             </div>
           </div>
 
           <div class="field-group">
-            <label>欠款期數條件</label>
-            <input type="number" id="legal-min-months" value="3" title="欠款達幾個月(含)以上才列出">
-          </div>
-
-          <div class="field-group">
-            <label>判斷為「欠款」的條件</label>
-            <select id="legal-unpaid-condition">
-              <option value="not_empty">單元格有數字或文字 (排除 0、已付)</option>
-              <option value="specific_text">包含特定文字 (自訂)</option>
-            </select>
-          </div>
-          <div class="field-group" id="legal-specific-text-group" style="display: none;">
-            <input type="text" id="legal-specific-text" placeholder="輸入特定文字, 如: 未繳">
+            <label>欠款期數條件 (月數)</label>
+            <input type="number" id="legal-min-months" value="3" min="1" max="12" title="欠款達幾個月(含)以上才列出">
           </div>
 
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="processLegalList()">📊 開始篩選名單</button>
@@ -600,17 +585,19 @@
             <button class="card-btn" style="background:#2563eb; padding:6px 16px;" onclick="exportLegalList()">匯出 Excel</button>
           </div>
           <div class="tracker-wrapper" style="flex: 1; background: #fff; padding: 10px; border: none; overflow-y: auto;">
-            <table class="tracker-table" id="legal-result-table">
+            <table class="tracker-table" id="legal-result-table" style="width: 100%;">
               <thead>
                 <tr>
-                  <th>業務</th>
-                  <th>客戶名稱</th>
-                  <th>欠款期數</th>
-                  <th>欠款月份明細</th>
+                  <th style="width: 12%;">業務</th>
+                  <th style="width: 32%;">客戶名稱</th>
+                  <th style="width: 12%;">欠款月數</th>
+                  <th style="width: 24%;">欠款月份</th>
+                  <th style="width: 10%;">總金額</th>
+                  <th style="width: 10%;">操作</th>
                 </tr>
               </thead>
               <tbody>
-                <tr><td colspan="4" style="color: #64748b; padding: 20px;">請從左側匯入檔案並點擊開始篩選...</td></tr>
+                <tr><td colspan="6" style="color: #64748b; padding: 20px;">請從左側匯入催款 Excel 報表並點擊「開始篩選名單」...</td></tr>
               </tbody>
             </table>
           </div>
@@ -618,7 +605,7 @@
       </div>
     </div>
 
-    <!-- ==================== 模組：支付命令 (絕對還原版 - 兩頁 A4) ==================== -->
+    <!-- ==================== 模組：支付命令 ==================== -->
     <div id="view-pay-order-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
       
@@ -896,7 +883,7 @@
         titleElem.textContent = '存證信函製作作業'; subElem.textContent = 'Word 公版格式：每頁 20 格 × 10 行，自動分頁';
         updateCertDoc();
       } else if (viewName === 'legal-list') {
-        titleElem.textContent = '存證名單整理'; subElem.textContent = '匯入報表自動過濾，快速擷取欠款三個月以上客戶名單';
+        titleElem.textContent = '存證名單整理'; subElem.textContent = '匯入催款報表，自動從【款項】抓取月份並篩選欠款滿 3 個月客戶';
       }
     }
 
@@ -905,6 +892,195 @@
       try { saved = localStorage.getItem(CURRENT_VIEW_KEY) || 'home'; } catch (e) {}
       if (!['home', 'tool-seo', 'tool-seal', 'tool-legal', 'cert-editor', 'pay-order-editor', 'legal-list'].includes(saved)) saved = 'home';
       switchView(saved);
+    }
+
+    // ==========================================
+    // 模組：存證名單整理 (專用 Excel 解析)
+    // ==========================================
+    let currentFilteredData = [];
+
+    function processLegalList() {
+      const fileInput = document.getElementById('legal-list-file');
+      if (!fileInput.files.length) {
+        alert('請先選擇 Excel 催款報表！');
+        return;
+      }
+
+      const startM = parseInt(document.getElementById('legal-start-month').value) || 1;
+      const endM = parseInt(document.getElementById('legal-end-month').value) || 12;
+      const minMonths = parseInt(document.getElementById('legal-min-months').value) || 3;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const rawRows = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+
+          // 1. 自動辨識標題列（搜尋包含「業務」與「客戶」與「款項」的列）
+          let headerIdx = -1;
+          for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
+            const rowStr = rawRows[i].join(" ");
+            if (rowStr.includes("業務") && rowStr.includes("客戶") && rowStr.includes("款項")) {
+              headerIdx = i;
+              break;
+            }
+          }
+
+          if (headerIdx === -1) {
+            alert('找不到包含「業務」、「客戶」、「款項」的標題列，請確認 Excel 檔案是否正確！');
+            return;
+          }
+
+          const headers = rawRows[headerIdx].map(c => String(c).trim());
+          const colSales = headers.findIndex(h => h.includes("業務") && !h.includes("催款"));
+          const colClient = headers.findIndex(h => h.includes("客戶") && !h.includes("總計"));
+          const colItem = headers.findIndex(h => h.includes("款項"));
+          const colAmt = headers.findIndex(h => h === "金額");
+          const colDate = headers.findIndex(h => h.includes("出帳時間"));
+
+          const clientMap = {};
+
+          for (let r = headerIdx + 1; r < rawRows.length; r++) {
+            const row = rawRows[r];
+            if (colClient === -1 || colClient >= row.length) continue;
+            
+            const client = String(row[colClient] || "").trim();
+            // 排除業務小計或空白客戶列
+            if (!client || client === "undefined" || client === "null") continue;
+
+            const sales = colSales !== -1 ? String(row[colSales] || "").trim() : "";
+            const item = colItem !== -1 ? String(row[colItem] || "").trim() : "";
+            const amtStr = colAmt !== -1 ? String(row[colAmt] || "").replace(/,/g, "").trim() : "0";
+            const amt = parseFloat(amtStr) || 0;
+
+            // 2. 從【款項】提取月份（例如：關鍵字服務費（5月份） -> 5）
+            let m = null;
+            const mMatch = item.match(/(\d+)\s*月份?/);
+            if (mMatch) {
+              m = parseInt(mMatch[1], 10);
+            } else if (colDate !== -1 && row[colDate]) {
+              const dMatch = String(row[colDate]).match(/-(\d{1,2})-/);
+              if (dMatch) m = parseInt(dMatch[1], 10);
+            }
+
+            // 3. 判斷是否落在指定月份區間
+            if (m !== null && m >= startM && m <= endM) {
+              const key = `${sales}__${client}`;
+              if (!clientMap[key]) {
+                clientMap[key] = {
+                  sales: sales,
+                  client: client,
+                  months: {},
+                  totalAmt: 0
+                };
+              }
+              if (!clientMap[key].months[m]) {
+                clientMap[key].months[m] = [];
+              }
+              clientMap[key].months[m].push(amt);
+              clientMap[key].totalAmt += amt;
+            }
+          }
+
+          // 4. 篩選出欠款期數達標者
+          const results = [];
+          for (const key in clientMap) {
+            const data = clientMap[key];
+            const distinctMonths = Object.keys(data.months).map(Number).sort((a,b) => a - b);
+            if (distinctMonths.length >= minMonths) {
+              results.push({
+                sales: data.sales,
+                client: data.client,
+                count: distinctMonths.length,
+                monthList: distinctMonths.map(m => m + "月份").join("、"),
+                startM: distinctMonths[0],
+                endM: distinctMonths[distinctMonths.length - 1],
+                total: Math.round(data.totalAmt)
+              });
+            }
+          }
+
+          currentFilteredData = results;
+          renderLegalList(results);
+        } catch(err) {
+          alert('解析 Excel 檔案發生錯誤，請確認檔案格式是否正確。');
+          console.error(err);
+        }
+      };
+      reader.readAsArrayBuffer(fileInput.files[0]);
+    }
+
+    function renderLegalList(data) {
+      const tbody = document.querySelector('#legal-result-table tbody');
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color: #b91c1c; padding: 20px;">在指定的月份區間內，找不到符合欠款期數的客戶。</td></tr>';
+        return;
+      }
+
+      let html = '';
+      data.forEach(item => {
+        html += `<tr>
+          <td>${item.sales}</td>
+          <td style="font-weight: bold; color: #1e40af; text-align: left;">${item.client}</td>
+          <td style="color: #b91c1c; font-weight: bold;">${item.count} 個月</td>
+          <td style="text-align: left; font-size: 13px;">${item.monthList}</td>
+          <td style="font-weight: bold;">$${item.total.toLocaleString()}</td>
+          <td>
+            <button class="card-btn" style="background:#2563eb; padding:5px 10px; font-size:12px; white-space:nowrap;" onclick="applyToNotice('${item.client.replace(/'/g, "\\'")}', ${item.startM}, ${item.endM}, ${item.total})">帶入存證信函</button>
+          </td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    // 點擊直接把客戶、月份、金額帶入存證信函並自動切換分頁
+    function applyToNotice(client, startM, endM, total) {
+      switchView('cert-editor');
+      
+      const rName = document.getElementById('cert-receiver-name');
+      if (rName) rName.value = client;
+
+      const period = document.getElementById('cert-period');
+      if (period) {
+        period.value = `１１５年${toFull(startM)}月份至１１５年${toFull(endM)}月份`;
+      }
+
+      const debt = document.getElementById('cert-debt-amount');
+      if (debt) debt.value = String(total);
+
+      updateCertDoc();
+      alert(`已將【${client}】欠款資料（${startM}月~${endM}月，金額 $${total.toLocaleString()}）自動帶入存證信函！`);
+    }
+
+    function exportLegalList() {
+      if (!currentFilteredData || currentFilteredData.length === 0) {
+        alert('沒有可匯出的篩選資料！');
+        return;
+      }
+      
+      const wsData = [
+        ["業務", "客戶名稱", "欠款月數", "欠款月份明細", "篩選區間欠款總金額"]
+      ];
+
+      currentFilteredData.forEach(item => {
+        wsData.push([item.sales, item.client, item.count + "個月", item.monthList, item.total]);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = [
+        { wch: 15 },
+        { wch: 35 },
+        { wch: 12 },
+        { wch: 30 },
+        { wch: 18 }
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "存證篩選結果");
+      XLSX.writeFile(wb, "存證信函催款篩選名單.xlsx");
     }
 
     // ==========================================
@@ -1081,152 +1257,6 @@
     }
 
     // ==========================================
-    // 模組：存證名單整理 (Excel 匯入篩選)
-    // ==========================================
-    document.getElementById('legal-unpaid-condition').addEventListener('change', function() {
-      document.getElementById('legal-specific-text-group').style.display = this.value === 'specific_text' ? 'block' : 'none';
-    });
-
-    let currentFilteredData = [];
-
-    function processLegalList() {
-      const fileInput = document.getElementById('legal-list-file');
-      if (!fileInput.files.length) {
-        alert('請先選擇 Excel 檔案！');
-        return;
-      }
-
-      const startM = parseInt(document.getElementById('legal-start-month').value) || 1;
-      const endM = parseInt(document.getElementById('legal-end-month').value) || 12;
-      const minMonths = parseInt(document.getElementById('legal-min-months').value) || 3;
-      const condition = document.getElementById('legal-unpaid-condition').value;
-      const specificText = document.getElementById('legal-specific-text').value.trim();
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, {type: 'array'});
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          const json = XLSX.utils.sheet_to_json(worksheet, {defval: ""});
-
-          const results = [];
-
-          json.forEach(row => {
-            let clientName = row['客戶'] || row['客戶名稱'] || row['客戶名'] || row['公司名稱'] || row['相對人'] || "";
-            let salesName = row['業務'] || row['業務員'] || row['負責業務'] || row['經辦'] || "";
-            
-            if (!clientName) {
-                const cKey = Object.keys(row).find(k => k.includes('客戶') || k.includes('公司'));
-                if (cKey) clientName = row[cKey];
-            }
-            if (!salesName) {
-                const sKey = Object.keys(row).find(k => k.includes('業務') || k.includes('負責'));
-                if (sKey) salesName = row[sKey];
-            }
-
-            let unpaidCount = 0;
-            let unpaidMonths = [];
-
-            for (let m = startM; m <= endM; m++) {
-              const mStr1 = m.toString();
-              const mStr2 = m + "月";
-              const mStr3 = m.toString().padStart(2, '0') + "月";
-              
-              const colKey = Object.keys(row).find(k => k == mStr1 || k == mStr2 || k == mStr3 || k.includes(mStr2));
-              
-              if (colKey) {
-                const cellVal = String(row[colKey]).trim();
-                let isUnpaid = false;
-
-                if (condition === 'not_empty') {
-                  if (cellVal !== "" && cellVal !== "0" && !cellVal.includes("已付") && !cellVal.includes("已繳")) {
-                    isUnpaid = true;
-                  }
-                } else {
-                  if (cellVal.includes(specificText) && specificText !== "") {
-                    isUnpaid = true;
-                  }
-                }
-
-                if (isUnpaid) {
-                  unpaidCount++;
-                  unpaidMonths.push(mStr2 + `(${cellVal})`);
-                }
-              }
-            }
-
-            if (unpaidCount >= minMonths) {
-              results.push({
-                sales: salesName,
-                client: clientName,
-                count: unpaidCount,
-                details: unpaidMonths.join(', ')
-              });
-            }
-          });
-
-          currentFilteredData = results;
-          renderLegalList(results);
-        } catch(err) {
-          alert('解析檔案發生錯誤，請確認檔案格式是否正確。');
-          console.error(err);
-        }
-      };
-      reader.readAsArrayBuffer(fileInput.files[0]);
-    }
-
-    function renderLegalList(data) {
-      const tbody = document.querySelector('#legal-result-table tbody');
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="color: #b91c1c; padding: 20px;">找不到符合條件的欠款客戶。</td></tr>';
-        return;
-      }
-
-      let html = '';
-      data.forEach(item => {
-        html += `<tr>
-          <td>${item.sales}</td>
-          <td style="font-weight: bold; color: #1e40af;">${item.client}</td>
-          <td style="color: #b91c1c; font-weight: bold;">${item.count} 個月</td>
-          <td style="text-align: left; font-size: 12px; white-space: normal;">${item.details}</td>
-        </tr>`;
-      });
-      tbody.innerHTML = html;
-    }
-
-    function exportLegalList() {
-      if (!currentFilteredData || currentFilteredData.length === 0) {
-        alert('沒有可匯出的資料！');
-        return;
-      }
-      
-      const wsData = [
-        ["業務", "客戶名稱", "欠款期數", "欠款月份明細"]
-      ];
-
-      currentFilteredData.forEach(item => {
-        wsData.push([item.sales, item.client, item.count, item.details]);
-      });
-
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      
-      // Auto-size columns
-      const colWidths = [
-        { wch: 15 }, // 業務
-        { wch: 30 }, // 客戶名稱
-        { wch: 10 }, // 欠款期數
-        { wch: 50 }  // 欠款月份明細
-      ];
-      ws['!cols'] = colWidths;
-
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "篩選結果");
-      XLSX.writeFile(wb, "存證名單篩選結果.xlsx");
-    }
-
-    // ==========================================
     // 模組 3：支付命令邏輯
     // ==========================================
     function payVal(id) {
@@ -1362,7 +1392,7 @@
       `;
     }
 
-    const SOBER_LOGO_DATA_URL = 'data:image/jpeg;base64,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';
+    const SOBER_LOGO_DATA_URL = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAxAiQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9U6KK4z4p/FDTvhRoen6lqNtcXgv9SttLt4LUKXeaZtq/eIGBgk/SrhCVSShBXbInOMIuUnojs6K8W+IH7WHgrwBqPiCweLVtXvNBhaTUTYWLmC2faGWJ5m2oGbcoABPJwcHNbngX9oDw34+8dXng+0tdWsNfs7VruaDUbF4F2BwhKueGG48EcHaSDxXQ8HiIw9o4O2/y0/zX3mCxVFz5FJX2/r7mem0V5drv7RPhPwv418SeH9YluNPTQLe1nvNQaIyQhrjPlxgJufdgZ+7jnrXF63+3L8MNK1xdOtr291VTYy3huLS0kChl+7Dhwp3ueAfu+rCrhgcVU+Cm3128r/kKeLw8Piml8/kfQtFeceG/j54V8T/CyTx9bNfLo9uim6g+xSPc27nbmNokDFiC4yVyOpzgGuR8Pftf+EvFury22jaF4pvdPtWcX+sf2SyWliqoXYyliHBwAdoUnkcVKweIlzWg/d0fkN4qiuW81rse60V5dc/tE+EpNL8DalpE0uv2Pi/UV06xlsQPkbaxdpFYhlCbcMMbgT0rpPit8R9P+EngDV/FmqQT3NlpyozwWwBlkLyLGqrkgZLOo61n9XqqUYOLvJ2S872/PQv29Nxc1LRat/K/5HW0VyniX4meH/COgXmp6rqVrZta2TX0lnLcxrPsCF8BS3JIGB6mq3wz+K+hfFDwxpGr6bdRQS6lbC6TTpriM3MakZwyKxwcVPsanJ7Tl93uV7WHPyX1O0orwzx/+194P+HfiXXNGvtH8S3x0WaG3vb/AE3TRNaRSSojIhl3gAneowcc8UvxD/a+8GfDbxVq+g32l+I9RudJiimvbjTNOE8ECyRCVS77xt+RgeQO9dMcBipW5ab1V16af5r70YSxmHje81po/wAf8n9x7lRWP4S8S2njPwvpOvWKzR2WpWsd3ClwmyRUdQwDDJwcHkZrz7Vv2lfCeian48guRd/YPBlukmpapGqG3M7f8usZLAtNkqu3GNzYJBrnhQq1JOMI3a/zt+bsbSrU4JSk7J/5X/I9ZoryDQP2mNC1z4iaD4Nm8O+J9F1LW7P7ZY3Gq2Cw20o8kTNGr+YSzqpwwUEBgQTXZ+M/ir4O+HU9rD4n8S6ZoMt0rPAl/crEZFBAJUE84yKqWGrRkoOLu1ddbr5Exr0pRclJWWj9TrKK8Pv/ANsr4VWfjTTPD6eKLG7ju7eS4l1aG5i+xWu04VJJCw+ZjnCqCRwSADmuw0H4+/DfxRq9rpWkeN9D1LUrptkFrbXqPJI2M4UA88A1c8HiYLmlTaW+zJjiqE3aM1f1PQKK8L+IX7YPg34ceJdc0e/0jxLfHRpobe9vtN03zrSOSRFdEMm8AMd4GDjnIGadqH7W/hy11zVdMsvCfjXXZNMuTaXNxo+iNdQpKACU3q3UBhkHBq1gMS0pcjs9fy/zX3kvGYdNrnV1/X6M9yorgvhB8ZdF+NWjajqWi2eqWMen3z6fPDq1t9nlWZApYbdx6bsHPIII7VL40+LmjeCvGXhTwvcR3V9rXiKd47e2skV2hiRSXnlBI2xg4GeScnAODXO6FVVHScfeW69Fd/gbKtTcFUT0f66HcUV5z4S+OGkeLfif4h8BjSdZ0nXNGjM7HVLZIoruESGPzoCHJZCQCGIGQRWj8Tfihb/C+xsrq58P+ItfW6kaMR+HtNe9eMgZy4UjaD2z1pvD1VNU3HV/8OJVqbg5p6I7WivCf+Gt9L/6Jx8S/wDwl5f/AIqp9C/ay8Oaz4v0Pw3P4W8Z6Hf61OYLN9Z0VrWN2A3N8zNzgcnAOK3eBxKTfJsZfXKDaXMe30UUVwHYFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAV8P8A7T3/AAUB/wCES1a88LfDT7LfX1uTFda/KBLDFIOqwJ91yO7tlcjADda9r/bU+JN78Mv2fdfvdMme21PUGj0y3nQkNGZSd7AjofLWTBHQ4PavyEr7rh3KKWLTxWIV0nZLp6s+QzzM6mGaw9F2bV2/8jvfE/x++JHjG4kl1fxxr115hyYlv5I4Qc54iQhF7dB2rB/4WD4p/wChk1f/AMD5f/iq+3P2af2CvBXjj4WaH4r8W3upX19q8H2lLSyuFighjJOwZClmbABPIAJxjjJ9oH/BP74KgD/inbw+/wDalx/8XXv1c+yzCzdFQfuu2kVbT5o8Wnk+PxEFVclrrq3f9Tm/+CcWi3kXwY1XxBqFxNdXWs6tIyyzyF2aKNVQcn/b82vhH9oT4jX/AIw+N/jfVbfUblbWXVZ47fy5mC+TG3lxnAPGVRT+Nfqxe6don7O/M1aPw/bix0jw5pl3dW0LuZMMA8uCWySS7Hr3Nfiu7tI7O7FmY5LE5JPrXNkDWMxeJxttG7L0/4ZI6M4TwuGoYW+qV36/wDDtl7/ AISDVP8AoJXn/f8Ab/Gj/hINU/6CV5/3/b/GvsD9hv8AZZ8HfGjwP4h8QeMtNnvo4tQWysvLupINuyMPIfkIznzEHPoa+lf+Hf3wV/6F28/8Glx/8XXo4riDBYStKhOLbj2St+ZxYfJsXiaUa0JJJ92/8j8q18RaqjBl1O8Vgcgi4fI/WvY/hD+2X8S/hPqNv/xPLjxJoqkCXStYmadGTuEkbLxnrjacZ6q3SvrL44/sGfCrRPhn4g1vR5Lzwve6VZTXiXMt600DsilgkiyZOCRj5SDkjr0P5tV2YXEYLOqMrQulo01/X4M5cRQxeVVY3nZvXRn7d/CD4saJ8a/Aen+KtBkf7Jc5SWCXAktpl+/E4HcfqCCOCKK+Lv2H/A3jfV/hDf3mh3ZsdPl1ibaHfYJCIoQWHHIyMZ9VPpRX5hjcvo0MTOlCqkk+u59/hcbVrUIVJU3drofoNXwj+1W/wDwjnxt8Iafo9ne+MdXW9lTxDa6PezM8KQJsjjPziOIh2O4qAVCseTz93V8U/FjVdL8RfFjxF4w8E65pnhfxtaWc2jXUes6jDaQXkscjRrc27s4VnXaFLcjG0g/eFLJ3KnUnVinonqtk9UrvW2rfTrfYMySnCNN21fXy1f8AwfU8p1Dwxq2lxa1p+rWWu6W3i7xjbW4sp9TjlsLiz+0GcERBj+8jS2jXexzhgM4Jr6B/Zk8A+J5PHXxF8ValFr2kHULSCw0afxHepqNxbgB2chlO0osjfKgwABjvXy/d/CPV7DTfFEnh74M6pqPhK7vg2n63q+lltW063fG9VtVlzLt/gLemW64X7d/Z8/4RbwN+z8svhKz1UaXpsFxO8Wp2kkN1NMgLSEoRkksCOBjsOMV7uaVeTDtU2nzNL02f8zs9ErPXR7I8jL6fNWvNW5U3+a/lV1q3deXU+P8AXofGsnh34jaw/i661/UfFfjCDwgot7CK3m1FrV0KXCGMpsGyB4wgZVIbk5OR5rr9pqGga1411G+0SbT30yBNOVZ5rhGgn2FyuTqZcNllOA0699g6H6P8O/C34i6Z8APAHiHRLq8u7xbkaldaTDpFhPdW8k80jveRtcxs3mBZFUoGUYGSR8xpniPwv4q8dfG/p94NtfHWqavNb3txe6xf3Xg+ztkspY4gIpN3kBJyxbbySOM+lehSxihKaUo8q5r2utI2XSNlokl66X2OOphnOMW1K7tbZ/Fd9Xfdtv01tuet+JLPU/h5+yb4alHji68EXulWNtNeaglol3cXjmIg26rJ1Z5HXHfIA6Zr5/8A2RPEHxE1nw/478R+FfEyar4uW6bVbvwnrFqqRak0pU+esqkNllR0CjaqttzgEZ+lv2i/hraXPw0bxPq1zfa3rXhPRbs2EES4gnvWhCRXDQINvmK44wMDe2BwMZXg39m67uPhl4Bi0zxdq3ge9tdGht9Sl0JI4ri9OA4DyFSw2kvgdt5rwKGKoxwkue15y3aVtNWtrtPTta+lra+xVw9WWJjyXtGOybv2T3snv3263POvhxpXhzxV+0R8Np/D3hu88Kxf2bqHjDUdHu1dBb3k7LbHEbYCjMR24ABBBAHap+3Lf/DbxL4r8MafG1z4k8cLqlrZajpejXE086achkkljEKOEEpLAAHDfNnIArd+B/wCgf8AaO8davq2r+KNcXwvLZWul6prV/K89w4i3y72OPMQOcAdB6Zq/wCJ/FHh/wAVftNaX4gs9H1CDSPANhqeoa1fjSJYzJd4WHbjZulYJGxBGRjoetdKqRjjFUpuTUIdHbVpySb1bu3bo7mDpuWFcJpLml26KybtolZK/oeT/E7whpfja41vwD4M+BlzJ4tttHtZrbVNQ1mP7Rb27qhVykj5Yrlk+8SCATXsH7G2keDtXvta1DSvhpH4P1nQCNIm1Nb5boXUuMTqGT5eCqngsDnrxzw/xatfiP8AG7xQPiJ8NPCGu+GYLLSpdLurm8uI7PUNZs2cM0cEJVvLIBdldjuO5SoyoB9X0Dx1pHhr9lLVbz4ceFtZ0+4061k0620WfT5I7uG9YiPLrg7trvuZ8kfK2TkHBiqk54SNFPWTSfvN8re/N7zVnbRWstdmgw8IxxMqr2SbXupXS25fdT06u+unQ+Rb/WW8S+PU1OPxS01l4v8AFV3qt34eUNLts7W5aRJmVc4+S3CKANzAHH3ee7s/id4Hvvgp8SE1PxjdHxV44kaa91u30C8NjCoYKsKEx58oKpjGTkZP0qfwP4e8KfBb4reFJrfw1rVwPBukzNrd3p+kTzSXerTCOEJHlfmBUEqQQg3HkEnOdZeF/E/hG8sx438HeJbf4Fz65cazb6PZwR3NxbO7AwreJGS3kr97bnGTzuPy16s50qrVrpKzWsU3Zt2Ss7uyhZddL9DzoRqU072bd092ldJXburK7lr01sfQWteK/iV4G/ZXXU9KGkatrf2VTb6haRPbQWFh5Bf7S0cmSXRV+6e5HBxtPzbovhvxT4G+GPgLxZrvhu68afD+K0fxPe2lrOltuvnkZhPeO4JmwjLswP8A7L61/ay1t7H9mXxKujxO02qW0GnWkAjZWZbiRIyu3GR+7ZzgjtXl/iq8ufid4bt/BFrpmo6L8JfBcSP4l1e8spEk1IWfLWsEONzRho8s2MkrgdPm8XBVmqPO4JKU3zd7JdLWd/etFK2t/M9XF0k6nKpO6irdr363vp7t3fp8jnPiH8S/FXxt8ZfCbTLXwHffDvxQ1+dT8P65eXkdxEIEjDTq0SqCUZNnBIyQq9Ca7/8Aa4+OfgrwJplzY3HhjSvHHjqxtA5huLJZodLSTaFlndgdilnTbHnLbl6ZBqz8LNasfjb+0jc+M9Fgu38H+GNBTSNLubm0kt4555JGaWSNXUNwoVOQPpVn9pvw/e/F3xRovwu0fSrmzGptFqOueJPsu2OKzhclIkkIw8hfBxztxyDk4hSpLE0aVSHLGCu1dq13d3bu9vs3+L1sU41Hh6lSE+aUnZOy1srKyVlv17eh8neA38L+FtMmb/hYHhGa6v5Dd3I1X4f311JHIwyyBvK2qo6AJheOBX0R+xxPZeO/FnjC9msPC+qWWhT28OmazpPh4aa7SMjNKQrKHXGQvOOh9at/EnwBc/CTT7G61741ePltrqQwxNY6ZHdYYDOGEcTFeOmfSk/Zzi1XwH+y5488YXSajNrmqy6prKm7hIu53CssLFMfefYpAxj5vSuvF144nDSnF3c2knp1fT3I9Fbd7nPhqUqFeMZKyim393+KXe+x5Rosi674k8J+Ltafz/Bfiv4k6leTRk4JeMFLFmP8UaeXIce3fpXOfDG2vvElrdau/hXx/c6l4mvrzW0Hh7xLHYR3EbzEmRYN4Y4yAWx6c9K9NvvgAfCf7NOneK7zU9d1LUNJ8NFtN8Nwrvt7TULiHyjMkajcWDS5JOcfMeO3JeJ/AniTxJ8KfA2uW/gbxRo2leCbGPStUtluBbX+r6dIqm5ZI1+ZQrJypOWWRvu7a7YVqU7qEla/LfbbmaW6b3ivl2VzklSqQs5rW17b72TezttJ/Pu7Htv7PsXiP4Q/spW2pWPh648WeKr64lu/sVtcpJ50s05Cu8u4goAVLOC3AJ9SMGSPxN8KfE+m6ne/YPFvx28c3KRLHIjNZ6Rp6MDIFUFWWJF+UcguxzyQRXt954o0L4NfA6LWtB8OX82jWNlFJZ6LYWjC5YyFQiGPGVO5xuJGV+YkHFfO/wAG/iF4sPiDWPG998J/GHifx9rfyNLcwRWFnZWwJ8u2geZ9wRRjJKjccsc8GvCpSnX9tXcVZye7Su3qk7uyit330Xp69SMKXsqKk7pLZN2WzastW9l21fr6h8evC/iPRPiD4R+LfgfTTr+q6KG0jW9HtXUyXdjI2Sqnj5o3Ytg+oJ4U0n7Vuq6eLHwRbT23iy61fVLyS3sdK8M6p9gnlYxB38wg4bbtUYzwWNc1+zD/AMJl4H+M/jfw14g8Jz+G9E8RKfE1jaRXBvLexmeQpJF5yqFy+C23AwIxgc8+l/Gn4I658S/GHhHxJoPjNvCepeGlufsrrp0d388wVXbEh2/dXHKnqazco4fEU6dWStBO0tdbq6T5b7N206ddjRRlWoTnTi7yavHTSzs2r23Wuv8AmfLXiy2l8DaT/aeveDvjDplh5scHnzeMBje7BUXhyckkCvXtO8H29l+1J8OvC1pe6jqen+EvDt7rYutVumuZ/Nu5vL2s7ck7V4z0HFV/i58M/FWkaNo+qfEz4t6j4j8Lafq9rePp9l4Wh3SSRsWQMbdd4U4IPUcjviui/Z3uG+Inxm+J/ASY7G8ttFvvsel6Q9/bNA7wwxYkZVYA7Wck/h6g12Vq/Nh5VU72Uldc1ru0Ulza3s5N26HLSo8tZU2rXa35b2V3f3el0vmfRtFFFfIH0wUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFAHz3+3b4DvvHf7OutLp0bz3Wkzxar5EYyZEjyJPyR3f/AIBX5J1+95AYEEZB6g18xfFf/gn58N/iNqFzqelm78H6nOxd/wCzArWrMerGFhgfRGUe1fb5DndLAU3h8Qny3umv1Pk84ympjJqtQ3tZo+F/hN+2D8S/g3oEWhaJqlvc6NAxaGy1G2EyQ5JLBG4YAkk4zjJOMZNegf8PJfi1/z7+HP/ACT/ACO1217/AMEuNejuCtn4906eDs89hJE3X+6HbvjvUH/AA678U/9DvpH/gLLX0NTF5BWk6k+Vt/3X/keJDDZzSioQ5kl5r/M8o+JX7cfxL+Kfg3UfDGqNpNrpmoII7j7DaMkjqGDY3M7Yztwcdia+fa9n/aR/Znvv2b7rQbbUdfs9auNWSaRY7SJ0MKyhBlt3XcXOMf3TXjtpZS313DbW6GWaZ1jjjXqzE4A/M19FgY4RUVPBpKD10VvL9DxMW8S6vLiW3Jd9fM+6o/iPrv7M/7Dfhy98NXEdj4j1/UXuGklhSUeVJ50m4KwI+4sA/GvG/+HgHxq/6GOz/8Fdv/APEV9f8A7Rfg/UPE/wCzhofws8OaPeajrmjXWn2F2LeImO2+y7POeRz8uNqjGDzvHbNeY/8ADsPXz/zPGkf+AslfH4LF5TOnKpjeVzlKUrON2rt2W3Y+mxWGzOM1Tw/MoRilpG6dr69O54F49/bV+KfxK8J6l4Z1zVbKbStRiMNzFDp8Mbuh6ruC5GfXrg4rjf2f/A7/ABG+NXg3w8ke+K71GJrgHp5EZ8yX/wAcRq+pf+HXevf9DxpP/gLJXuf7M/7Ddh8EPFf/AAlGt61Dr+tQRtHZrBAUhti4wz5JJZtpIHAABPXjHp1c3yvAYapHBtKTWiSt+hw08szDGV4PFptJ6tu59M6z4P0PxHcJPquiadqc6LtWW8tI5mUZzgFgSBkn86K2KK/K3KTd2z9FUIpWSG7B6UbB6U6ikMNg9KNg9KdRQAbB6UmwelLRQAbB6UbB6UtFABsHpRsHpS0UAGwelGwelLRQAbB6UbB6UtFADdg9KNg9KdRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQAzYKNgp9FADNg9KNg9KfRQB//2Q==';
     function downloadPdf() { window.print(); }
     function downloadWordDoc() { alert('請使用 [列印 -> 存成PDF] 功能以獲得最佳排版'); }
 

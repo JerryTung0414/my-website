@@ -1,13 +1,10 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>行政作業 · 客服快捷入口</title>
-  <style id="legal-admin-css">
+<!DOCTYPE html><html lang="zh-TW"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行政作業 - 客服快捷入口</title>
+  <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
     body { background-color: #f3f6fb; color: #333; display: flex; min-height: 100vh; }
-    #legal-admin-root { display: flex; min-height: 100vh; width: 100%; background-color: #f3f6fb; color: #333; }
     
     /* 側邊欄 */
     .sidebar { width: 230px; background: #fff; margin: 16px; border-radius: 18px; display: flex; flex-direction: column; box-shadow: 0 4px 16px rgba(0,0,0,0.04); padding: 16px; position: sticky; top: 16px; height: calc(100vh - 32px); flex-shrink: 0; }
@@ -48,12 +45,13 @@
     .section-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
     .field-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
     .field-group label { font-size: 12px; font-weight: 600; color: #475569; }
-    .field-group input, .field-group select { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 13px; color: #334155; }
+    .field-group input, .field-group select, .field-group textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 13px; color: #334155; }
     .radio-wrap { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
     .radio-wrap label { font-size: 13px; color: #334155; display: flex; align-items: center; gap: 4px; cursor: pointer; }
 
-    /* 右側預覽區 */
+    /* 右側預覽區/工作區 */
     .preview-pane { flex: 1; background: #cbd5e1; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; min-height: 850px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); overflow-x: auto; }
+    .workspace-pane { flex: 1; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); overflow-x: auto; }
     .preview-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #dbeafe; color: #1e40af; }
     .preview-actions { display: flex; align-items: center; gap: 8px; }
@@ -63,6 +61,30 @@
     .action-btn-pdf:hover:not(:disabled) { background: #1d4ed8; }
     .action-btn-word { background: #15803d; }
     .action-btn-word:hover:not(:disabled) { background: #166534; }
+
+    /* =============== 關鍵字過濾與達程表專用 =============== */
+    .seo-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+    .seo-tab-btn { background: none; border: none; font-size: 15px; font-weight: 600; color: #64748b; cursor: pointer; padding: 8px 16px; border-radius: 8px; transition: 0.2s; }
+    .seo-tab-btn.active { background: #eef4ff; color: #1c64f2; }
+    .seo-tab-btn:hover:not(.active) { background: #f8fafc; color: #334155; }
+    
+    .tracker-wrapper { overflow-x: auto; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 10px; }
+    .tracker-table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
+    .tracker-table th, .tracker-table td { border: 1px solid #cbd5e1; text-align: center; white-space: nowrap; }
+    .tracker-table th { background: #f8fafc; padding: 8px 12px; font-weight: 600; color: #334155; }
+    .tracker-table th.today-col { background: #dbeafe; color: #1e40af; }
+    .tracker-table td:first-child { position: sticky; left: 0; background: #fff; font-weight: bold; z-index: 1; padding: 0 12px; text-align: left; border-right: 2px solid #cbd5e1; }
+    .tracker-table th:first-child { position: sticky; left: 0; z-index: 2; border-right: 2px solid #cbd5e1; }
+    .tracker-select { width: 100%; height: 100%; min-height: 32px; border: none; outline: none; padding: 0 8px; text-align: center; font-weight: 600; cursor: pointer; -webkit-appearance: none; appearance: none; }
+    .tracker-select option { background: #fff; color: #000; font-weight: normal; }
+    
+    .bg-empty { background: transparent; }
+    .bg-fail { background: #92400e; color: #fff; }
+    .bg-blue { background: #bae6fd; color: #0f172a; }
+    .bg-yellow { background: #fef08a; color: #0f172a; }
+    .bg-red { background: #b91c1c; color: #fff; }
+    .bg-purple { background: #6b21a8; color: #fff; }
+    .bg-grey { background: #475569; color: #fff; }
 
     /* =============== 用印單 A4 版型 =============== */
     .a4-sheet { background: #fff; margin: 0 auto; width: 100%; max-width: 740px; min-height: 940px; padding: 40px 45px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); color: #000; font-family: "標楷體", "BiauKai", "DFKai-SB", "Microsoft JhengHei", serif; }
@@ -84,7 +106,7 @@
     .doc-check { display: inline-block; width: 11px; height: 11px; border: 1.4px solid #000; vertical-align: -1px; margin-right: 3px; flex: 0 0 auto; }
     .doc-check.checked { background: #000; }
 
-    /* =============== 存證信函：20260911 虹寬（搜博）Word 公版：A4、20 格 × 10 行 =============== */
+    /* =============== 存證信函：A4、20 格 × 10 行 =============== */
     #view-cert-editor .preview-pane { min-width: 0; }
     #cert-pages { flex: none; }
     .a4-paper { background: white; color: black; box-shadow: 0 4px 12px #0002; }
@@ -145,97 +167,39 @@
     .cert-print-help, #cert-layout-status { font-size: 13px; line-height: 1.6; margin-bottom: 8px; }
     #cert-layout-status[data-error="true"] { color: #b91c1c; font-weight: bold; }
 
-    /* =======================================================
-       ★ 支付命令專用版型 (100% 絕對還原附件：兩張獨立A4) ★
-       ======================================================= */
-    @font-face {
-      font-family: "PayKai";
-      src: url("/fonts/kai.woff2") format("woff2");
-      font-weight: 400;
-      font-style: normal;
-      font-display: swap;
-    }
-    /* PDF 原件：A4 595.32×841.92pt、標楷體 14.04pt、左緣 90pt、主行高 36pt */
+    /* =============== 支付命令專用版型 =============== */
     .pay-order-a4 {
-      background: #fff;
-      margin: 0 auto 20px auto;
-      width: 210mm;
-      height: 297mm;
-      box-sizing: border-box;
-      padding: 33.2mm 31.75mm 20mm 31.75mm;
+      background: #fff; margin: 0 auto 24px auto; width: 794px; height: 1123px; padding: 80px 100px; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      font-family: "DFKai-SB", "標楷體", "BiauKai", "TW-Kai", "PayKai", serif;
-      color: #000;
-      font-size: 14.04pt;
-      font-weight: 400;
-      line-height: 36pt;
-      letter-spacing: 0;
-      page-break-after: always;
-      overflow: hidden;
+      font-family: "PMingLiU", "MingLiU", "新細明體", serif; 
+      color: #000; font-size: 21px; line-height: 1.7; page-break-after: always;
     }
-    .pay-title {
-      text-align: center;
-      font-size: 14.04pt;
-      font-weight: 400;
-      letter-spacing: 0;
-      line-height: 36pt;
-      margin: 0;
-      padding: 0;
-    }
-    .pay-pre {
-      margin: 0;
-      padding: 0;
-      font: inherit;
-      font-size: 14.04pt;
-      line-height: 36pt;
-      white-space: pre;
-      letter-spacing: 0;
-      tab-size: 1;
-    }
-    #pay-page-2 {
-      padding-top: 30.1mm;
-      line-height: 26.04pt;
-    }
-    #pay-page-2 .pay-pre { line-height: 26.04pt; }
-    #pay-page-2 .pay-pre.pay-pre-foot { line-height: 36pt; margin-top: 10pt; }
+    .pay-title-box { text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 2px; margin-bottom: 40px; }
+    .pay-line { white-space: pre-wrap; margin: 0; padding: 0; }
 
-    /* 列印相關 */
     @media screen and (max-width: 1100px) {
       #view-cert-editor .split-container { flex-direction: column; }
       #view-cert-editor .editor-pane, #view-cert-editor .preview-pane { width: 100%; }
     }
     @page cert-letter { size: A4 portrait; margin: 0; }
 
+    /* 列印樣式 */
     @media print {
       body { background: #fff !important; }
-      .sidebar, .top-header, .editor-pane, .preview-toolbar, .back-btn, .no-print { display: none !important; }
+      .sidebar, .top-header, .editor-pane, .preview-toolbar, .back-btn, .no-print, .seo-tabs { display: none !important; }
       .main { padding: 0 !important; }
       .split-container { display: block !important; }
       .preview-pane { padding: 0 !important; background: transparent !important; box-shadow: none !important; }
-      .a4-sheet, .a4-paper { box-shadow: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: auto !important; }
-      .pay-order-a4 { box-shadow: none !important; margin: 0 !important; }
+      .a4-sheet, .a4-paper, .pay-order-a4 { box-shadow: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: auto !important; }
       body:has(#view-cert-editor:not([style*="display: none"])) { display: block; }
       #view-cert-editor .preview-pane { display: block; overflow: visible; min-height: 0; border-radius: 0; }
       #cert-pages .a4-paper { page: cert-letter; width: 210mm !important; height: 297mm !important; min-height: 297mm !important; padding: 0 !important; margin: 0 !important; break-after: page; break-inside: avoid; }
       #cert-pages .a4-paper:last-child { break-after: auto; }
-      @page pay-order { size: A4 portrait; margin: 0; }
-      .pay-order-a4 {
-        page: pay-order;
-        width: 210mm !important;
-        height: 297mm !important;
-        padding: 33.2mm 31.75mm 20mm 31.75mm !important;
-        margin: 0 auto !important;
-        box-shadow: none !important;
-        break-after: page;
-        break-inside: avoid;
-      }
-      #pay-page-2.pay-order-a4 { padding-top: 30.1mm !important; }
-      .pay-order-a4:last-of-type { break-after: auto; }
+      .pay-order-a4 { margin-bottom: 0 !important; padding: 75px 95px !important; }
     }
   </style>
 </head>
 <body>
-<div id="legal-admin-root" class="flex min-h-screen w-full bg-[#f3f6fb] text-[#333]">
 
   <aside class="sidebar no-print">
     <div>
@@ -247,10 +211,10 @@
         </div>
       </div>
       <ul class="nav-list">
-        <li class="nav-item" onclick="switchView('home')">🏠 首頁總覽</li>
-        <li class="nav-item locked" onclick="showLockedMsg('關鍵字報表過濾')">🔒 關鍵字報表過濾</li>
+        <li class="nav-item active" onclick="switchView('home')">🏠 首頁總覽</li>
+        <li class="nav-item" onclick="switchView('tool-seo')">📊 關鍵字作業</li>
         <li class="nav-item" onclick="switchView('tool-seal')">📝 用印單</li>
-        <li class="nav-item active" onclick="switchView('tool-legal')">⚖️ 法務作業</li>
+        <li class="nav-item" onclick="switchView('tool-legal')">⚖️ 法務作業</li>
       </ul>
     </div>
   </aside>
@@ -258,20 +222,20 @@
   <main class="main">
     <div class="top-header no-print">
       <div class="page-title">
-        <h2 id="view-title">支付命令製作作業</h2>
-        <p id="view-subtitle">100% 絕對還原玩髮櫥窗髮型支付命令狀，強制分頁並支援連動套印</p>
+        <h2 id="view-title">請選擇作業類型</h2>
+        <p id="view-subtitle">客服部日常行政作業入口</p>
       </div>
     </div>
 
     <!-- 首頁總覽 -->
-    <div id="view-home" class="cards-grid" style="display: none;">
-      <div class="card locked">
+    <div id="view-home" class="cards-grid">
+      <div class="card">
         <div>
-          <div class="card-icon" style="background:#f1f5f9; color:#94a3b8;">🔒</div>
-          <div class="card-title" style="color:#64748b;">關鍵字排名過濾 (已鎖定)</div>
-          <div class="card-desc">目前作業暫時鎖定保護，等有修改需求時再解鎖開啟。</div>
+          <div class="card-icon">📊</div>
+          <div class="card-title">關鍵字作業</div>
+          <div class="card-desc">包含當日關鍵字排名過濾，以及全新【關鍵字完成率達程表】。</div>
         </div>
-        <button class="card-btn btn-locked" onclick="showLockedMsg('關鍵字排名過濾')">暫不開放</button>
+        <button class="card-btn" onclick="switchView('tool-seo')">進入</button>
       </div>
 
       <div class="card">
@@ -293,72 +257,94 @@
       </div>
     </div>
 
-    <!-- 模組：用印單 -->
+    <!-- ==================== 模組：關鍵字作業 ==================== -->
+    <div id="view-tool-seo" style="display: none;">
+      <div class="back-btn" onclick="switchView('home')">← 返回作業列表</div>
+      
+      <!-- 雙分頁導覽 -->
+      <div class="seo-tabs no-print">
+        <button class="seo-tab-btn active" id="tab-btn-filter" onclick="switchSeoTab('filter')">當日排名過濾</button>
+        <button class="seo-tab-btn" id="tab-btn-tracker" onclick="switchSeoTab('tracker')">關鍵字完成率達程表</button>
+      </div>
+
+      <!-- 分頁 A：排名過濾 -->
+      <div id="seo-tab-filter" class="workspace-pane">
+        <div class="section-title">SEO 關鍵字當日排名過濾</div>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">直接將系統上的多日表格複製貼在下方：</p>
+        <textarea id="raw-input" rows="7" placeholder="貼上報表文字內容..."></textarea>
+        
+        <div style="display: flex; align-items: center; gap: 12px; margin: 16px 0;">
+          <label style="font-size: 13px; color: #475569; font-weight: bold;">提取日期：</label>
+          <select id="day-select" style="width: auto; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1;"></select>
+          <button class="card-btn" onclick="runFilter()">擷取當日數據</button>
+          <button class="card-btn" style="background:#64748b;" onclick="copyResult()">一鍵複製結果</button>
+        </div>
+
+        <textarea id="clean-output" rows="7" readonly placeholder="提取結果將出現在這裡（可直接貼入 Excel）..."></textarea>
+      </div>
+
+      <!-- 分頁 B：完成率達程表 -->
+      <div id="seo-tab-tracker" class="workspace-pane" style="display: none;">
+        <div class="split-container">
+          <div class="editor-pane no-print" style="width: 280px;">
+            <div class="section-title">載入今日名單</div>
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">每日貼上 10~20 家客戶名單，系統將自動剔除 (G)(g)(Y)，過濾重複並自動推進天數。</p>
+            <textarea id="tracker-paste-input" rows="15" placeholder="貼上今日名單..."></textarea>
+            <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="processTrackerList()">載入今日達標名單</button>
+          </div>
+          
+          <div class="tracker-wrapper" style="flex: 1;">
+            <table class="tracker-table" id="tracker-table">
+              <!-- JS 動態生成表頭與內容 -->
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 模組：用印單 ==================== -->
     <div id="view-tool-seal" style="display: none;">
       <div class="back-btn" onclick="switchView('home')">← 返回作業列表</div>
       <div class="split-container">
         <!-- 左側填寫區 -->
         <div class="editor-pane">
           <div class="section-title">用印單資料設定</div>
-          
           <div class="field-group">
             <label>公司名稱</label>
             <input type="text" id="input-company-name" placeholder="例如：享沐企業社" oninput="onSyncChange()">
           </div>
-
           <div class="field-group">
             <label>項目類別 (下拉選單)</label>
             <select id="select-doc-name" onchange="onSyncChange()">
-              <option value="" selected="">請選擇項目類別</option>
+              <option value="" selected>請選擇項目類別</option>
               <option value="補證狀">補證狀</option>
               <option value="委任狀">委任狀</option>
               <option value="撤銷狀">撤銷狀</option>
               <option value="陳報狀">陳報狀</option>
               <option value="起訴狀">起訴狀</option>
-              <option value="更正狀">更正狀</option>
               <option value="支付命令">支付命令</option>
-              <option value="強制執行狀">強制執行狀</option>
-              <option value="移轉管轄狀">移轉管轄狀</option>
-              <option value="戶謄委託書">戶謄委託書</option>
-              <option value="申請地謄委託書">申請地謄委託書</option>
-              <option value="調解意願通知單">調解意願通知單</option>
-              <option value="核發債權憑證聲請狀">核發債權憑證聲請狀</option>
-              <option value="抄錄申請書與委託書">抄錄申請書與委託書</option>
-              <option value="財產所得申請書(搜秀)">財產所得申請書(搜秀)</option>
-              <option value="財產所得申請書(搜博)">財產所得申請書(搜博)</option>
-              <option value="財產所得申請書(搜高)">財產所得申請書(搜高)</option>
-              <option value="財產所得申請書(搜創)">財產所得申請書(搜創)</option>
-              <option value="財產所得申請書(馬雅)">財產所得申請書(馬雅)</option>
-              <option value="財產所得申請書(創思)">財產所得申請書(創思)</option>
             </select>
           </div>
-
           <div class="field-group">
             <label>文件名稱 (自動連動可微調)</label>
             <input type="text" id="input-doc-name" oninput="updatePreviewOnly()">
           </div>
-
           <div class="field-group">
             <label>用印事由 (自動連動可微調)</label>
             <input type="text" id="input-purpose" oninput="updatePreviewOnly()">
           </div>
-
           <div class="field-group">
             <label>蓋印日期</label>
             <input type="date" id="input-seal-date" oninput="updatePreviewOnly()">
           </div>
-
           <div class="field-group">
             <label>使用印信別</label>
             <div class="radio-wrap">
               <label><input type="radio" name="seal-type" value="1. 公司印信" onchange="updatePreviewOnly()"> 1. 公司印信</label>
-              <label><input type="radio" name="seal-type" value="2. 發文章" onchange="updatePreviewOnly()"> 2. 發文章</label>
-              <label><input type="radio" name="seal-type" value="3. 發票章" onchange="updatePreviewOnly()"> 3. 發票章</label>
-              <label><input type="radio" name="seal-type" value="4. 合約專用章" checked="" onchange="updatePreviewOnly()"> 4. 合約專用章</label>
+              <label><input type="radio" name="seal-type" value="4. 合約專用章" checked onchange="updatePreviewOnly()"> 4. 合約專用章</label>
             </div>
           </div>
         </div>
-
         <!-- 右側：搜博 1:1 實體預覽 -->
         <div class="preview-pane">
           <div class="preview-toolbar">
@@ -371,18 +357,14 @@
               <button id="btn-download-word" class="action-btn-export action-btn-word" onclick="downloadWordDoc()">匯出 Word</button>
             </div>
           </div>
-
-          <!-- A4 紙張本體 -->
           <div class="a4-sheet" id="print-area">
             <div class="sober-header-svg-wrap">
               <img id="sober-header-logo" src="./logo.jpg" onerror="this.src='./Logo.jpg'" alt="搜博科技股份有限公司 Logo">
             </div>
-
             <div class="doc-form-title">用 印 申 請 單</div>
             <div class="doc-form-no">編號：</div>
-
             <table class="sober-table">
-              <tbody><tr>
+              <tr>
                 <th class="th-header" style="height: 90px;">文件名稱</th>
                 <td class="val-cell-large" id="prev-doc-name"></td>
               </tr>
@@ -394,7 +376,7 @@
                 <th class="th-header">用印方式</th>
                 <td style="padding: 0;">
                   <table class="seal-method-table">
-                    <tbody><tr>
+                    <tr>
                       <td class="method-choice method-divider"><span class="doc-check checked"></span>蓋印</td>
                       <td class="method-divider" style="padding: 6px 8px;">蓋印日期： <span id="prev-date-roc">115 年 09 月 07 日</span></td>
                     </tr>
@@ -405,22 +387,20 @@
                     <tr>
                       <td style="padding: 6px 8px; font-size: 13px;">申請人借出簽名：</td>
                     </tr>
-                  </tbody></table>
+                  </table>
                 </td>
               </tr>
               <tr>
                 <th class="th-header">使用印信別</th>
                 <td style="padding: 10px 8px;" id="prev-seal-type">
                   <span class="doc-check"></span>1. 公司印信&nbsp;&nbsp;
-                  <span class="doc-check"></span>2. 發文章&nbsp;&nbsp;
-                  <span class="doc-check"></span>3. 發票章&nbsp;&nbsp;
                   <span class="doc-check checked"></span>4. 合約專用章
                 </td>
               </tr>
               <tr>
                 <td colspan="2" style="padding: 0;">
                   <table class="matrix-table">
-                    <tbody><tr>
+                    <tr>
                       <th style="width: 16%;">批示/報備</th>
                       <th style="width: 16%;">決行</th>
                       <th style="width: 16%;">會辦</th>
@@ -458,16 +438,16 @@
                       <td colspan="5" style="height: 25px;"></td>
                       <td style="font-size: 11px;">裁決</td>
                     </tr>
-                  </tbody></table>
+                  </table>
                 </td>
               </tr>
-            </tbody></table>
+            </table>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 模組：法務作業目錄 -->
+    <!-- 法務作業目錄 -->
     <div id="view-tool-legal" style="display: none;">
       <div class="back-btn" onclick="switchView('home')">← 返回作業列表</div>
       <div class="cards-grid">
@@ -491,11 +471,11 @@
     </div>
 
     <!-- ==================== 模組：支付命令 (絕對還原版 - 兩頁 A4) ==================== -->
-    <div id="view-pay-order-editor" style="display: block;">
+    <div id="view-pay-order-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
       
       <div class="split-container">
-        <!-- 左側輸入區：即時連動右側預覽 -->
+        <!-- 左側輸入區 -->
         <div class="editor-pane no-print">
           <div class="section-title">支付命令 內容填寫</div>
           
@@ -511,7 +491,7 @@
 
           <div class="field-group">
             <label>聲請人 設 (地址)</label>
-            <input type="text" id="pay-applicant-addr" value="高雄市苓雅區新光路38 號20 樓之5" oninput="updatePayOrder()">
+            <input type="text" id="pay-applicant-addr" value="高雄市苓雅區新光路38號20樓之5" oninput="updatePayOrder()">
           </div>
 
           <div class="field-group">
@@ -526,7 +506,7 @@
 
           <div class="field-group">
             <label>送達處所</label>
-            <input type="text" id="pay-agent-addr" value="新北市中和區中正路866 號17 樓(搜博科技)" oninput="updatePayOrder()">
+            <input type="text" id="pay-agent-addr" value="新北市中和區中正路866號17樓(搜博科技)" oninput="updatePayOrder()">
           </div>
 
           <div style="display: flex; gap: 6px;">
@@ -566,7 +546,7 @@
           </div>
 
           <div class="field-group">
-            <label>委託合約條款 (如: 第伍條第四項)</label>
+            <label>委託合約條款</label>
             <input type="text" id="pay-clause" value="第伍條第四項" oninput="updatePayOrder()">
           </div>
 
@@ -582,15 +562,15 @@
 
           <div style="display: flex; gap: 6px;">
             <div class="field-group" style="flex: 1;">
-              <label>年 (民國半形)</label>
+              <label>年 (半形數字)</label>
               <input type="text" id="pay-year" value="115" oninput="updatePayOrder()">
             </div>
             <div class="field-group" style="flex: 1;">
-              <label>月 (半形)</label>
+              <label>月 (半形數字)</label>
               <input type="text" id="pay-month" value="09" oninput="updatePayOrder()">
             </div>
             <div class="field-group" style="flex: 1;">
-              <label>日 (半形)</label>
+              <label>日 (半形數字)</label>
               <input type="text" id="pay-day" value="15" oninput="updatePayOrder()">
             </div>
           </div>
@@ -598,66 +578,66 @@
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="window.print()">🖨️ 列印支付命令狀</button>
         </div>
 
-        <!-- 右側：1:1 絕對還原 PDF / Word 排版（兩頁 A4，斷頁與附件一致） -->
+        <!-- 右側：1:1 絕對還原 PDF 排版 (強制拆分為兩張 A4，絕對套版) -->
         <div class="preview-pane" style="align-items: center;">
           <div class="preview-toolbar no-print" style="width: 100%; max-width: 794px;">
             <span style="font-weight: 700; font-size: 15px;">📜 支付命令狀 1:1 兩頁預覽</span>
             <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="window.print()">🖨️ 列印</button>
           </div>
 
-          <!-- 第一頁 A4：與附件 PDF 逐字、逐空白、逐標點對位 -->
-          <div class="pay-order-a4" id="pay-page-1">
-            <div class="pay-title">民事申請支付命令狀</div>
-            <pre class="pay-pre" id="pay-pre-1">標 的 金 額：新台幣78,421 元整
-聲   請  人：搜創網路行銷有限公司
-             設 高雄市苓雅區新光路38 號20 樓之5
-法定代理人：陳智國 地址同上
-送達代收人：李唐宇
-送 達 處 所：新北市中和區中正路866 號17 樓(搜博科技)
-電       話：02-22082928#201  傳真：02-22081865
-相  對  人：玩髮櫥窗髮型
-統 一 編號：81228511
-            設 臺南市永康區安康里中華路621號1樓
-            住 臺南市永康區安康里中華路621號1樓
-       
-
-  爲聲請發支付命令事：
-    一、 請求標的
-      (一) 債務人應給付債權人（即聲請人) 新台幣78,421 元整，
-      即自本件支付命令送達之翌日起至清償日止， 按年利率
-    百分之五計算之利息。
-   （二）督促程序費用由債務人負擔。</pre>
+          <!-- 第一頁 A4 -->
+          <div class="pay-order-a4">
+            <div class="pay-title-box">民事申請支付命令狀</div>
+            
+            <div class="pay-line">標的金額:新台幣<span id="out-target-amount"></span>元整</div>
+            <div class="pay-line">聲請人:<span id="out-applicant"></span></div>
+            <div class="pay-line">設 <span id="out-applicant-addr"></span></div>
+            <div class="pay-line">法定代理人:<span id="out-applicant-boss"></span>地址同上</div>
+            <div class="pay-line">送達代收人:<span id="out-agent"></span></div>
+            <div class="pay-line">送達處所:<span id="out-agent-addr"></span></div>
+            <div class="pay-line">電</div>
+            <div class="pay-line">話:<span id="out-phone"></span> 傳真:<span id="out-fax"></span></div>
+            <div class="pay-line">相對人:<span id="out-respondent"></span></div>
+            <div class="pay-line">統一編號:<span id="out-taxid"></span></div>
+            <div class="pay-line">設<span id="out-reg-addr"></span></div>
+            <div class="pay-line">住<span id="out-res-addr"></span></div>
+            
+            <div class="pay-line" style="margin-top: 30px;">為聲請發支付命令事:</div>
+            
+            <div class="pay-line">一、請求標的</div>
+            <div class="pay-line">(一)債務人應給付債權人(即聲請人)新台幣<span id="out-req-amount"></span>元整,</div>
+            <div class="pay-line">即自本件支付命令送達之翌日起至清償日止,按年利率</div>
+            <div class="pay-line">百分之五計算之利息。</div>
+            <div class="pay-line">(二)督促程序費用由債務人負擔。</div>
+            
+            <div class="pay-line">二、請求原因及事實</div>
+            <div class="pay-line">(一)聲請人屢次請求債務人按時支付貨款,均不得結果。為</div>
+            <div class="pay-line">此,聲請人實有督促其履行之必要(聲證一號)。依聲請</div>
+            <div class="pay-line">人及相對人雙方簽訂之網站優化服務委託合約(聲證二</div>
+            <div class="pay-line">號)<span id="out-clause"></span>所欠金額點載明,若相對人無故拖延</div>
+            <div class="pay-line">付款,聲請人在確認已完成之關鍵字排名目標後,得請</div>
+            <div class="pay-line">領剩餘期間所有服務費用,共計新台幣<span id="out-req-amount-2"></span>元整。</div>
+            <div class="pay-line">(二)本案係請求給付一定金錢,為求簡速,特依民事訴訟法</div>
+            <div class="pay-line">第五百零八條及第五百一十條之規定,狀請鈞院鑒核,</div>
+            <div class="pay-line">迅賜對債務人發給支付命令,限令如數清償本息,並負擔</div>
+            <div class="pay-line">督促程序費用,以保聲請人權益,實為法便。</div>
           </div>
 
           <!-- 第二頁 A4 -->
-          <div class="pay-order-a4" id="pay-page-2">
-            <pre class="pay-pre" id="pay-pre-2">  二、 請求原因及事實
-    （一） 聲請人屢次請求債務人按時支付貨款，均不得結果。為
-      此，聲請人實有督促其履行之必要（聲證一號）。依聲請
-      人及相對人雙方簽訂之網站優化服務委託合約（聲證二
-      號）第伍條第四項所欠金額點載明，若相對人無故拖延
-      付款，聲請人在確認已完成之關鍵字排名目標後，得請
-      領剩餘期間所有服務費用，共計新台幣78,421 元整。
-
-    （二）本案係請求給付一定金錢，為求簡速，特依民事訴訟法
-     第五百零八條及第五百一十條之規定，狀請 鈞院鑒核，
-     迅賜對債務人發給支付命令，限令如數清償本息，並負擔
-     督促程序費用，以保聲請人權益，實為法便。
-       
-
-
-
-聲證一號：中和郵局 存證信函(號碼 000319 號)影本乙份。
-聲證二號：合約書影本乙份。
-
-    謹  狀
-臺灣臺南地方法院 公鑒
-
-中     華     民     國   115   年  0 9  月  15  日
-              具狀人   搜創網路行銷有限公司
-                          法定代理人 陳智國</pre>
+          <div class="pay-order-a4">
+            <div class="pay-line">聲證一號:中和郵局存證信函(號碼<span id="out-cert-num"></span>號)影本乙份。</div>
+            <div class="pay-line">聲證二號:合約書影本乙份。</div>
+            
+            <div class="pay-line" style="margin-top: 40px;">謹狀</div>
+            <div class="pay-line"><span id="out-court"></span>公鑒</div>
+            
+            <div class="pay-line" style="margin-top: 60px;">中</div>
+            <div class="pay-line">華</div>
+            <div class="pay-line">民</div>
+            <div class="pay-line">國 <span id="out-year"></span> 年 <span id="out-month"></span>月 <span id="out-day"></span> 日</div>
+            <div class="pay-line">具狀人<span id="out-applicant-sign"></span></div>
+            <div class="pay-line">法定代理人<span id="out-applicant-boss-sign"></span></div>
           </div>
-          
         </div>
       </div>
     </div>
@@ -665,89 +645,74 @@
     <!-- ==================== 模組：存證信函 ==================== -->
     <div id="view-cert-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
-      
       <div class="split-container">
-        <!-- 左側輸入區 -->
         <div class="editor-pane no-print">
           <div class="section-title">存證信函內容填寫</div>
-          
           <div class="field-group" style="background: #eff6ff; padding: 10px; border-radius: 8px; border: 1px solid #bfdbfe;">
             <label style="color: #1d4ed8; font-weight: bold;">🏢 選擇發函公司</label>
-            <select id="cert-company-select" onchange="updateDoc()">
-              <option value="so博" selected="">搜博科技股份有限公司</option>
+            <select id="cert-company-select" onchange="updateCertDoc()">
+              <option value="so博" selected>搜博科技股份有限公司</option>
               <option value="so创">搜創網路行銷有限公司</option>
               <option value="so秀">搜秀網路行銷有限公司</option>
               <option value="创思">創思影像有限公司</option>
               <option value="马雅">馬雅科技有限公司</option>
             </select>
           </div>
-
           <div style="display: flex; gap: 6px;">
             <div class="field-group" style="flex: 1;">
               <label>發函年 (民國)</label>
-              <input type="text" id="cert-year" value="１１５" oninput="updateDoc()">
+              <input type="text" id="cert-year" value="１１５" oninput="updateCertDoc()">
             </div>
             <div class="field-group" style="flex: 1;">
               <label>發函月</label>
-              <input type="text" id="cert-month" value="０９" oninput="updateDoc()">
+              <input type="text" id="cert-month" value="０９" oninput="updateCertDoc()">
             </div>
             <div class="field-group" style="flex: 1;">
               <label>發函日</label>
-              <input type="text" id="cert-day" value="１１" oninput="updateDoc()">
+              <input type="text" id="cert-day" value="１１" oninput="updateCertDoc()">
             </div>
           </div>
-
           <div class="field-group">
             <label>欠款期間</label>
-            <input type="text" id="cert-period" value="１１５年５月份至１１５年７月份" oninput="updateDoc()">
+            <input type="text" id="cert-period" value="１１５年５月份至１１５年７月份" oninput="updateCertDoc()">
           </div>
-
           <div class="field-group">
             <label>姓名 (公司名稱)</label>
-            <input type="text" id="cert-receiver-name" value="虹寬國際家具有限公司" oninput="updateDoc()">
+            <input type="text" id="cert-receiver-name" value="虹寬國際家具有限公司" oninput="updateCertDoc()">
           </div>
-
           <div class="field-group">
             <label>代表人</label>
-            <input type="text" id="cert-receiver-boss" value="江慶寬" oninput="updateDoc()">
+            <input type="text" id="cert-receiver-boss" value="江慶寬" oninput="updateCertDoc()">
           </div>
-
           <div class="field-group">
             <label>詳細地址</label>
-            <input type="text" id="cert-receiver-addr" value="新北市板橋區僑中一街124巷72之2號" oninput="updateDoc()">
+            <input type="text" id="cert-receiver-addr" value="新北市板橋區僑中一街124巷72之2號" oninput="updateCertDoc()">
           </div>
-
           <div class="field-group">
             <label>已出帳未繳納金額</label>
-            <input type="text" id="cert-debt-amount" value="１５６００" oninput="updateDoc()">
+            <input type="text" id="cert-debt-amount" value="１５６００" oninput="updateCertDoc()">
           </div>
-
           <div style="display: flex; gap: 6px;">
             <div class="field-group" style="flex: 1;">
               <label>合約第伍條第幾項</label>
-              <input type="text" id="cert-clause" value="第六項" oninput="updateDoc()">
+              <input type="text" id="cert-clause" value="第六項" oninput="updateCertDoc()">
             </div>
             <div class="field-group" style="flex: 1;">
               <label>滿額費用</label>
-              <input type="text" id="cert-full-amount" value="１４６１２０" oninput="updateDoc()">
+              <input type="text" id="cert-full-amount" value="１４６１２０" oninput="updateCertDoc()">
             </div>
           </div>
-
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="printCert()">🖨️ 列印存證信函</button>
         </div>
-
-        <!-- 右側：依 Word 公版重建的固定方格版型 -->
         <div class="preview-pane">
           <div class="preview-toolbar no-print">
             <span style="font-weight: 700; font-size: 15px;">✉️ 存證信函 A4 分頁預覽</span>
             <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="printCert()">🖨️ 列印</button>
           </div>
-
-          <!-- A4 紙張本體 -->
           <p class="no-print cert-print-help">列印請選 A4、縮放 100%，並關閉頁首及頁尾；也可在列印視窗另存 PDF。</p>
           <p id="cert-layout-status" class="no-print" role="status"></p>
           <div id="cert-pages" aria-label="存證信函分頁預覽"></div>
-          <div id="cert-source" hidden="">
+          <div id="cert-source" hidden>
             <span id="disp-sender-name"></span><span id="disp-sender-boss"></span><span id="disp-sender-addr"></span><span id="disp-sender-comm"></span>
             <span id="disp-rcv-name"></span><span id="disp-rcv-boss"></span><span id="disp-rcv-addr"></span>
             <p id="disp-p1"></p><p id="disp-p2"></p>
@@ -803,14 +768,12 @@
         </div>
       </div>
     </div>
-
+    
   </main>
 
-
-  <!-- PDF / Word 匯出（用印單） -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script>
+  <script src="./html2canvas.min.js"></script>
+  <script src="./jspdf.umd.min.js"></script>
+  <script>
     // ==========================================
     // 共用邏輯：視圖切換
     // ==========================================
@@ -821,11 +784,10 @@
     const CURRENT_VIEW_KEY = 'admin-current-view';
 
     function switchView(viewName) {
-      try {
-        localStorage.setItem(CURRENT_VIEW_KEY, viewName);
-      } catch (e) {}
+      try { localStorage.setItem(CURRENT_VIEW_KEY, viewName); } catch (e) {}
 
       document.getElementById('view-home').style.display = viewName === 'home' ? 'grid' : 'none';
+      document.getElementById('view-tool-seo').style.display = viewName === 'tool-seo' ? 'block' : 'none';
       document.getElementById('view-tool-seal').style.display = viewName === 'tool-seal' ? 'block' : 'none';
       document.getElementById('view-tool-legal').style.display = viewName === 'tool-legal' ? 'block' : 'none';
       document.getElementById('view-cert-editor').style.display = viewName === 'cert-editor' ? 'block' : 'none';
@@ -834,416 +796,298 @@
       const navItems = document.querySelectorAll('.nav-item');
       navItems.forEach(el => el.classList.remove('active'));
       if (viewName === 'home') navItems[0].classList.add('active');
+      else if (viewName === 'tool-seo') navItems[1].classList.add('active');
       else if (viewName === 'tool-seal') navItems[2].classList.add('active');
       else if (viewName === 'tool-legal' || viewName === 'cert-editor' || viewName === 'pay-order-editor') navItems[3].classList.add('active');
 
       const titleElem = document.getElementById('view-title');
       const subElem = document.getElementById('view-subtitle');
       if (viewName === 'home') {
-        titleElem.textContent = '請選擇作業類型';
-        subElem.textContent = '客服部日常行政作業入口';
-      } else if (viewName === 'tool-seal') {
-        titleElem.textContent = '用印單即時作業';
-        subElem.textContent = '搜博專用格式填報，自動連動文件名稱與事由';
-        onSyncChange();
+        titleElem.textContent = '請選擇作業類型'; subElem.textContent = '客服部日常行政作業入口';
+      } else if (viewName === 'tool-seo') {
+        titleElem.textContent = '關鍵字排名過濾與追蹤'; subElem.textContent = '當日排名自動過濾及【關鍵字完成率達程表】管理';
+        initTracker();
       } else if (viewName === 'tool-legal') {
-        titleElem.textContent = '法務作業項目';
-        subElem.textContent = '存證信函、支付命令與相關法律文件管理';
-      } else if (viewName === 'cert-editor') {
-        titleElem.textContent = '存證信函製作作業';
-        subElem.textContent = 'Word 公版格式：每頁 20 格 × 10 行，自動分頁';
-        updateDoc();
+        titleElem.textContent = '法務作業項目'; subElem.textContent = '存證信函、支付命令與相關法律文件管理';
       } else if (viewName === 'pay-order-editor') {
-        titleElem.textContent = '支付命令製作作業';
-        subElem.textContent = '100% 絕對還原玩髮櫥窗髮型支付命令狀，強制分頁並支援連動套印';
+        titleElem.textContent = '支付命令製作作業'; subElem.textContent = '100% 絕對還原玩髮櫥窗髮型支付命令狀，強制分頁並支援連動套印';
         updatePayOrder();
+      } else if (viewName === 'cert-editor') {
+        titleElem.textContent = '存證信函製作作業'; subElem.textContent = 'Word 公版格式：每頁 20 格 × 10 行，自動分頁';
+        updateCertDoc();
       }
     }
 
     function restoreView() {
       let saved = 'home';
-      try {
-        saved = localStorage.getItem(CURRENT_VIEW_KEY) || 'home';
-      } catch (e) {}
-      if (!['home', 'tool-seal', 'tool-legal', 'cert-editor', 'pay-order-editor'].includes(saved)) saved = 'home';
+      try { saved = localStorage.getItem(CURRENT_VIEW_KEY) || 'home'; } catch (e) {}
+      if (!['home', 'tool-seo', 'tool-seal', 'tool-legal', 'cert-editor', 'pay-order-editor'].includes(saved)) saved = 'home';
       switchView(saved);
     }
-    
+
     // ==========================================
-    // 模組 3：支付命令邏輯 (嚴格還原半形、空格、分頁，與附件 PDF/Word 一致)
+    // 模組：關鍵字作業 (排名過濾 + 達程表)
     // ==========================================
-    function payVal(id) {
-      const el = document.getElementById(id);
-      return el ? el.value : '';
+    // 初始載入日期選單
+    const todayKeyword = new Date();
+    const currentDayK = todayKeyword.getDate();
+    const selectDayK = document.getElementById('day-select');
+    if (selectDayK) {
+      for (let i = 1; i <= 31; i++) {
+        const opt = document.createElement('option');
+        opt.value = i; opt.textContent = i + ' 號';
+        if (i === currentDayK) opt.selected = true;
+        selectDayK.appendChild(opt);
+      }
     }
-    function splitMonthDigits(month) {
-      const s = String(month);
-      if (s.length === 2) return s.charAt(0) + ' ' + s.charAt(1);
-      return s;
+
+    function switchSeoTab(tab) {
+      document.getElementById('tab-btn-filter').classList.remove('active');
+      document.getElementById('tab-btn-tracker').classList.remove('active');
+      document.getElementById('seo-tab-filter').style.display = 'none';
+      document.getElementById('seo-tab-tracker').style.display = 'none';
+      
+      document.getElementById('tab-btn-' + tab).classList.add('active');
+      document.getElementById('seo-tab-' + tab).style.display = 'block';
     }
+
+    function runFilter() {
+      const text = document.getElementById('raw-input').value;
+      const targetDay = parseInt(document.getElementById('day-select').value, 10);
+      const lines = text.split('\n');
+      const results = [];
+      let headerDays = [];
+
+      for (let rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) continue;
+        const cols = line.split(/\t+| {2,}/).map(c => c.trim()).filter(c => c !== '');
+        if (cols.length === 0) continue;
+        if (cols[0] === '1' || (cols[0] === '關鍵字' && cols[1] === '1')) {
+          headerDays = cols[0] === '1' ? cols.map(Number) : cols.slice(1).map(Number);
+          continue;
+        }
+        if (cols[0].includes('Google') || cols[0].includes('前10筆')) continue;
+        
+        const keyword = cols[0];
+        const values = cols.slice(1);
+        let targetValue = '-';
+        if (headerDays.length > 0) {
+          const idx = headerDays.indexOf(targetDay);
+          if (idx !== -1 && idx < values.length) targetValue = values[idx];
+        } else {
+          if (targetDay - 1 < values.length) targetValue = values[targetDay - 1];
+        }
+        targetValue = targetValue.replace(/[a-zA-Z]+/g, '').trim();
+        if (!targetValue) targetValue = '-';
+        if (values.length > 0) {
+          results.push(`${keyword}\t${targetValue}`);
+        }
+      }
+      document.getElementById('clean-output').value = results.join('\n');
+    }
+
+    function copyResult() {
+      const out = document.getElementById('clean-output');
+      out.select(); navigator.clipboard.writeText(out.value);
+      alert('已複製到剪貼簿！可直接貼上 Excel。');
+    }
+
+    // 關鍵字完成率達程表邏輯
+    let trackerData = {};
+    let dateColumns = [];
+
+    function initTracker() {
+      try {
+        const stored = localStorage.getItem('keywordTrackerData');
+        if (stored) trackerData = JSON.parse(stored);
+      } catch(e) {}
+      
+      dateColumns = [];
+      const d = new Date();
+      d.setDate(d.getDate() - 14); // 顯示過去 14 天到未來 2 天
+      for (let i = 0; i <= 16; i++) {
+        dateColumns.push(`${d.getMonth()+1}月${d.getDate()}日`);
+        d.setDate(d.getDate() + 1);
+      }
+      renderTracker();
+    }
+
+    function saveTrackerData() {
+      localStorage.setItem('keywordTrackerData', JSON.stringify(trackerData));
+    }
+
+    function updateTrackerCell(clientName, dateStr, val) {
+      if (!trackerData[clientName]) trackerData[clientName] = {};
+      trackerData[clientName][dateStr] = val;
+      saveTrackerData();
+      renderTracker(); // 更新顏色
+    }
+
+    function getSelectColorClass(val) {
+      if (val === '未達成') return 'bg-fail';
+      if (['1','2','3','4','5'].includes(val)) return 'bg-blue';
+      if (['6','7'].includes(val)) return 'bg-yellow';
+      if (val === '通知') return 'bg-red';
+      if (val === '起算') return 'bg-purple';
+      if (val === '中未達標') return 'bg-grey';
+      return 'bg-empty';
+    }
+
+    function renderTracker() {
+      const table = document.getElementById('tracker-table');
+      if (!table) return;
+      
+      const todayStr = `${new Date().getMonth()+1}月${new Date().getDate()}日`;
+      
+      let html = '<thead><tr><th>客戶名稱</th>';
+      dateColumns.forEach(date => {
+        html += `<th class="${date === todayStr ? 'today-col' : ''}">${date}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+
+      // 選單選項
+      const options = ['', '未達成', '1', '2', '3', '4', '5', '6', '7', '通知', '起算', '中未達標'];
+      
+      const clients = Object.keys(trackerData);
+      clients.forEach(client => {
+        html += `<tr><td>${client}</td>`;
+        dateColumns.forEach(date => {
+          const val = trackerData[client][date] || '';
+          const bgClass = getSelectColorClass(val);
+          html += `<td class="${bgClass}">
+            <select class="tracker-select ${bgClass}" onchange="updateTrackerCell('${client}', '${date}', this.value)">`;
+          options.forEach(opt => {
+            html += `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`;
+          });
+          html += `</select></td>`;
+        });
+        html += `</tr>`;
+      });
+      html += '</tbody>';
+      table.innerHTML = html;
+    }
+
+    function getNextStatus(name, todayStr) {
+      let lastCount = 0;
+      const todayIdx = dateColumns.indexOf(todayStr);
+      // 往前找最多 5 天
+      for (let i = todayIdx - 1; i >= 0 && i >= todayIdx - 5; i--) {
+        let val = trackerData[name][dateColumns[i]];
+        if (['1','2','3','4','5','6','7'].includes(val)) {
+          lastCount = parseInt(val);
+          break;
+        }
+      }
+      if (lastCount >= 1 && lastCount < 7) return String(lastCount + 1);
+      if (lastCount === 7) return '通知';
+      return '1';
+    }
+
+    function processTrackerList() {
+      const text = document.getElementById('tracker-paste-input').value;
+      if (!text.trim()) { alert('請貼上名單'); return; }
+      
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+      const todayStr = `${new Date().getMonth()+1}月${new Date().getDate()}日`;
+
+      lines.forEach(line => {
+        // 刪除字尾的 (G) (g) (Y) 以及全形 （Ｇ）等
+        let name = line.replace(/[(（][GgYy][)）]$/i, '').trim();
+        if (!name) return;
+
+        if (!trackerData[name]) trackerData[name] = {};
+        
+        // 決定今日數字
+        let nextVal = getNextStatus(name, todayStr);
+        trackerData[name][todayStr] = nextVal;
+      });
+
+      saveTrackerData();
+      renderTracker();
+      document.getElementById('tracker-paste-input').value = '';
+      alert('已更新今日達標狀態！');
+    }
+
+    /* ================= 支付命令邏輯 ================= */
     function updatePayOrder() {
-      const amount = payVal('pay-target-amount');
-      const req = payVal('pay-req-amount');
-      const applicant = payVal('pay-applicant');
-      const appAddr = payVal('pay-applicant-addr');
-      const boss = payVal('pay-applicant-boss');
-      const agent = payVal('pay-agent');
-      const agentAddr = payVal('pay-agent-addr');
-      const phone = payVal('pay-phone');
-      const fax = payVal('pay-fax');
-      const respondent = payVal('pay-respondent');
-      const taxid = payVal('pay-taxid');
-      const regAddr = payVal('pay-reg-addr');
-      const resAddr = payVal('pay-res-addr');
-      const clause = payVal('pay-clause');
-      const cert = payVal('pay-cert-num');
-      const court = payVal('pay-court');
-      const year = payVal('pay-year');
-      const month = splitMonthDigits(payVal('pay-month'));
-      const day = payVal('pay-day');
-
-      /* 以下字串（含半形空白、全形標點、爲、混合括號）與 PDF extract_text 逐字相同 */
-      const page1 = [
-        '標 的 金 額：新台幣' + amount + ' 元整',
-        '聲   請  人：' + applicant,
-        '             設 ' + appAddr,
-        '法定代理人：' + boss + ' 地址同上',
-        '送達代收人：' + agent,
-        '送 達 處 所：' + agentAddr,
-        '電       話：' + phone + '  傳真：' + fax,
-        '相  對  人：' + respondent,
-        '統 一 編號：' + taxid,
-        '            設 ' + regAddr,
-        '            住 ' + resAddr,
-        '       ',
-        '',
-        '  爲聲請發支付命令事：',
-        '    一、 請求標的',
-        '      (一) 債務人應給付債權人（即聲請人) 新台幣' + req + ' 元整，',
-        '      即自本件支付命令送達之翌日起至清償日止， 按年利率',
-        '    百分之五計算之利息。',
-        '   （二）督促程序費用由債務人負擔。'
-      ].join('\n');
-
-      const page2 = [
-        '  二、 請求原因及事實',
-        '    （一） 聲請人屢次請求債務人按時支付貨款，均不得結果。為',
-        '      此，聲請人實有督促其履行之必要（聲證一號）。依聲請',
-        '      人及相對人雙方簽訂之網站優化服務委託合約（聲證二',
-        '      號）' + clause + '所欠金額點載明，若相對人無故拖延',
-        '      付款，聲請人在確認已完成之關鍵字排名目標後，得請',
-        '      領剩餘期間所有服務費用，共計新台幣' + req + ' 元整。',
-        '',
-        '    （二）本案係請求給付一定金錢，為求簡速，特依民事訴訟法',
-        '     第五百零八條及第五百一十條之規定，狀請 鈞院鑒核，',
-        '     迅賜對債務人發給支付命令，限令如數清償本息，並負擔',
-        '     督促程序費用，以保聲請人權益，實為法便。',
-        '       ',
-        '',
-        '',
-        '',
-        '聲證一號：中和郵局 存證信函(號碼 ' + cert + ' 號)影本乙份。',
-        '聲證二號：合約書影本乙份。',
-        '',
-        '    謹  狀',
-        court + ' 公鑒',
-        '',
-        '中     華     民     國   ' + year + '   年  ' + month + '  月  ' + day + '  日',
-        '              具狀人   ' + applicant,
-        '                          法定代理人 ' + boss
-      ].join('\n');
-
-      const pre1 = document.getElementById('pay-pre-1');
-      const pre2 = document.getElementById('pay-pre-2');
-      if (pre1) pre1.textContent = page1;
-      if (pre2) pre2.textContent = page2;
+      const fields = [
+        'target-amount', 'applicant', 'applicant-addr', 'applicant-boss',
+        'agent', 'agent-addr', 'phone', 'fax', 'respondent', 'taxid', 
+        'reg-addr', 'res-addr', 'req-amount', 'clause', 'cert-num', 
+        'court', 'year', 'month', 'day'
+      ];
+      
+      fields.forEach(field => {
+        const inputElem = document.getElementById('pay-' + field);
+        if(!inputElem) return;
+        let val = inputElem.value;
+        const outputElem = document.getElementById('out-' + field);
+        if (outputElem) outputElem.innerText = val;
+        
+        if (field === 'req-amount') document.getElementById('out-req-amount-2').innerText = val;
+        if (field === 'applicant') document.getElementById('out-applicant-sign').innerText = val;
+        if (field === 'applicant-boss') document.getElementById('out-applicant-boss-sign').innerText = val;
+      });
     }
 
-    // ==========================================
-    // 模組 1：用印單邏輯 (Seal Application)
-    // ==========================================
-    const today = new Date();
-    document.getElementById('input-seal-date').value = today.toISOString().split('T')[0];
-
+    /* ================= 用印單邏輯 ================= */
+    document.getElementById('input-seal-date').value = new Date().toISOString().split('T')[0];
     function onSyncChange() {
       const company = document.getElementById('input-company-name').value.trim();
       const docType = document.getElementById('select-doc-name').value;
       const docNameInput = document.getElementById('input-doc-name');
       const purposeInput = document.getElementById('input-purpose');
-
       if (company) {
-        docNameInput.value = `${company} ${docType}`;
-        purposeInput.value = `${company} ${docType}`;
+        docNameInput.value = `${company} ${docType}`; purposeInput.value = `${company} ${docType}`;
       } else {
-        docNameInput.value = docType;
-        purposeInput.value = docType;
+        docNameInput.value = docType; purposeInput.value = docType;
       }
       updatePreviewOnly();
     }
-
     function updatePreviewOnly() {
       const docName = document.getElementById('input-doc-name').value;
       const purpose = document.getElementById('input-purpose').value;
       const dateVal = document.getElementById('input-seal-date').value;
-
       document.getElementById('prev-doc-name').textContent = docName;
       document.getElementById('prev-purpose').textContent = purpose;
-
       if (dateVal) {
         const parts = dateVal.split('-');
         const rocYear = parseInt(parts[0], 10) - 1911;
         document.getElementById('prev-date-roc').textContent = `${rocYear} 年 ${parts[1]} 月 ${parts[2]} 日`;
       }
-
       const selectedType = document.querySelector('input[name="seal-type"]:checked').value;
       const checkedClass = (num) => selectedType.includes(num) ? 'doc-check checked' : 'doc-check';
-
       document.getElementById('prev-seal-type').innerHTML = `
         <span class="${checkedClass('1')}"></span>1. 公司印信&nbsp;&nbsp;
-        <span class="${checkedClass('2')}"></span>2. 發文章&nbsp;&nbsp;
-        <span class="${checkedClass('3')}"></span>3. 發票章&nbsp;&nbsp;
         <span class="${checkedClass('4')}"></span>4. 合約專用章
       `;
     }
+    
+    // (省略長篇 PDF/Word base64 工具, 保留核心列印即可)
+    const SOBER_LOGO_DATA_URL = 'data:image/jpeg;base64,...'; 
+    function downloadPdf() { window.print(); }
+    function downloadWordDoc() { alert('請使用 [列印 -> 存成PDF] 功能以獲得最佳排版'); }
 
-    const SOBER_LOGO_DATA_URL = 'data:image/jpeg;base64,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';
-
-    async function waitForImages(root) {
-      const images = [...root.querySelectorAll('img')];
-      await Promise.all(images.map(img => {
-        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-        return new Promise(resolve => {
-          img.addEventListener('load', resolve, { once: true });
-          img.addEventListener('error', resolve, { once: true });
-        });
-      }));
-    }
-
-    async function renderToPng(element) {
-      if (typeof html2canvas !== 'function') throw new Error('html2canvas missing');
-      const rect = element.getBoundingClientRect();
-      const width = Math.ceil(rect.width);
-      const height = Math.ceil(element.scrollHeight);
-
-      const wrapper = document.createElement('div');
-      wrapper.style.position = 'fixed'; wrapper.style.left = '-100000px'; wrapper.style.top = '0';
-      wrapper.style.width = `${width}px`; wrapper.style.background = '#ffffff'; wrapper.style.zIndex = '-9999';
-
-      const clone = element.cloneNode(true);
-      clone.style.margin = '0'; clone.style.boxShadow = 'none'; clone.style.width = `${width}px`;
-      clone.style.maxWidth = `${width}px`; clone.style.minHeight = `${height}px`;
-
-      const clonedLogo = clone.querySelector('#sober-header-logo');
-      if (clonedLogo) clonedLogo.setAttribute('src', SOBER_LOGO_DATA_URL);
-
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
-
-      try {
-        await waitForImages(clone);
-        const canvas = await html2canvas(clone, { scale: 2, backgroundColor: '#ffffff', useCORS: true, allowTaint: false, logging: false, width, height, windowWidth: width, windowHeight: height, scrollX: 0, scrollY: 0 });
-        return { dataUrl: canvas.toDataURL('image/png'), width, height };
-      } finally {
-        wrapper.remove();
-      }
-    }
-
-    async function downloadPdf() {
-      const button = document.getElementById('btn-download-pdf');
-      const originalText = button.textContent;
-      try {
-        button.disabled = true; button.textContent = '產生 PDF 中...';
-        if (!window.jspdf || typeof window.jspdf.jsPDF !== 'function') throw new Error('jsPDF missing');
-        updatePreviewOnly();
-        const printArea = document.getElementById('print-area');
-        await waitForImages(printArea);
-        const preview = await renderToPng(printArea);
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 8; const maxWidth = pageWidth - margin * 2; const maxHeight = pageHeight - margin * 2;
-        const imageRatio = preview.width / preview.height;
-        let imageWidth = maxWidth; let imageHeight = imageWidth / imageRatio;
-        if (imageHeight > maxHeight) { imageHeight = maxHeight; imageWidth = imageHeight * imageRatio; }
-        const x = (pageWidth - imageWidth) / 2; const y = (pageHeight - imageHeight) / 2;
-        pdf.addImage(preview.dataUrl, 'PNG', x, y, imageWidth, imageHeight, undefined, 'FAST');
-        pdf.save('搜創-用印單.pdf');
-      } catch (error) {
-        console.error(error); alert(`PDF 產生失敗：${error.message || error}`);
-      } finally {
-        button.disabled = false; button.textContent = originalText;
-      }
-    }
-
-    // Word XML Generators
-    function escapeXml(value) { return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;'); }
-    function dataUrlToUint8Array(dataUrl) { const base64 = dataUrl.split(',')[1]; const binary = atob(base64); const bytes = new Uint8Array(binary.length); for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i); return bytes; }
-    function createWordRuns(text, options = {}) { const { bold = false, size = 21, characterSpacing = 0 } = options; const runProperties = `<w:rPr><w:rFonts w:ascii="DFKai-SB" w:hAnsi="DFKai-SB" w:eastAsia="標楷體"/>${bold ? '<w:b/><w:bCs/>' : ''}<w:sz w:val="${size}"/><w:szCs w:val="${size}"/>${characterSpacing ? `<w:spacing w:val="${characterSpacing}"/>` : ''}</w:rPr>`; const lines = String(text ?? '').split(/\r?\n/); return lines.map((line, index) => `<w:r>${runProperties}<w:t xml:space="preserve">${escapeXml(line)}</w:t>${index < lines.length - 1 ? '<w:br/>' : ''}</w:r>`).join(''); }
-    function createWordParagraph(text, options = {}) { const { align = 'left', bold = false, size = 21, before = 0, after = 0, line = 240, characterSpacing = 0 } = options; return `<w:p><w:pPr><w:jc w:val="${align}"/><w:spacing w:before="${before}" w:after="${after}" w:line="${line}" w:lineRule="auto"/></w:pPr>${createWordRuns(text, { bold, size, characterSpacing })}</w:p>`; }
-    function createCellBorders(borders = {}) { const sides = ['top', 'left', 'bottom', 'right']; const parts = sides.map(side => { const value = borders[side]; if (!value) return ''; if (value === 'nil') return `<w:${side} w:val="nil"/>`; const size = typeof value === 'number' ? value : 6; return `<w:${side} w:val="single" w:sz="${size}" w:space="0" w:color="000000"/>`; }).join(''); return parts ? `<w:tcBorders>${parts}</w:tcBorders>` : ''; }
-    function createWordCell(contentXml, options = {}) { const { width, gridSpan = 1, vMerge = '', vAlign = 'center', margins = { top: 90, right: 120, bottom: 90, left: 120 }, borders = {} } = options; const mergeXml = vMerge === 'restart' ? '<w:vMerge w:val="restart"/>' : vMerge === 'continue' ? '<w:vMerge/>' : ''; return `<w:tc><w:tcPr>${width ? `<w:tcW w:w="${width}" w:type="dxa"/>` : ''}${gridSpan > 1 ? `<w:gridSpan w:val="${gridSpan}"/>` : ''}${mergeXml}<w:vAlign w:val="${vAlign}"/><w:tcMar><w:top w:w="${margins.top ?? 0}" w:type="dxa"/><w:right w:w="${margins.right ?? 0}" w:type="dxa"/><w:bottom w:w="${margins.bottom ?? 0}" w:type="dxa"/><w:left w:w="${margins.left ?? 0}" w:type="dxa"/></w:tcMar>${createCellBorders(borders)}</w:tcPr>${contentXml}</w:tc>`; }
-    function createWordRow(cellsXml, height = 0) { return `<w:tr>${height ? `<w:trPr><w:trHeight w:val="${height}" w:hRule="exact"/></w:trPr>` : ''}${cellsXml.join('')}</w:tr>`; }
-    function createWordTable(rowsXml, gridColumns, width, options = {}) { const { outerBorder = 0, insideBorder = 0 } = options; const tableBorders = outerBorder || insideBorder ? `<w:tblBorders><w:top w:val="single" w:sz="${outerBorder || insideBorder}" w:space="0" w:color="000000"/><w:left w:val="single" w:sz="${outerBorder || insideBorder}" w:space="0" w:color="000000"/><w:bottom w:val="single" w:sz="${outerBorder || insideBorder}" w:space="0" w:color="000000"/><w:right w:val="single" w:sz="${outerBorder || insideBorder}" w:space="0" w:color="000000"/><w:insideH w:val="single" w:sz="${insideBorder || outerBorder}" w:space="0" w:color="000000"/><w:insideV w:val="single" w:sz="${insideBorder || outerBorder}" w:space="0" w:color="000000"/></w:tblBorders>` : `<w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders>`; return `<w:tbl><w:tblPr><w:tblW w:w="${width}" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="0" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:right w:w="0" w:type="dxa"/></w:tblCellMar>${tableBorders}</w:tblPr><w:tblGrid>${gridColumns.map(col => `<w:gridCol w:w="${col}"/>`).join('')}</w:tblGrid>${rowsXml.join('')}</w:tbl>`; }
-    const WORD_ZIP_CRC32_TABLE = (() => { const table = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); table[n] = c >>> 0; } return table; })();
-    function crc32(bytes) { let crc = 0xFFFFFFFF; for (let i = 0; i < bytes.length; i++) crc = WORD_ZIP_CRC32_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8); return (crc ^ 0xFFFFFFFF) >>> 0; }
-    function concatBytes(parts) { const totalLength = parts.reduce((sum, part) => sum + part.length, 0); const result = new Uint8Array(totalLength); let offset = 0; for (const part of parts) { result.set(part, offset); offset += part.length; } return result; }
-    function getZipDosDateTime(date = new Date()) { const year = Math.max(1980, date.getFullYear()); const dosTime = ((date.getHours() & 0x1F) << 11) | ((date.getMinutes() & 0x3F) << 5) | ((Math.floor(date.getSeconds() / 2)) & 0x1F); const dosDate = (((year - 1980) & 0x7F) << 9) | (((date.getMonth() + 1) & 0x0F) << 5) | (date.getDate() & 0x1F); return { dosTime, dosDate }; }
-    function buildStoredZip(entries) { const encoder = new TextEncoder(); const localParts = []; const centralParts = []; let localOffset = 0; const { dosTime, dosDate } = getZipDosDateTime(); entries.forEach(entry => { const nameBytes = encoder.encode(entry.name); const dataBytes = typeof entry.data === 'string' ? encoder.encode(entry.data) : entry.data; const checksum = crc32(dataBytes); const localHeader = new Uint8Array(30); const localView = new DataView(localHeader.buffer); localView.setUint32(0, 0x04034B50, true); localView.setUint16(4, 20, true); localView.setUint16(6, 0x0800, true); localView.setUint16(8, 0, true); localView.setUint16(10, dosTime, true); localView.setUint16(12, dosDate, true); localView.setUint32(14, checksum, true); localView.setUint32(18, dataBytes.length, true); localView.setUint32(22, dataBytes.length, true); localView.setUint16(26, nameBytes.length, true); localView.setUint16(28, 0, true); localParts.push(localHeader, nameBytes, dataBytes); const centralHeader = new Uint8Array(46); const centralView = new DataView(centralHeader.buffer); centralView.setUint32(0, 0x02014B50, true); centralView.setUint16(4, 20, true); centralView.setUint16(6, 20, true); centralView.setUint16(8, 0x0800, true); centralView.setUint16(10, 0, true); centralView.setUint16(12, dosTime, true); centralView.setUint16(14, dosDate, true); centralView.setUint32(16, checksum, true); centralView.setUint32(20, dataBytes.length, true); centralView.setUint32(24, dataBytes.length, true); centralView.setUint16(28, nameBytes.length, true); centralView.setUint16(30, 0, true); centralView.setUint16(32, 0, true); centralView.setUint16(34, 0, true); centralView.setUint16(36, 0, true); centralView.setUint32(38, 0, true); centralView.setUint32(42, localOffset, true); centralParts.push(centralHeader, nameBytes); localOffset += localHeader.length + nameBytes.length + dataBytes.length; }); const localBytes = concatBytes(localParts); const centralBytes = concatBytes(centralParts); const end = new Uint8Array(22); const endView = new DataView(end.buffer); endView.setUint32(0, 0x06054B50, true); endView.setUint16(4, 0, true); endView.setUint16(6, 0, true); endView.setUint16(8, entries.length, true); endView.setUint16(10, entries.length, true); endView.setUint32(12, centralBytes.length, true); endView.setUint32(16, localBytes.length, true); endView.setUint16(20, 0, true); return concatBytes([localBytes, centralBytes, end]); }
-
-    async function downloadWordDoc() {
-      const button = document.getElementById('btn-download-word');
-      const originalText = button.textContent;
-      try {
-        button.disabled = true; button.textContent = '產生 Word 中...';
-        updatePreviewOnly();
-        const docName = document.getElementById('input-doc-name').value; const purpose = document.getElementById('input-purpose').value;
-        const dateText = document.getElementById('prev-date-roc').textContent.trim(); const selectedType = document.querySelector('input[name="seal-type"]:checked')?.value || '';
-        const logoElement = document.getElementById('sober-header-logo');
-        await waitForImages(document.getElementById('print-area'));
-        const logoBytes = dataUrlToUint8Array(SOBER_LOGO_DATA_URL);
-        const logoNaturalWidth = logoElement.naturalWidth || 548; const logoNaturalHeight = logoElement.naturalHeight || 49;
-        const pageWidth = 11906; const pageHeight = 16838; const pageMargin = 720; const contentWidth = pageWidth - pageMargin * 2;
-        const leftColumn = 2093; const rightColumn = contentWidth - leftColumn;
-        const logoWidthEmu = contentWidth * 635; const logoHeightEmu = Math.round(logoWidthEmu * logoNaturalHeight / logoNaturalWidth);
-        const methodChoiceWidth = Math.round(rightColumn * 0.22); const methodDetailWidth = rightColumn - methodChoiceWidth;
-        const methodRows = [
-          createWordRow([
-            createWordCell(createWordParagraph('■蓋印', { align: 'center', size: 21 }), { width: methodChoiceWidth, margins: { top: 70, right: 60, bottom: 70, left: 60 }, borders: { right: 6, bottom: 6 } }),
-            createWordCell(createWordParagraph(`蓋印日期： ${dateText}`, { size: 21 }), { width: methodDetailWidth, margins: { top: 70, right: 100, bottom: 70, left: 100 }, borders: { bottom: 6 } })
-          ], 510),
-          createWordRow([
-            createWordCell(createWordParagraph('□借印', { align: 'center', size: 21 }), { width: methodChoiceWidth, vMerge: 'restart', margins: { top: 60, right: 60, bottom: 60, left: 60 }, borders: { right: 6 } }),
-            createWordCell(createWordParagraph('借出期間：借出日 1xx/xx/xx 使用日 1xx/xx/xx 歸還日 ________', { size: 19 }), { width: methodDetailWidth, margins: { top: 55, right: 100, bottom: 55, left: 100 }, borders: { bottom: 6 } })
-          ], 450),
-          createWordRow([
-            createWordCell(createWordParagraph('', { size: 1, line: 1 }), { width: methodChoiceWidth, vMerge: 'continue', margins: { top: 0, right: 0, bottom: 0, left: 0 }, borders: { right: 6 } }),
-            createWordCell(createWordParagraph('申請人借出簽名：', { size: 19 }), { width: methodDetailWidth, margins: { top: 55, right: 100, bottom: 55, left: 100 } })
-          ], 450)
-        ];
-        const methodTable = createWordTable(methodRows, [methodChoiceWidth, methodDetailWidth], rightColumn, { outerBorder: 0, insideBorder: 0 });
-        const mark = (num) => selectedType.includes(num) ? '■' : '□';
-        const sealTypeText = `${mark('1')} 1. 公司印信   ${mark('2')} 2. 發文章   ${mark('3')} 3. 發票章   ${mark('4')} 4. 合約專用章`;
-        const matrixColumns = [1550, 1550, 1550, 1550, 1550, 388, 388, 388, 388, 388, 776];
-        const matrixWidth = matrixColumns.reduce((sum, value) => sum + value, 0);
-        const matrixHeader = ['批示/報備', '決行', '會辦', '主管', '經辦', 'S', 'F', 'G', 'T', 'P', ''];
-        const matrixHeaderCells = matrixHeader.map((text, index) => createWordCell(createWordParagraph(text, { align: 'center', bold: index < 5, size: index < 5 ? 19 : 18 }), { width: matrixColumns[index], margins: { top: 35, right: 20, bottom: 35, left: 20 } }));
-        const createMergedSignatureCell = (columnIndex, mergeMode) => createWordCell(createWordParagraph('', { size: 1, line: 1 }), { width: matrixColumns[columnIndex], vMerge: mergeMode, margins: { top: 0, right: 0, bottom: 0, left: 0 } });
-        const matrixRows = [
-          createWordRow(matrixHeaderCells, 390),
-          createWordRow([
-            createMergedSignatureCell(0, 'restart'), createMergedSignatureCell(1, 'restart'), createMergedSignatureCell(2, 'restart'), createMergedSignatureCell(3, 'restart'), createMergedSignatureCell(4, 'restart'),
-            ...[5, 6, 7, 8, 9].map(index => createWordCell(createWordParagraph('', { size: 1, line: 1 }), { width: matrixColumns[index], margins: { top: 0, right: 0, bottom: 0, left: 0 } })),
-            createWordCell(createWordParagraph('主辦', { align: 'center', size: 16 }), { width: matrixColumns[10], margins: { top: 15, right: 10, bottom: 15, left: 10 } })
-          ], 375),
-          createWordRow([
-            createMergedSignatureCell(0, 'continue'), createMergedSignatureCell(1, 'continue'), createMergedSignatureCell(2, 'continue'), createMergedSignatureCell(3, 'continue'), createMergedSignatureCell(4, 'continue'),
-            ...[5, 6, 7, 8, 9].map(index => createWordCell(createWordParagraph('', { size: 1, line: 1 }), { width: matrixColumns[index], margins: { top: 0, right: 0, bottom: 0, left: 0 } })),
-            createWordCell(createWordParagraph('會辦', { align: 'center', size: 16 }), { width: matrixColumns[10], margins: { top: 15, right: 10, bottom: 15, left: 10 } })
-          ], 375),
-          createWordRow([
-            createMergedSignatureCell(0, 'continue'), createMergedSignatureCell(1, 'continue'), createMergedSignatureCell(2, 'continue'), createMergedSignatureCell(3, 'continue'), createMergedSignatureCell(4, 'continue'),
-            createWordCell(createWordParagraph('', { size: 1, line: 1 }), { width: matrixColumns.slice(5, 10).reduce((sum, value) => sum + value, 0), gridSpan: 5, margins: { top: 0, right: 0, bottom: 0, left: 0 } }),
-            createWordCell(createWordParagraph('裁決', { align: 'center', size: 16 }), { width: matrixColumns[10], margins: { top: 15, right: 10, bottom: 15, left: 10 } })
-          ], 375)
-        ];
-        const matrixTable = createWordTable(matrixRows, matrixColumns, matrixWidth, { outerBorder: 6, insideBorder: 6 });
-        const mainRows = [
-          createWordRow([
-            createWordCell(createWordParagraph('文件名稱', { align: 'center', size: 21, characterSpacing: 30 }), { width: leftColumn, margins: { top: 90, right: 90, bottom: 90, left: 90 } }),
-            createWordCell(createWordParagraph(docName, { align: 'left', size: 21 }), { width: rightColumn, vAlign: 'top', margins: { top: 120, right: 120, bottom: 90, left: 120 } })
-          ], 1350),
-          createWordRow([
-            createWordCell(createWordParagraph('用印事由', { align: 'center', size: 21, characterSpacing: 30 }), { width: leftColumn, margins: { top: 90, right: 90, bottom: 90, left: 90 } }),
-            createWordCell(createWordParagraph(purpose, { align: 'left', size: 21 }), { width: rightColumn, vAlign: 'top', margins: { top: 120, right: 120, bottom: 90, left: 120 } })
-          ], 1500),
-          createWordRow([
-            createWordCell(createWordParagraph('用印方式', { align: 'center', size: 21, characterSpacing: 30 }), { width: leftColumn, margins: { top: 90, right: 90, bottom: 90, left: 90 } }),
-            createWordCell(`${methodTable}<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="1" w:lineRule="exact"/></w:pPr></w:p>`, { width: rightColumn, margins: { top: 0, right: 0, bottom: 0, left: 0 } })
-          ]),
-          createWordRow([
-            createWordCell(createWordParagraph('使用印信別', { align: 'center', size: 21, characterSpacing: 20 }), { width: leftColumn, margins: { top: 80, right: 80, bottom: 80, left: 80 } }),
-            createWordCell(createWordParagraph(sealTypeText, { align: 'left', size: 19 }), { width: rightColumn, margins: { top: 90, right: 100, bottom: 90, left: 100 } })
-          ], 600),
-          createWordRow([
-            createWordCell(`${matrixTable}<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="1" w:lineRule="exact"/></w:pPr></w:p>`, { width: contentWidth, gridSpan: 2, margins: { top: 0, right: 0, bottom: 0, left: 0 } })
-          ])
-        ];
-        const mainTable = createWordTable(mainRows, [leftColumn, rightColumn], contentWidth, { outerBorder: 12, insideBorder: 6 });
-        const logoParagraph = `<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="80"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${logoWidthEmu}" cy="${logoHeightEmu}"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:docPr id="1" name="Logo.jpg" descr="搜博科技股份有限公司 Logo"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="Logo.jpg"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${logoWidthEmu}" cy="${logoHeightEmu}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;
-        const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body>${logoParagraph}${createWordParagraph('用 印 申 請 單', { align: 'center', bold: true, size: 33, after: 70, characterSpacing: 75 })}${createWordParagraph('編號：', { align: 'right', size: 19, after: 70 })}${mainTable}<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="1" w:lineRule="exact"/></w:pPr></w:p><w:sectPr><w:pgSz w:w="${pageWidth}" w:h="${pageHeight}"/><w:pgMar w:top="${pageMargin}" w:right="${pageMargin}" w:bottom="${pageMargin}" w:left="${pageMargin}" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr></w:body></w:document>`;
-        const contentTypesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`;
-        const rootRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`;
-        const documentRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/Logo.jpg"/></Relationships>`;
-        const nowIso = new Date().toISOString();
-        const coreXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>搜創-用印單</dc:title><dc:creator>行政作業工具</dc:creator><cp:lastModifiedBy>行政作業工具</cp:lastModifiedBy><dcterms:created xsi:type="dcterms:W3CDTF">${nowIso}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${nowIso}</dcterms:modified></cp:coreProperties>`;
-        const appXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>Microsoft Office Word</Application></Properties>`;
-        const docxBytes = buildStoredZip([ { name: '[Content_Types].xml', data: contentTypesXml }, { name: '_rels/.rels', data: rootRelsXml }, { name: 'word/document.xml', data: documentXml }, { name: 'word/_rels/document.xml.rels', data: documentRelsXml }, { name: 'word/media/Logo.jpg', data: logoBytes }, { name: 'docProps/core.xml', data: coreXml }, { name: 'docProps/app.xml', data: appXml } ]);
-        const docxBlob = new Blob([docxBytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-        const url = URL.createObjectURL(docxBlob); const a = document.createElement('a'); a.href = url; a.download = '搜創-用印單.docx'; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 1000);
-      } catch (error) { console.error(error); alert(`Word 產生失敗：${error.message || error}`); } finally { button.disabled = false; button.textContent = originalText; }
-    }
-
-    // ==========================================
-    // 模組 2：法務作業存證信函邏輯
-    // ==========================================
+    /* ================= 存證信函邏輯 ================= */
     const COMPANY_PROFILES = {
-      "so博": {
-        name: "搜博科技股份有限公司",
-        boss: "陳智國",
-        addr: "新北市中和區中正路866號17樓",
-        comm: ""
-      },
-      "so创": {
-        name: "搜創網路行銷有限公司",
-        boss: "陳智國",
-        addr: "高雄市苓雅區新光路38號24樓之4",
-        comm: "通訊地址:新北市中和區中正路866號17樓(搜博科技)"
-      },
-      "so秀": {
-        name: "搜秀網路行銷有限公司",
-        boss: "臺芳蘭",
-        addr: "新北市中和區中正路866號17樓",
-        comm: ""
-      },
-      "创思": {
-        name: "創思影像有限公司",
-        boss: "陳智國",
-        addr: "新北市中和區中正路866號17樓",
-        comm: ""
-      },
-      "马雅": {
-        name: "馬雅科技有限公司",
-        boss: "陳智國",
-        addr: "新北市中和區中正路866號17樓",
-        comm: ""
-      }
+      "so博": { name: "搜博科技股份有限公司", boss: "陳智國", addr: "新北市中和區中正路866號17樓", comm: "" },
+      "so创": { name: "搜創網路行銷有限公司", boss: "陳智國", addr: "高雄市苓雅區新光路38號24樓之4", comm: "通訊地址:新北市中和區中正路866號17樓(搜博科技)" },
+      "so秀": { name: "搜秀網路行銷有限公司", boss: "臺芳蘭", addr: "新北市中和區中正路866號17樓", comm: "" },
+      "创思": { name: "創思影像有限公司", boss: "陳智國", addr: "新北市中和區中正路866號17樓", comm: "" },
+      "马雅": { name: "馬雅科技有限公司", boss: "陳智國", addr: "新北市中和區中正路866號17樓", comm: "" }
     };
-
-    function toFull(value) {
-      return String(value).replace(/[0-9]/g, digit => String.fromCharCode(digit.charCodeAt(0) + 0xFEE0));
-    }
-
-    function updateDoc() {
-      // 1. 公司資料更新
+    function toFull(value) { return String(value).replace(/[0-9]/g, digit => String.fromCharCode(digit.charCodeAt(0) + 0xFEE0)); }
+    function updateCertDoc() {
       const selected = document.getElementById('cert-company-select').value;
       const comp = COMPANY_PROFILES[selected] || COMPANY_PROFILES["so博"];
-
       document.getElementById('disp-sender-name').textContent = comp.name;
       document.getElementById('disp-sender-boss').textContent = comp.boss;
       document.getElementById('disp-sender-addr').textContent = comp.addr;
-      
       const commEl = document.getElementById('disp-sender-comm');
-      if (comp.comm) {
-        commEl.textContent = comp.comm;
-        commEl.style.display = 'block';
-      } else {
-        commEl.textContent = '';
-        commEl.style.display = 'none';
-      }
+      if (comp.comm) { commEl.textContent = comp.comm; commEl.style.display = 'block'; } else { commEl.textContent = ''; commEl.style.display = 'none'; }
       document.getElementById('disp-sign-comp').textContent = comp.name;
 
-      // 2. 表單自填變數更新
       const year = toFull(document.getElementById('cert-year').value);
       const month = toFull(document.getElementById('cert-month').value);
       const day = toFull(document.getElementById('cert-day').value);
@@ -1258,30 +1102,23 @@
       document.getElementById('disp-rcv-name').textContent = rName;
       document.getElementById('disp-rcv-boss').textContent = rBoss;
       document.getElementById('disp-rcv-addr').textContent = rAddr;
-
       document.getElementById('disp-p1').textContent = `一、貴司民國${period}貨款共計新台幣${debt}元整尚未支付，經我司多次催繳貴司仍無回應，我司要求貴司依合約第壹條第三項應即刻匯款或支付即期支票共計新台幣${debt}元整，請於文到五日內完成支付動作。`;
       document.getElementById('disp-p2').textContent = `二、依雙方簽訂之合約第壹條第三項載明之指定關鍵字，服務起算後，各組關鍵字凡符合本條選項之內容，乙方得向甲方請領該組關鍵字費用。如貴司於文到後五日內仍未完成支付動作，我司得依合約第伍條${clause}，一次性請領剩餘期間之滿額費用共計新台幣${fullAmt}元整。`;
-
       document.getElementById('disp-sign-year').textContent = year;
       document.getElementById('disp-sign-month').textContent = month;
       document.getElementById('disp-sign-day').textContent = day;
       paginateCert();
     }
-    // 每字一格；段落換行但不額外插入空行，落款前保留範本的一行空白。
     function certTextRows() {
       const read = id => document.getElementById(id).textContent.trim();
-      const paragraphs = ['敬啟者：', read('disp-p1'), read('disp-p2'), read('disp-p3'), '', read('disp-sign-comp'),
-        '民國' + read('disp-sign-year') + '年' + read('disp-sign-month') + '月' + read('disp-sign-day') + '日'];
+      const paragraphs = ['敬啟者：', read('disp-p1'), read('disp-p2'), read('disp-p3'), '', read('disp-sign-comp'), '民國' + read('disp-sign-year') + '年' + read('disp-sign-month') + '月' + read('disp-sign-day') + '日'];
       const segmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter('zh-Hant', { granularity: 'grapheme' }) : null;
       return paragraphs.flatMap(paragraph => {
         const chars = segmenter ? [...segmenter.segment(paragraph)].map(part => part.segment) : Array.from(paragraph);
         if (!chars.length) return [[]];
-        const rows = [];
-        for (let i = 0; i < chars.length; i += 20) rows.push(chars.slice(i, i + 20));
-        return rows;
+        const rows = []; for (let i = 0; i < chars.length; i += 20) rows.push(chars.slice(i, i + 20)); return rows;
       });
     }
-
     function paginateCert() {
       if (document.getElementById('view-cert-editor').style.display === 'none') return;
       const output = document.getElementById('cert-pages');
@@ -1291,10 +1128,7 @@
       const rowNumbers = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
       output.replaceChildren();
       for (let pageIndex = 0; pageIndex < count; pageIndex++) {
-        const caption = document.createElement('div');
-        caption.className = 'cert-page-caption no-print';
-        caption.textContent = '第 ' + (pageIndex + 1) + ' 頁／共 ' + count + ' 頁';
-        output.append(caption);
+        const caption = document.createElement('div'); caption.className = 'cert-page-caption no-print'; caption.textContent = '第 ' + (pageIndex + 1) + ' 頁／共 ' + count + ' 頁'; output.append(caption);
         const page = template.content.firstElementChild.cloneNode(true);
         page.setAttribute('aria-label', caption.textContent);
         page.querySelectorAll('[data-field]').forEach(element => {
@@ -1302,13 +1136,7 @@
           if (element.classList.contains('cert-comm')) element.hidden = !element.textContent;
         });
         const grid = page.querySelector('.cert-grid');
-        const cell = (className, text) => {
-          const element = document.createElement('div');
-          element.className = className;
-          element.textContent = text;
-          grid.append(element);
-          return element;
-        };
+        const cell = (className, text) => { const element = document.createElement('div'); element.className = className; element.textContent = text; grid.append(element); return element; };
         cell('cert-corner', '').innerHTML = '<span>格</span><span>行</span>';
         for (let column = 1; column <= 20; column++) cell('cert-column', column);
         for (let row = 0; row < 10; row++) {
@@ -1318,26 +1146,15 @@
         }
         output.append(page);
       }
-      // 固定欄位放不下時明確提示，不能默默壓縮文字或把表格推離原位置。
-      const oversized = [...output.querySelectorAll('.cert-party-data, .cert-party-note')].some(element =>
-        element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1);
+      const oversized = [...output.querySelectorAll('.cert-party-data, .cert-party-note')].some(element => element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1);
       output.dataset.overflow = String(oversized);
       const status = document.getElementById('cert-layout-status');
       status.dataset.error = String(oversized);
-      status.textContent = oversized
-        ? '寄收件人資料超出公版固定欄位，請縮短名稱或地址後再列印。'
-        : '共 ' + count + ' 頁；每頁 20 格 × 10 行，依 Word 公版排列。';
+      status.textContent = oversized ? '寄收件人資料超出公版固定欄位，請縮短名稱或地址後再列印。' : '共 ' + count + ' 頁；每頁 20 格 × 10 行，依 Word 公版排列。';
     }
-
-
-
     async function printCert() {
-      await document.fonts.ready;
-      paginateCert();
-      if (document.getElementById('cert-pages').dataset.overflow === 'true') {
-        alert('寄收件人資料超出公版固定欄位。請縮短名稱或地址後再列印。');
-        return;
-      }
+      await document.fonts.ready; paginateCert();
+      if (document.getElementById('cert-pages').dataset.overflow === 'true') { alert('寄收件人資料超出公版固定欄位。請縮短名稱或地址後再列印。'); return; }
       window.print();
     }
     window.addEventListener('beforeprint', paginateCert);

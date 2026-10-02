@@ -588,16 +588,17 @@
             <table class="tracker-table" id="legal-result-table" style="width: 100%;">
               <thead>
                 <tr>
-                  <th style="width: 12%;">業務</th>
-                  <th style="width: 32%;">客戶名稱</th>
-                  <th style="width: 12%;">欠款月數</th>
-                  <th style="width: 24%;">欠款月份</th>
-                  <th style="width: 10%;">總金額</th>
-                  <th style="width: 10%;">操作</th>
+                  <th style="width: 10%;">業務</th>
+                  <th style="width: 26%;">客戶名稱</th>
+                  <th style="width: 10%;">區間月數</th>
+                  <th style="width: 22%;">區間內月份</th>
+                  <th style="width: 16%;">區間外月份</th>
+                  <th style="width: 8%;">總金額</th>
+                  <th style="width: 8%;">操作</th>
                 </tr>
               </thead>
               <tbody>
-                <tr><td colspan="6" style="color: #64748b; padding: 20px;">請從左側匯入催款 Excel 報表並點擊「開始篩選名單」...</td></tr>
+                <tr><td colspan="7" style="color: #64748b; padding: 20px;">請從左側匯入催款 Excel 報表並點擊「開始篩選名單」...</td></tr>
               </tbody>
             </table>
           </div>
@@ -966,39 +967,45 @@
               if (dMatch) m = parseInt(dMatch[1], 10);
             }
 
-            // 3. 判斷是否落在指定月份區間
-            if (m !== null && m >= startM && m <= endM) {
+            // 3. 先收集「所有月份」的款項（含區間外），稍後再依區間篩選
+            if (m !== null) {
               const key = `${sales}__${client}`;
               if (!clientMap[key]) {
                 clientMap[key] = {
                   sales: sales,
                   client: client,
                   months: {},
-                  totalAmt: 0
+                  inRangeAmt: 0
                 };
               }
               if (!clientMap[key].months[m]) {
                 clientMap[key].months[m] = [];
               }
               clientMap[key].months[m].push(amt);
-              clientMap[key].totalAmt += amt;
+              if (m >= startM && m <= endM) {
+                clientMap[key].inRangeAmt += amt;
+              }
             }
           }
 
-          // 4. 篩選出欠款期數達標者
+          // 4. 以「區間內」欠款期數達標者為主；同時列出區間外月份
           const results = [];
           for (const key in clientMap) {
             const data = clientMap[key];
-            const distinctMonths = Object.keys(data.months).map(Number).sort((a,b) => a - b);
-            if (distinctMonths.length >= minMonths) {
+            const allMonths = Object.keys(data.months).map(Number).sort((a, b) => a - b);
+            const inRangeMonths = allMonths.filter(m => m >= startM && m <= endM);
+            const extraMonths = allMonths.filter(m => m < startM || m > endM);
+
+            if (inRangeMonths.length >= minMonths) {
               results.push({
                 sales: data.sales,
                 client: data.client,
-                count: distinctMonths.length,
-                monthList: distinctMonths.map(m => m + "月份").join("、"),
-                startM: distinctMonths[0],
-                endM: distinctMonths[distinctMonths.length - 1],
-                total: Math.round(data.totalAmt)
+                count: inRangeMonths.length,
+                monthList: inRangeMonths.map(m => m + "月份").join("、"),
+                extraList: extraMonths.map(m => m + "月份").join("、"),
+                startM: inRangeMonths[0],
+                endM: inRangeMonths[inRangeMonths.length - 1],
+                total: Math.round(data.inRangeAmt)
               });
             }
           }
@@ -1016,17 +1023,23 @@
     function renderLegalList(data) {
       const tbody = document.querySelector('#legal-result-table tbody');
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="color: #b91c1c; padding: 20px;">在指定的月份區間內，找不到符合欠款期數的客戶。</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="color: #b91c1c; padding: 20px;">在指定的月份區間內，找不到符合欠款期數的客戶。</td></tr>';
         return;
       }
 
       let html = '';
       data.forEach(item => {
-        html += `<tr>
+        const hasExtra = item.extraList && item.extraList.length > 0;
+        const extraCell = hasExtra
+          ? `<span style="color:#b91c1c; font-weight:600;">${item.extraList}</span>`
+          : `<span style="color:#94a3b8;">—</span>`;
+        const rowStyle = hasExtra ? 'background:#fff7ed;' : '';
+        html += `<tr style="${rowStyle}">
           <td>${item.sales}</td>
           <td style="font-weight: bold; color: #1e40af; text-align: left;">${item.client}</td>
           <td style="color: #b91c1c; font-weight: bold;">${item.count} 個月</td>
           <td style="text-align: left; font-size: 13px;">${item.monthList}</td>
+          <td style="text-align: left; font-size: 13px;">${extraCell}</td>
           <td style="font-weight: bold;">$${item.total.toLocaleString()}</td>
           <td>
             <button class="card-btn" style="background:#2563eb; padding:5px 10px; font-size:12px; white-space:nowrap;" onclick="applyToNotice('${item.client.replace(/'/g, "\\'")}', ${item.startM}, ${item.endM}, ${item.total})">帶入存證信函</button>
@@ -1062,19 +1075,27 @@
       }
       
       const wsData = [
-        ["業務", "客戶名稱", "欠款月數", "欠款月份明細", "篩選區間欠款總金額"]
+        ["業務", "客戶名稱", "區間內欠款月數", "區間內月份", "區間外月份", "篩選區間欠款總金額"]
       ];
 
       currentFilteredData.forEach(item => {
-        wsData.push([item.sales, item.client, item.count + "個月", item.monthList, item.total]);
+        wsData.push([
+          item.sales,
+          item.client,
+          item.count + "個月",
+          item.monthList,
+          item.extraList || "",
+          item.total
+        ]);
       });
 
       const ws = XLSX.utils.aoa_to_sheet(wsData);
       ws['!cols'] = [
         { wch: 15 },
         { wch: 35 },
-        { wch: 12 },
-        { wch: 30 },
+        { wch: 14 },
+        { wch: 28 },
+        { wch: 20 },
         { wch: 18 }
       ];
 

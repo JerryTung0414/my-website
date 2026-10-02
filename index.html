@@ -575,6 +575,10 @@
             <label>欠款期數條件 (月數)</label>
             <input type="number" id="legal-min-months" value="3" min="1" max="12" title="欠款達幾個月(含)以上才列出">
           </div>
+          <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#334155; margin:8px 0 4px; cursor:pointer;">
+            <input type="checkbox" id="legal-show-short"> 一併列出未達期數的客戶
+          </label>
+          <p style="font-size:11px; color:#64748b; line-height:1.5; margin-bottom:8px;">列高、字體、顏色不會影響篩選。若 Excel 把同一客戶的月份列合併儲存格，系統會自動往下帶入客戶名稱。</p>
 
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="processLegalList()">📊 開始篩選名單</button>
         </div>
@@ -582,6 +586,7 @@
         <div class="preview-pane">
           <div class="preview-toolbar no-print">
             <span style="font-weight: 700; font-size: 15px;">📂 存證名單篩選結果</span>
+            <span id="legal-parse-stats" style="font-size:12px; color:#64748b; margin-left:10px;"></span>
             <button class="card-btn" style="background:#2563eb; padding:6px 16px;" onclick="exportLegalList()">匯出 Excel</button>
           </div>
           <div class="tracker-wrapper" style="flex: 1; background: #fff; padding: 10px; border: none; overflow-y: auto;">
@@ -900,6 +905,90 @@
     // ==========================================
     let currentFilteredData = [];
 
+    function toHalfWidthDigits(str) {
+      return String(str == null ? "" : str).replace(/[０-９]/g, ch =>
+        String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)
+      );
+    }
+
+    function escapeHtml(str) {
+      return String(str == null ? "" : str).replace(/[&<>"']/g, ch => ({
+        "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;"
+      }[ch]));
+    }
+
+    function isJunkClientName(name) {
+      const t = String(name || "").trim();
+      if (!t) return true;
+      return /小計|合計|總計|總和|未命名|undefined|null/.test(t);
+    }
+
+    function parseExcelMonth(value) {
+      if (value instanceof Date && !isNaN(value.getTime())) {
+        return value.getMonth() + 1;
+      }
+      const text = toHalfWidthDigits(value).trim();
+      if (!text) return null;
+
+      const cnMap = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10, 十一: 11, 十二: 12 };
+      const cn = text.match(/(十一|十二|十|[一二三四五六七八九])\s*月份?/);
+      if (cn && cnMap[cn[1]]) return cnMap[cn[1]];
+
+      const labeled = text.match(/(\d{1,2})\s*月份?/);
+      if (labeled) {
+        const n = parseInt(labeled[1], 10);
+        if (n >= 1 && n <= 12) return n;
+      }
+
+      const ymd = text.match(/(?:\d{3,4})[\/.\-年](\d{1,2})[\/.\-月]/);
+      if (ymd) {
+        const n = parseInt(ymd[1], 10);
+        if (n >= 1 && n <= 12) return n;
+      }
+
+      const iso = text.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (iso) {
+        const n = parseInt(iso[2], 10);
+        if (n >= 1 && n <= 12) return n;
+      }
+
+      if (/^\d{1,2}$/.test(text)) {
+        const n = parseInt(text, 10);
+        if (n >= 1 && n <= 12) return n;
+      }
+      const serial = Number(String(text).replace(/,/g, ""));
+      if (Number.isFinite(serial) && serial > 20000 && serial < 60000) {
+        const epoch = Date.UTC(1899, 11, 30);
+        const dt = new Date(epoch + Math.round(serial) * 86400000);
+        if (!isNaN(dt.getTime())) return dt.getUTCMonth() + 1;
+      }
+      return null;
+    }
+
+    function findHeaderRow(rawRows) {
+      const limit = Math.min(rawRows.length, 40);
+      let best = { idx: -1, score: -1 };
+      for (let i = 0; i < limit; i++) {
+        const rowStr = (rawRows[i] || []).map(c => String(c).trim()).join(" ");
+        let score = 0;
+        if (rowStr.includes("客戶")) score += 3;
+        if (rowStr.includes("款項") || rowStr.includes("項目") || rowStr.includes("品項")) score += 3;
+        if (rowStr.includes("業務")) score += 2;
+        if (rowStr.includes("金額") || rowStr.includes("欠款")) score += 2;
+        if (rowStr.includes("出帳") || rowStr.includes("月份")) score += 1;
+        if (score > best.score) best = { idx: i, score };
+      }
+      return best.score >= 5 ? best.idx : -1;
+    }
+
+    function pickColumn(headers, testers) {
+      for (const test of testers) {
+        const idx = headers.findIndex(test);
+        if (idx !== -1) return idx;
+      }
+      return -1;
+    }
+
     function processLegalList() {
       const fileInput = document.getElementById('legal-list-file');
       if (!fileInput.files.length) {
@@ -910,107 +999,134 @@
       const startM = parseInt(document.getElementById('legal-start-month').value) || 1;
       const endM = parseInt(document.getElementById('legal-end-month').value) || 12;
       const minMonths = parseInt(document.getElementById('legal-min-months').value) || 3;
+      const showShort = !!(document.getElementById('legal-show-short') && document.getElementById('legal-show-short').checked);
+
+      const inRange = (m) => (startM <= endM) ? (m >= startM && m <= endM) : (m >= startM || m <= endM);
 
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
           const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, {type: 'array'});
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          const rawRows = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+          const workbook = XLSX.read(data, { type: 'array', cellDates: true });
 
-          // 1. 自動辨識標題列（搜尋包含「業務」與「客戶」與「款項」的列）
           let headerIdx = -1;
-          for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
-            const rowStr = rawRows[i].join(" ");
-            if (rowStr.includes("業務") && rowStr.includes("客戶") && rowStr.includes("款項")) {
-              headerIdx = i;
+          let rawRows = [];
+          for (const sheetName of workbook.SheetNames) {
+            const worksheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "", raw: false, blankrows: false });
+            const idx = findHeaderRow(rows);
+            if (idx !== -1) {
+              headerIdx = idx;
+              rawRows = rows;
               break;
             }
           }
 
           if (headerIdx === -1) {
-            alert('找不到包含「業務」、「客戶」、「款項」的標題列，請確認 Excel 檔案是否正確！');
+            alert('找不到包含「客戶 / 款項 / 業務」的標題列，請確認 Excel 檔案是否正確！');
             return;
           }
 
           const headers = rawRows[headerIdx].map(c => String(c).trim());
-          const colSales = headers.findIndex(h => h.includes("業務") && !h.includes("催款"));
-          const colClient = headers.findIndex(h => h.includes("客戶") && !h.includes("總計"));
-          const colItem = headers.findIndex(h => h.includes("款項"));
-          const colAmt = headers.findIndex(h => h === "金額");
-          const colDate = headers.findIndex(h => h.includes("出帳時間"));
+          const colSales = pickColumn(headers, [
+            h => h.includes("業務") && !h.includes("催款"),
+            h => h.includes("業務")
+          ]);
+          const colClient = pickColumn(headers, [
+            h => h.includes("客戶名稱"),
+            h => h.includes("客戶") && !h.includes("總計"),
+            h => h.includes("公司名稱") || h.includes("商店")
+          ]);
+          const colItem = pickColumn(headers, [
+            h => h.includes("款項"),
+            h => h.includes("項目") && !h.includes("類別"),
+            h => h.includes("品項") || h.includes("服務項目")
+          ]);
+          const colAmt = pickColumn(headers, [
+            h => h === "金額",
+            h => h.includes("未繳") && h.includes("金額"),
+            h => h.includes("欠款") && h.includes("金額"),
+            h => h.includes("金額")
+          ]);
+          const colDate = pickColumn(headers, [
+            h => h.includes("出帳時間") || h.includes("出帳日期"),
+            h => h.includes("出帳"),
+            h => h === "月份" || h.endsWith("月份")
+          ]);
+          const colMonth = pickColumn(headers, [h => h === "月份" || h === "月"]);
 
-          const clientMap = {};
-
-          for (let r = headerIdx + 1; r < rawRows.length; r++) {
-            const row = rawRows[r];
-            if (colClient === -1 || colClient >= row.length) continue;
-            
-            const client = String(row[colClient] || "").trim();
-            // 排除業務小計或空白客戶列
-            if (!client || client === "undefined" || client === "null") continue;
-
-            const sales = colSales !== -1 ? String(row[colSales] || "").trim() : "";
-            const item = colItem !== -1 ? String(row[colItem] || "").trim() : "";
-            const amtStr = colAmt !== -1 ? String(row[colAmt] || "").replace(/,/g, "").trim() : "0";
-            const amt = parseFloat(amtStr) || 0;
-
-            // 2. 從【款項】提取月份（例如：關鍵字服務費（5月份） -> 5）
-            let m = null;
-            const mMatch = item.match(/(\d+)\s*月份?/);
-            if (mMatch) {
-              m = parseInt(mMatch[1], 10);
-            } else if (colDate !== -1 && row[colDate]) {
-              const dMatch = String(row[colDate]).match(/-(\d{1,2})-/);
-              if (dMatch) m = parseInt(dMatch[1], 10);
-            }
-
-            // 3. 先收集「所有月份」的款項（含區間外），稍後再依區間篩選
-            if (m !== null) {
-              const key = `${sales}__${client}`;
-              if (!clientMap[key]) {
-                clientMap[key] = {
-                  sales: sales,
-                  client: client,
-                  months: {},
-                  inRangeAmt: 0
-                };
-              }
-              if (!clientMap[key].months[m]) {
-                clientMap[key].months[m] = [];
-              }
-              clientMap[key].months[m].push(amt);
-              if (m >= startM && m <= endM) {
-                clientMap[key].inRangeAmt += amt;
-              }
-            }
+          if (colClient === -1) {
+            alert('找不到「客戶」欄，請確認報表標題列。');
+            return;
           }
 
-          // 4. 以「區間內」欠款期數達標者為主；同時列出區間外月份
+          const clientMap = {};
+          let lastSales = "";
+          let lastClient = "";
+          let parsedRows = 0;
+          let skippedNoMonth = 0;
+
+          for (let r = headerIdx + 1; r < rawRows.length; r++) {
+            const row = rawRows[r] || [];
+            let client = String(row[colClient] || "").trim();
+            let sales = colSales !== -1 ? String(row[colSales] || "").trim() : "";
+            if (client) lastClient = client; else client = lastClient;
+            if (sales) lastSales = sales; else sales = lastSales;
+            if (isJunkClientName(client)) continue;
+
+            const item = colItem !== -1 ? String(row[colItem] || "").trim() : "";
+            const amtRaw = colAmt !== -1 ? toHalfWidthDigits(row[colAmt] || "").replace(/[,，$NT元整]/g, "").trim() : "0";
+            const amt = parseFloat(amtRaw) || 0;
+
+            let m = parseExcelMonth(item);
+            if (m == null && colMonth !== -1) m = parseExcelMonth(row[colMonth]);
+            if (m == null && colDate !== -1) m = parseExcelMonth(row[colDate]);
+            if (m == null) { skippedNoMonth += 1; continue; }
+            parsedRows += 1;
+
+            const key = sales + "__" + client;
+            if (!clientMap[key]) {
+              clientMap[key] = { sales: sales, client: client, months: {}, inRangeAmt: 0 };
+            }
+            if (!clientMap[key].months[m]) clientMap[key].months[m] = [];
+            clientMap[key].months[m].push(amt);
+            if (inRange(m)) clientMap[key].inRangeAmt += amt;
+          }
+
           const results = [];
+          let shortCount = 0;
           for (const key in clientMap) {
             const data = clientMap[key];
             const allMonths = Object.keys(data.months).map(Number).sort((a, b) => a - b);
-            const inRangeMonths = allMonths.filter(m => m >= startM && m <= endM);
-            const extraMonths = allMonths.filter(m => m < startM || m > endM);
-
-            if (inRangeMonths.length >= minMonths) {
-              results.push({
-                sales: data.sales,
-                client: data.client,
-                count: inRangeMonths.length,
-                monthList: inRangeMonths.map(m => m + "月份").join("、"),
-                extraList: extraMonths.map(m => m + "月份").join("、"),
-                startM: inRangeMonths[0],
-                endM: inRangeMonths[inRangeMonths.length - 1],
-                total: Math.round(data.inRangeAmt)
-              });
-            }
+            const inRangeMonths = allMonths.filter(inRange);
+            const extraMonths = allMonths.filter(m => !inRange(m));
+            const qualified = inRangeMonths.length >= minMonths;
+            if (!qualified) shortCount += 1;
+            if (!qualified && !showShort) continue;
+            if (!inRangeMonths.length && !extraMonths.length) continue;
+            results.push({
+              sales: data.sales,
+              client: data.client,
+              count: inRangeMonths.length,
+              monthList: inRangeMonths.map(m => m + "月份").join("、") || "—",
+              extraList: extraMonths.map(m => m + "月份").join("、"),
+              startM: inRangeMonths[0] || extraMonths[0] || startM,
+              endM: inRangeMonths[inRangeMonths.length - 1] || extraMonths[extraMonths.length - 1] || endM,
+              total: Math.round(data.inRangeAmt),
+              qualified: qualified
+            });
           }
 
+          results.sort((a, b) => {
+            if (a.qualified !== b.qualified) return a.qualified ? -1 : 1;
+            return b.count - a.count || a.client.localeCompare(b.client, "zh-Hant");
+          });
+
           currentFilteredData = results;
+          const stats = document.getElementById("legal-parse-stats");
+          if (stats) {
+            stats.textContent = "解析 " + parsedRows + " 筆款項、" + Object.keys(clientMap).length + " 家客戶；符合 " + results.filter(x => x.qualified).length + " 家，月數不足 " + shortCount + " 家" + (skippedNoMonth ? "，無法判讀月份 " + skippedNoMonth + " 列" : "");
+          }
           renderLegalList(results);
         } catch(err) {
           alert('解析 Excel 檔案發生錯誤，請確認檔案格式是否正確。');
@@ -1031,18 +1147,20 @@
       data.forEach(item => {
         const hasExtra = item.extraList && item.extraList.length > 0;
         const extraCell = hasExtra
-          ? `<span style="color:#b91c1c; font-weight:600;">${item.extraList}</span>`
+          ? `<span style="color:#b91c1c; font-weight:600;">${escapeHtml(item.extraList)}</span>`
           : `<span style="color:#94a3b8;">—</span>`;
-        const rowStyle = hasExtra ? 'background:#fff7ed;' : '';
+        const rowStyle = !item.qualified ? 'background:#f8fafc; opacity:0.92;' : (hasExtra ? 'background:#fff7ed;' : '');
+        const safeClient = escapeHtml(item.client);
+        const encoded = encodeURIComponent(item.client);
         html += `<tr style="${rowStyle}">
-          <td>${item.sales}</td>
-          <td style="font-weight: bold; color: #1e40af; text-align: left;">${item.client}</td>
+          <td>${escapeHtml(item.sales)}</td>
+          <td style="font-weight: bold; color: #1e40af; text-align: left;">${safeClient}${item.qualified ? "" : ' <span style="color:#64748b; font-weight:500; font-size:11px;">未達期數</span>'}</td>
           <td style="color: #b91c1c; font-weight: bold;">${item.count} 個月</td>
-          <td style="text-align: left; font-size: 13px;">${item.monthList}</td>
+          <td style="text-align: left; font-size: 13px;">${escapeHtml(item.monthList)}</td>
           <td style="text-align: left; font-size: 13px;">${extraCell}</td>
-          <td style="font-weight: bold;">$${item.total.toLocaleString()}</td>
+          <td style="font-weight: bold;">$${Number(item.total).toLocaleString()}</td>
           <td>
-            <button class="card-btn" style="background:#2563eb; padding:5px 10px; font-size:12px; white-space:nowrap;" onclick="applyToNotice('${item.client.replace(/'/g, "\\'")}', ${item.startM}, ${item.endM}, ${item.total})">帶入存證信函</button>
+            <button class="card-btn" style="background:#2563eb; padding:5px 10px; font-size:12px; white-space:nowrap;" onclick="applyToNotice(decodeURIComponent('${encoded}'), ${item.startM}, ${item.endM}, ${item.total})">帶入存證信函</button>
           </td>
         </tr>`;
       });

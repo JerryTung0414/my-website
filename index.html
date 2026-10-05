@@ -541,7 +541,7 @@
           <div>
             <div class="card-icon">📂</div>
             <div class="card-title">存證名單整理</div>
-            <div class="card-desc">匯入催款 Excel 報表，自動從【款項】解析月份，精確篩選欠款滿 3 個月客戶並可一鍵帶入存證信函。</div>
+            <div class="card-desc">匯入催款 Excel 報表，自動從【款項】解析月份。欠款月數採整份資料合計，總金額與存證期間僅使用選定區間，並標示區間外月份。</div>
           </div>
           <button class="card-btn" onclick="switchView('legal-list')">進入製作</button>
         </div>
@@ -578,7 +578,12 @@
           <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#334155; margin:8px 0 4px; cursor:pointer;">
             <input type="checkbox" id="legal-show-short"> 一併列出未達期數的客戶
           </label>
-          <p style="font-size:11px; color:#64748b; line-height:1.5; margin-bottom:8px;">列高、字體不影響篩選。解約戶若整份表只剩一列、或欠款月份在選定區間之前（例如 4–5 月已解約但仍積欠滿 3 個月），也會列入。</p>
+          <p style="font-size:11px; color:#64748b; line-height:1.5; margin-bottom:8px;">
+            欠款月數：計算整份報表該客戶所有有金額月份總數（不分區間）。只要 ≥ 門檻就會列入。<br>
+            總金額：只加總選定區間內的金額。<br>
+            存證期間：固定使用您選定的起始～結束月。<br>
+            區間外月份會以紅色標示，整列淡橘底。解約戶（例如 4–5 月已解約但仍積欠滿 3 個月）也會出現。
+          </p>
 
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="processLegalList()">📊 開始篩選名單</button>
         </div>
@@ -595,10 +600,10 @@
                 <tr>
                   <th style="width: 10%;">業務</th>
                   <th style="width: 26%;">客戶名稱</th>
-                  <th style="width: 10%;">欠款月數</th>
+                  <th style="width: 10%;">欠款月數<br><small style="font-weight:500;opacity:.85;">（全部）</small></th>
                   <th style="width: 22%;">區間內月份</th>
                   <th style="width: 16%;">區間外月份</th>
-                  <th style="width: 8%;">總金額</th>
+                  <th style="width: 8%;">總金額<br><small style="font-weight:500;opacity:.85;">（區間內）</small></th>
                   <th style="width: 8%;">操作</th>
                 </tr>
               </thead>
@@ -893,7 +898,7 @@
         titleElem.textContent = '存證信函製作作業'; subElem.textContent = 'Word 公版格式：每頁 20 格 × 10 行，自動分頁';
         updateCertDoc();
       } else if (viewName === 'legal-list') {
-        titleElem.textContent = '存證名單整理'; subElem.textContent = '匯入催款報表，自動從【款項】抓取月份並篩選欠款滿 3 個月客戶';
+        titleElem.textContent = '存證名單整理'; subElem.textContent = '匯入催款報表：欠款月數採整份資料合計，總金額與存證期間僅使用選定區間';
       }
     }
 
@@ -1157,10 +1162,9 @@
 
             const key = sales + "__" + client;
             if (!clientMap[key]) {
-              clientMap[key] = { sales: sales, client: client, months: {}, totalAmt: 0, periodHint: 0 };
+              clientMap[key] = { sales: sales, client: client, months: {}, periodHint: 0 };
             }
             if (periodHint > clientMap[key].periodHint) clientMap[key].periodHint = periodHint;
-            clientMap[key].totalAmt += amt;
             if (months.length) {
               const share = amt / months.length;
               months.forEach(function (m) {
@@ -1177,11 +1181,20 @@
             const allMonths = Object.keys(data.months).map(Number).sort((a, b) => a - b);
             const inRangeMonths = allMonths.filter(inRange);
             const extraMonths = allMonths.filter(m => !inRange(m));
+            // 欠款月數：整份資料該客戶所有有金額的月份總數（不分區間）
             const totalCount = Math.max(allMonths.length, data.periodHint || 0);
             const qualified = totalCount >= minMonths;
             if (!qualified) shortCount += 1;
             if (!qualified && !showShort) continue;
             if (!allMonths.length && !data.periodHint) continue;
+
+            // 總金額：只加總「選定區間內」的金額（A）
+            let inRangeAmt = 0;
+            inRangeMonths.forEach(function (m) {
+              const shares = data.months[m] || [];
+              inRangeAmt += shares.reduce(function (s, v) { return s + v; }, 0);
+            });
+
             results.push({
               sales: data.sales,
               client: data.client,
@@ -1190,9 +1203,10 @@
               extraList: extraMonths.length
                 ? extraMonths.map(m => m + "月份").join("、")
                 : (!allMonths.length && data.periodHint ? ("表列期數" + data.periodHint + "個月") : ""),
-              startM: allMonths[0] || startM,
-              endM: allMonths[allMonths.length - 1] || endM,
-              total: Math.round(data.totalAmt),
+              // 存證期間固定使用選定區間（A）
+              startM: startM,
+              endM: endM,
+              total: Math.round(inRangeAmt),
               qualified: qualified,
               cancelled: extraMonths.length > 0 && inRangeMonths.length < minMonths
             });
@@ -1274,7 +1288,7 @@
       }
       
       const wsData = [
-        ["業務", "客戶名稱", "欠款月數", "區間內月份", "區間外月份", "欠款總金額"]
+        ["業務", "客戶名稱", "欠款月數（全部）", "區間內月份", "區間外月份", "總金額（區間內）"]
       ];
 
       currentFilteredData.forEach(item => {

@@ -286,7 +286,7 @@
     </div>
 
     <!-- 首頁總覽 -->
-    <div id="view-home" class="cards-grid" style="display: none;">
+    <div id="view-home" class="cards-grid">
       <div class="card">
         <div>
           <div class="card-icon">📊</div>
@@ -858,13 +858,17 @@
     function switchView(viewName) {
       try { localStorage.setItem(CURRENT_VIEW_KEY, viewName); } catch (e) {}
 
-      document.getElementById('view-home').style.display = viewName === 'home' ? 'grid' : 'none';
-      document.getElementById('view-tool-seo').style.display = viewName === 'tool-seo' ? 'block' : 'none';
-      document.getElementById('view-tool-seal').style.display = viewName === 'tool-seal' ? 'block' : 'none';
-      document.getElementById('view-tool-legal').style.display = viewName === 'tool-legal' ? 'block' : 'none';
-      document.getElementById('view-cert-editor').style.display = viewName === 'cert-editor' ? 'block' : 'none';
-      document.getElementById('view-pay-order-editor').style.display = viewName === 'pay-order-editor' ? 'block' : 'none';
-      document.getElementById('view-legal-list').style.display = viewName === 'legal-list' ? 'block' : 'none';
+      const show = (id, on, mode) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = on ? mode : 'none';
+      };
+      show('view-home', viewName === 'home', 'grid');
+      show('view-tool-seo', viewName === 'tool-seo', 'block');
+      show('view-tool-seal', viewName === 'tool-seal', 'block');
+      show('view-tool-legal', viewName === 'tool-legal', 'block');
+      show('view-cert-editor', viewName === 'cert-editor', 'block');
+      show('view-pay-order-editor', viewName === 'pay-order-editor', 'block');
+      show('view-legal-list', viewName === 'legal-list', 'block');
 
       const navItems = document.querySelectorAll('.nav-item');
       navItems.forEach(el => el.classList.remove('active'));
@@ -899,6 +903,7 @@
       if (!['home', 'tool-seo', 'tool-seal', 'tool-legal', 'cert-editor', 'pay-order-editor', 'legal-list'].includes(saved)) saved = 'home';
       switchView(saved);
     }
+    try { restoreView(); } catch (e) {}
 
     // ==========================================
     // 模組：存證名單整理 (專用 Excel 解析)
@@ -912,13 +917,12 @@
     }
 
     function escapeHtml(str) {
-      return String(str == null ? "" : str).replace(/[&<>"']/g, function (ch) {
-        if (ch === "&") return "&";
-        if (ch === "<") return "<";
-        if (ch === ">") return ">";
-        if (ch === '"') return """;
-        return "&#39;";
-      });
+      return String(str == null ? "" : str)
+        .replace(/&/g, "\u0026amp;")
+        .replace(/</g, "\u0026lt;")
+        .replace(/>/g, "\u0026gt;")
+        .replace(/"/g, "\u0026quot;")
+        .replace(/'/g, "\u0026#39;");
     }
 
     function isJunkClientName(name) {
@@ -1565,7 +1569,8 @@
     // 模組 1：用印單邏輯
     // ==========================================
     const today = new Date();
-    document.getElementById('input-seal-date').value = today.toISOString().split('T')[0];
+    const sealDateInput = document.getElementById('input-seal-date');
+    if (sealDateInput) sealDateInput.value = today.toISOString().split('T')[0];
 
     function onSyncChange() {
       const company = document.getElementById('input-company-name').value.trim();

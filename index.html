@@ -580,9 +580,10 @@
           </label>
           <p style="font-size:11px; color:#64748b; line-height:1.5; margin-bottom:8px;">
             欠款月數：整份報表該客戶所有有金額月份總數。≥ 門檻 → 列入。<br>
-            <strong>額外列入</strong>：① 起始月<strong>（含）之前</strong>有單獨月份或累積 ≥ 2 個月（含重複月份）；② 區間內有月份（含僅 7～8 月）也會列出。<br>
+            <strong>額外列入</strong>：選定起始月<strong>之前</strong>有單獨月份或累積 ≥ 2 個月（例如選 6～8 月，則 5 月前的欠款也會列出）。<br>
+            只有區間後段（如僅 7～8 月、無起始月前欠款）→ 不因「區間外」特別列入，仍依總月數門檻。<br>
             總金額：只加總選定區間內。存證期間：固定使用選定區間。<br>
-            「區間外月份」只顯示起始月<strong>之前</strong>的月份（紅色 + 淡橘底）；起始月本身算區間內。僅 7～8 月者正常列出、不標「起始月前欠款」。
+            「區間外月份」只顯示起始月之前的月份（紅色 + 淡橘底）。
           </p>
 
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="processLegalList()">📊 開始篩選名單</button>
@@ -1180,24 +1181,17 @@
             const data = clientMap[key];
             const allMonths = Object.keys(data.months).map(Number).sort((a, b) => a - b);
             const inRangeMonths = allMonths.filter(inRange);
-            // 顯示用「區間外」：只取起始月「之前」的月份（不含起始月本身）
+            // 區間外：只取「選定起始月之前」的月份（六月前），結束月之後不列入區間外
             const preMonths = allMonths.filter(m => m < startM);
-            // 額外列入判斷：起始月「含」之前（m ≤ startM）有單獨月份，或累積 ≥2（含重複月份）
-            const earlyMonths = allMonths.filter(m => m <= startM);
-            let earlyEntryCount = 0; // 含同一月份重複出現的筆數
-            earlyMonths.forEach(function (m) {
-              earlyEntryCount += (data.months[m] || []).length;
-            });
-            const earlyUnique = earlyMonths.length;
-            // 單獨月份（≥1 個不重複）或累積 ≥2 筆（含重複月份）→ 額外列入
-            const hasEarlySignificant = earlyUnique >= 1 || earlyEntryCount >= 2;
-
+            const postMonths = allMonths.filter(m => m > endM); // 僅供參考，不當作區間外顯示
             // 欠款月數：整份資料該客戶所有有金額的月份總數（不分區間）
             const totalCount = Math.max(allMonths.length, data.periodHint || 0);
-            const hasInRange = inRangeMonths.length > 0;
-            // 符合條件：總月數達標，或 起始月(含)之前有欠款，或 區間內有月份（含僅 7～8 月）
-            const qualified = (totalCount >= minMonths) || hasEarlySignificant || hasInRange;
-            if (!qualified) shortCount += 1;
+            // 六月之前：有單獨月份（≥1）或累積 ≥2 個月 → 也列入
+            const preCount = preMonths.length;
+            const hasPreSignificant = preCount >= 1; // 單獨 or 累積都算（≥1 已含 ≥2）
+            // 符合條件：總月數達標，或 起始月之前有欠款月份
+            const qualified = (totalCount >= minMonths) || hasPreSignificant;
+            if (totalCount < minMonths && !hasPreSignificant) shortCount += 1;
             if (!qualified && !showShort) continue;
             if (!allMonths.length && !data.periodHint) continue;
 
@@ -1213,7 +1207,7 @@
               client: data.client,
               count: totalCount,
               monthList: inRangeMonths.map(m => m + "月份").join("、") || "—",
-              // 區間外只顯示起始月之前的月份（起始月本身算區間內）
+              // 區間外只顯示起始月之前的月份
               extraList: preMonths.length
                 ? preMonths.map(m => m + "月份").join("、")
                 : (!allMonths.length && data.periodHint ? ("表列期數" + data.periodHint + "個月") : ""),
@@ -1221,9 +1215,9 @@
               endM: endM,
               total: Math.round(inRangeAmt),
               qualified: qualified,
-              // 有起始月之前的月份才標「起始月前欠款」
+              // 解約／區間外：有起始月之前的月份
               cancelled: preMonths.length > 0,
-              hasPre: hasEarlySignificant
+              hasPre: hasPreSignificant
             });
           }
 

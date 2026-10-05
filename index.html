@@ -1222,6 +1222,10 @@
           }
 
           results.sort((a, b) => {
+            // 同一業務放一起
+            const salesCmp = (a.sales || "").localeCompare(b.sales || "", "zh-Hant");
+            if (salesCmp !== 0) return salesCmp;
+            // 同業務內：符合條件優先 → 欠款月數多 → 客戶名稱
             if (a.qualified !== b.qualified) return a.qualified ? -1 : 1;
             return b.count - a.count || a.client.localeCompare(b.client, "zh-Hant");
           });

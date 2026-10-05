@@ -578,7 +578,7 @@
           <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#334155; margin:8px 0 4px; cursor:pointer;">
             <input type="checkbox" id="legal-show-short"> 一併列出未達期數的客戶
           </label>
-          <p style="font-size:11px; color:#64748b; line-height:1.5; margin-bottom:8px;">列高、字體、顏色不會影響篩選。若 Excel 把同一客戶的月份列合併儲存格，系統會自動往下帶入客戶名稱。</p>
+          <p style="font-size:11px; color:#64748b; line-height:1.5; margin-bottom:8px;">列高、字體不影響篩選。解約戶若整份表只剩一列、或欠款月份在選定區間之前（例如 4–5 月已解約但仍積欠滿 3 個月），也會列入。</p>
 
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="processLegalList()">📊 開始篩選名單</button>
         </div>
@@ -595,7 +595,7 @@
                 <tr>
                   <th style="width: 10%;">業務</th>
                   <th style="width: 26%;">客戶名稱</th>
-                  <th style="width: 10%;">區間月數</th>
+                  <th style="width: 10%;">欠款月數</th>
                   <th style="width: 22%;">區間內月份</th>
                   <th style="width: 16%;">區間外月份</th>
                   <th style="width: 8%;">總金額</th>
@@ -912,9 +912,13 @@
     }
 
     function escapeHtml(str) {
-      return String(str == null ? "" : str).replace(/[&<>"']/g, ch => ({
-        "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;"
-      }[ch]));
+      return String(str == null ? "" : str).replace(/[&<>"']/g, function (ch) {
+        if (ch === "&") return "&";
+        if (ch === "<") return "<";
+        if (ch === ">") return ">";
+        if (ch === '"') return """;
+        return "&#39;";
+      });
     }
 
     function isJunkClientName(name) {
@@ -963,6 +967,58 @@
         if (!isNaN(dt.getTime())) return dt.getUTCMonth() + 1;
       }
       return null;
+    }
+
+    function expandMonthSpan(a, b) {
+      const start = parseInt(a, 10);
+      const end = parseInt(b, 10);
+      if (!(start >= 1 && start <= 12 && end >= 1 && end <= 12)) return [];
+      if (start <= end) {
+        const out = [];
+        for (let m = start; m <= end; m++) out.push(m);
+        return out;
+      }
+      const out = [];
+      for (let m = start; m <= 12; m++) out.push(m);
+      for (let m = 1; m <= end; m++) out.push(m);
+      return out;
+    }
+
+    function extractMonthsFromText(value) {
+      const found = [];
+      const seen = {};
+      const add = (n) => {
+        const m = parseInt(n, 10);
+        if (m >= 1 && m <= 12 && !seen[m]) { seen[m] = true; found.push(m); }
+      };
+      if (value instanceof Date && !isNaN(value.getTime())) {
+        add(value.getMonth() + 1);
+        return found;
+      }
+      const text = toHalfWidthDigits(value).trim();
+      if (!text) return found;
+
+      const rangeRe = /(\d{1,2})\s*月份?\s*(?:至|到|~|～|-|－|—)\s*(\d{1,2})\s*月份?/g;
+      let rangeMatch;
+      while ((rangeMatch = rangeRe.exec(text))) {
+        expandMonthSpan(rangeMatch[1], rangeMatch[2]).forEach(add);
+      }
+
+      const labeledRe = /(\d{1,2})\s*月份?/g;
+      let labeled;
+      while ((labeled = labeledRe.exec(text))) add(labeled[1]);
+
+      const cnMap = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10, 十一: 11, 十二: 12 };
+      const cnRange = text.match(/(十一|十二|十|[一二三四五六七八九])\s*月份?\s*(?:至|到|~|～|-|－|—)\s*(十一|十二|十|[一二三四五六七八九])\s*月份?/);
+      if (cnRange && cnMap[cnRange[1]] && cnMap[cnRange[2]]) {
+        expandMonthSpan(cnMap[cnRange[1]], cnMap[cnRange[2]]).forEach(add);
+      }
+
+      if (!found.length) {
+        const one = parseExcelMonth(text);
+        if (one) add(one);
+      }
+      return found;
     }
 
     function findHeaderRow(rawRows) {
@@ -1054,6 +1110,10 @@
             h => h === "月份" || h.endsWith("月份")
           ]);
           const colMonth = pickColumn(headers, [h => h === "月份" || h === "月"]);
+          const colPeriods = pickColumn(headers, [
+            h => h.includes("欠款月"),
+            h => h.includes("期數") || h === "月數"
+          ]);
 
           if (colClient === -1) {
             alert('找不到「客戶」欄，請確認報表標題列。');
@@ -1078,19 +1138,32 @@
             const amtRaw = colAmt !== -1 ? toHalfWidthDigits(row[colAmt] || "").replace(/[,，$NT元整]/g, "").trim() : "0";
             const amt = parseFloat(amtRaw) || 0;
 
-            let m = parseExcelMonth(item);
-            if (m == null && colMonth !== -1) m = parseExcelMonth(row[colMonth]);
-            if (m == null && colDate !== -1) m = parseExcelMonth(row[colDate]);
-            if (m == null) { skippedNoMonth += 1; continue; }
+            let months = extractMonthsFromText(item);
+            if (!months.length && colMonth !== -1) months = extractMonthsFromText(row[colMonth]);
+            if (!months.length && colDate !== -1) months = extractMonthsFromText(row[colDate]);
+
+            let periodHint = 0;
+            if (colPeriods !== -1) {
+              const p = parseInt(toHalfWidthDigits(row[colPeriods] || ""), 10);
+              if (p >= 1 && p <= 12) periodHint = p;
+            }
+
+            if (!months.length && periodHint < minMonths) { skippedNoMonth += 1; continue; }
             parsedRows += 1;
 
             const key = sales + "__" + client;
             if (!clientMap[key]) {
-              clientMap[key] = { sales: sales, client: client, months: {}, inRangeAmt: 0 };
+              clientMap[key] = { sales: sales, client: client, months: {}, totalAmt: 0, periodHint: 0 };
             }
-            if (!clientMap[key].months[m]) clientMap[key].months[m] = [];
-            clientMap[key].months[m].push(amt);
-            if (inRange(m)) clientMap[key].inRangeAmt += amt;
+            if (periodHint > clientMap[key].periodHint) clientMap[key].periodHint = periodHint;
+            clientMap[key].totalAmt += amt;
+            if (months.length) {
+              const share = amt / months.length;
+              months.forEach(function (m) {
+                if (!clientMap[key].months[m]) clientMap[key].months[m] = [];
+                clientMap[key].months[m].push(share);
+              });
+            }
           }
 
           const results = [];
@@ -1100,20 +1173,24 @@
             const allMonths = Object.keys(data.months).map(Number).sort((a, b) => a - b);
             const inRangeMonths = allMonths.filter(inRange);
             const extraMonths = allMonths.filter(m => !inRange(m));
-            const qualified = inRangeMonths.length >= minMonths;
+            const totalCount = Math.max(allMonths.length, data.periodHint || 0);
+            const qualified = totalCount >= minMonths;
             if (!qualified) shortCount += 1;
             if (!qualified && !showShort) continue;
-            if (!inRangeMonths.length && !extraMonths.length) continue;
+            if (!allMonths.length && !data.periodHint) continue;
             results.push({
               sales: data.sales,
               client: data.client,
-              count: inRangeMonths.length,
+              count: totalCount,
               monthList: inRangeMonths.map(m => m + "月份").join("、") || "—",
-              extraList: extraMonths.map(m => m + "月份").join("、"),
-              startM: inRangeMonths[0] || extraMonths[0] || startM,
-              endM: inRangeMonths[inRangeMonths.length - 1] || extraMonths[extraMonths.length - 1] || endM,
-              total: Math.round(data.inRangeAmt),
-              qualified: qualified
+              extraList: extraMonths.length
+                ? extraMonths.map(m => m + "月份").join("、")
+                : (!allMonths.length && data.periodHint ? ("表列期數" + data.periodHint + "個月") : ""),
+              startM: allMonths[0] || startM,
+              endM: allMonths[allMonths.length - 1] || endM,
+              total: Math.round(data.totalAmt),
+              qualified: qualified,
+              cancelled: extraMonths.length > 0 && inRangeMonths.length < minMonths
             });
           }
 
@@ -1154,7 +1231,7 @@
         const encoded = encodeURIComponent(item.client);
         html += `<tr style="${rowStyle}">
           <td>${escapeHtml(item.sales)}</td>
-          <td style="font-weight: bold; color: #1e40af; text-align: left;">${safeClient}${item.qualified ? "" : ' <span style="color:#64748b; font-weight:500; font-size:11px;">未達期數</span>'}</td>
+          <td style="font-weight: bold; color: #1e40af; text-align: left;">${safeClient}${item.qualified ? (item.cancelled ? ' <span style="color:#b45309; font-weight:600; font-size:11px;">解約／區間外</span>' : "") : ' <span style="color:#64748b; font-weight:500; font-size:11px;">未達期數</span>'}</td>
           <td style="color: #b91c1c; font-weight: bold;">${item.count} 個月</td>
           <td style="text-align: left; font-size: 13px;">${escapeHtml(item.monthList)}</td>
           <td style="text-align: left; font-size: 13px;">${extraCell}</td>
@@ -1193,7 +1270,7 @@
       }
       
       const wsData = [
-        ["業務", "客戶名稱", "區間內欠款月數", "區間內月份", "區間外月份", "篩選區間欠款總金額"]
+        ["業務", "客戶名稱", "欠款月數", "區間內月份", "區間外月份", "欠款總金額"]
       ];
 
       currentFilteredData.forEach(item => {

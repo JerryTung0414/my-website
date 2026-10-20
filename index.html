@@ -920,7 +920,7 @@
     function escapeHtml(str) {
       return String(str == null ? "" : str)
         .replace(/&/g, "\u0026amp;")
-        .replace(/</g, "\u0026lt;")
+        .replace(/[\u003c]/g, "\u0026lt;")
         .replace(/>/g, "\u0026gt;")
         .replace(/"/g, "\u0026quot;")
         .replace(/'/g, "\u0026#39;");
@@ -1221,7 +1221,7 @@
     function renderLegalList(data) {
       const tbody = document.querySelector('#legal-result-table tbody');
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="color: #b91c1c; padding: 20px;">在指定的月份區間內，找不到符合欠款期數的客戶。</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="color: #b91c1c; padding: 20px;">在指定的月份區間內，找不到符合欠款期數的客戶。<\/td><\/tr>';
         return;
       }
 
@@ -1229,22 +1229,22 @@
       data.forEach(item => {
         const hasExtra = item.extraList && item.extraList.length > 0;
         const extraCell = hasExtra
-          ? `<span style="color:#b91c1c; font-weight:600;">${escapeHtml(item.extraList)}</span>`
-          : `<span style="color:#94a3b8;">—</span>`;
+          ? `<span style="color:#b91c1c; font-weight:600;">${escapeHtml(item.extraList)}<\/span>`
+          : `<span style="color:#94a3b8;">—<\/span>`;
         const rowStyle = !item.qualified ? 'background:#f8fafc; opacity:0.92;' : (hasExtra ? 'background:#fff7ed;' : '');
         const safeClient = escapeHtml(item.client);
         const encoded = encodeURIComponent(item.client);
         html += `<tr style="${rowStyle}">
-          <td>${escapeHtml(item.sales)}</td>
-          <td style="font-weight: bold; color: #1e40af; text-align: left;">${safeClient}${item.qualified ? (item.cancelled ? ' <span style="color:#b45309; font-weight:600; font-size:11px;">解約／區間外</span>' : "") : ' <span style="color:#64748b; font-weight:500; font-size:11px;">未達期數</span>'}</td>
-          <td style="color: #b91c1c; font-weight: bold;">${item.count} 個月</td>
-          <td style="text-align: left; font-size: 13px;">${escapeHtml(item.monthList)}</td>
-          <td style="text-align: left; font-size: 13px;">${extraCell}</td>
-          <td style="font-weight: bold;">$${Number(item.total).toLocaleString()}</td>
+          <td>${escapeHtml(item.sales)}<\/td>
+          <td style="font-weight: bold; color: #1e40af; text-align: left;">${safeClient}${item.qualified ? (item.cancelled ? ' <span style="color:#b45309; font-weight:600; font-size:11px;">解約／區間外<\/span>' : "") : ' <span style="color:#64748b; font-weight:500; font-size:11px;">未達期數<\/span>'}<\/td>
+          <td style="color: #b91c1c; font-weight: bold;">${item.count} 個月<\/td>
+          <td style="text-align: left; font-size: 13px;">${escapeHtml(item.monthList)}<\/td>
+          <td style="text-align: left; font-size: 13px;">${extraCell}<\/td>
+          <td style="font-weight: bold;">$${Number(item.total).toLocaleString()}<\/td>
           <td>
-            <button class="card-btn" style="background:#2563eb; padding:5px 10px; font-size:12px; white-space:nowrap;" onclick="applyToNotice(decodeURIComponent('${encoded}'), ${item.startM}, ${item.endM}, ${item.total})">帶入存證信函</button>
-          </td>
-        </tr>`;
+            <button class="card-btn" style="background:#2563eb; padding:5px 10px; font-size:12px; white-space:nowrap;" onclick="applyToNotice(decodeURIComponent('${encoded}'), ${item.startM}, ${item.endM}, ${item.total})">帶入存證信函<\/button>
+          <\/td>
+        <\/tr>`;
       });
       tbody.innerHTML = html;
     }
@@ -1426,25 +1426,25 @@
       
       const todayStr = `${new Date().getMonth()+1}月${new Date().getDate()}日`;
       
-      let html = '<thead><tr><th>客戶名稱</th>';
-      dateColumns.forEach(date => { html += `<th class="${date === todayStr ? 'today-col' : ''}">${date}</th>`; });
-      html += '</tr></thead><tbody>';
+      let html = '<thead><tr><th>客戶名稱<\/th>';
+      dateColumns.forEach(date => { html += `<th class="${date === todayStr ? 'today-col' : ''}">${date}<\/th>`; });
+      html += '<\/tr><\/thead><tbody>';
 
       const options = ['', '未達成', '1', '2', '3', '4', '5', '6', '7', '通知', '起算', '中未達標'];
       
       const clients = Object.keys(trackerData);
       clients.forEach(client => {
-        html += `<tr><td>${client}</td>`;
+        html += `<tr><td>${client}<\/td>`;
         dateColumns.forEach(date => {
           const val = trackerData[client][date] || '';
           const bgClass = getSelectColorClass(val);
           html += `<td class="${bgClass}"><select class="tracker-select ${bgClass}" onchange="updateTrackerCell('${client}', '${date}', this.value)">`;
-          options.forEach(opt => { html += `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}</option>`; });
-          html += `</select></td>`;
+          options.forEach(opt => { html += `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}<\/option>`; });
+          html += `<\/select><\/td>`;
         });
-        html += `</tr>`;
+        html += `<\/tr>`;
       });
-      html += '</tbody>';
+      html += '<\/tbody>';
       table.innerHTML = html;
     }
 
@@ -1605,10 +1605,10 @@
       const checkedClass = (num) => selectedType.includes(num) ? 'doc-check checked' : 'doc-check';
 
       document.getElementById('prev-seal-type').innerHTML = `
-        <span class="${checkedClass('1')}"></span>1. 公司印信&nbsp;&nbsp;
-        <span class="${checkedClass('2')}"></span>2. 發文章&nbsp;&nbsp;
-        <span class="${checkedClass('3')}"></span>3. 發票章&nbsp;&nbsp;
-        <span class="${checkedClass('4')}"></span>4. 合約專用章
+        <span class="${checkedClass('1')}"><\/span>1. 公司印信&nbsp;&nbsp;
+        <span class="${checkedClass('2')}"><\/span>2. 發文章&nbsp;&nbsp;
+        <span class="${checkedClass('3')}"><\/span>3. 發票章&nbsp;&nbsp;
+        <span class="${checkedClass('4')}"><\/span>4. 合約專用章
       `;
     }
 
@@ -1684,33 +1684,8 @@
         });
         const grid = page.querySelector('.cert-grid');
         const cell = (className, text) => { const element = document.createElement('div'); element.className = className; element.textContent = text; grid.append(element); return element; };
-        cell('cert-corner', '').innerHTML = '<span>格</span><span>行</span>';
+        cell('cert-corner', '').innerHTML = '<span>格<\/span><span>行<\/span>';
         for (let column = 1; column <= 20; column++) cell('cert-column', column);
-        for (let row = 0; row < 10; row++) {
-          cell('cert-row-number', rowNumbers[row]);
-          const text = rows[pageIndex * 10 + row] || [];
-          for (let column = 0; column < 20; column++) cell('cert-cell', text[column] || '');
-        }
-        output.append(page);
-      }
-      const oversized = [...output.querySelectorAll('.cert-party-data, .cert-party-note')].some(element => element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1);
-      output.dataset.overflow = String(oversized);
-      const status = document.getElementById('cert-layout-status');
-      status.dataset.error = String(oversized);
-      status.textContent = oversized ? '寄收件人資料超出公版固定欄位，請縮短名稱或地址後再列印。' : '共 ' + count + ' 頁；每頁 20 格 × 10 行，依 Word 公版排列。';
-    }
-    async function printCert() {
-      await document.fonts.ready; paginateCert();
-      if (document.getElementById('cert-pages').dataset.overflow === 'true') { alert('寄收件人資料超出公版固定欄位。請縮短名稱或地址後再列印。'); return; }
-      window.print();
-    }
-    window.addEventListener('beforeprint', paginateCert);
-    document.fonts.ready.then(paginateCert);
-    restoreView();
-  </script>
-</div>
-</body>
-</html>for (let column = 1; column <= 20; column++) cell('cert-column', column);
         for (let row = 0; row < 10; row++) {
           cell('cert-row-number', rowNumbers[row]);
           const text = rows[pageIndex * 10 + row] || [];

@@ -195,11 +195,12 @@
     }
     .pay-title {
       text-align: center;
+      font-family: "標楷體", "DFKai-SB", "BiauKai", "TW-Kai", "Kaiti TC", "STKaiti", "PayKai", serif;
       font-size: 14.04pt;
       font-weight: 400;
       letter-spacing: 0;
       line-height: 36pt;
-      margin: 0;
+      margin: 0 0 36pt 0;
       padding: 0;
     }
     .pay-pre {
@@ -541,7 +542,7 @@
           <div>
             <div class="card-icon">📂</div>
             <div class="card-title">存證名單整理</div>
-            <div class="card-desc">匯入催款 Excel 報表，自動從【款項】解析月份。欠款月數採整份資料合計，總金額與存證期間僅使用選定區間，並標示區間外月份。</div>
+            <div class="card-desc">匯入催款 Excel 報表，自動從【款項】解析月份，精確篩選欠款滿 3 個月客戶並可一鍵帶入存證信函。</div>
           </div>
           <button class="card-btn" onclick="switchView('legal-list')">進入製作</button>
         </div>
@@ -578,13 +579,7 @@
           <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:#334155; margin:8px 0 4px; cursor:pointer;">
             <input type="checkbox" id="legal-show-short"> 一併列出未達期數的客戶
           </label>
-          <p style="font-size:11px; color:#64748b; line-height:1.5; margin-bottom:8px;">
-            欠款月數：整份報表該客戶所有有金額月份總數。≥ 門檻 → 列入。<br>
-            <strong>額外列入</strong>：選定起始月<strong>之前</strong>有單獨月份或累積 ≥ 2 個月（例如選 6～8 月，則 5 月前的欠款也會列出）。<br>
-            只有區間後段（如僅 7～8 月、無起始月前欠款）→ 不因「區間外」特別列入，仍依總月數門檻。<br>
-            總金額：只加總選定區間內。存證期間：固定使用選定區間。<br>
-            「區間外月份」只顯示起始月之前的月份（紅色 + 淡橘底）。
-          </p>
+          <p style="font-size:11px; color:#64748b; line-height:1.5; margin-bottom:8px;">列高、字體不影響篩選。解約戶若整份表只剩一列、或欠款月份在選定區間之前（例如 4–5 月已解約但仍積欠滿 3 個月），也會列入。</p>
 
           <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="processLegalList()">📊 開始篩選名單</button>
         </div>
@@ -601,10 +596,10 @@
                 <tr>
                   <th style="width: 10%;">業務</th>
                   <th style="width: 26%;">客戶名稱</th>
-                  <th style="width: 10%;">欠款月數<br><small style="font-weight:500;opacity:.85;">（全部）</small></th>
+                  <th style="width: 10%;">欠款月數</th>
                   <th style="width: 22%;">區間內月份</th>
                   <th style="width: 16%;">區間外月份</th>
-                  <th style="width: 8%;">總金額<br><small style="font-weight:500;opacity:.85;">（區間內）</small></th>
+                  <th style="width: 8%;">總金額</th>
                   <th style="width: 8%;">操作</th>
                 </tr>
               </thead>
@@ -899,7 +894,7 @@
         titleElem.textContent = '存證信函製作作業'; subElem.textContent = 'Word 公版格式：每頁 20 格 × 10 行，自動分頁';
         updateCertDoc();
       } else if (viewName === 'legal-list') {
-        titleElem.textContent = '存證名單整理'; subElem.textContent = '匯入催款報表：欠款月數採整份資料合計，總金額與存證期間僅使用選定區間';
+        titleElem.textContent = '存證名單整理'; subElem.textContent = '匯入催款報表，自動從【款項】抓取月份並篩選欠款滿 3 個月客戶';
       }
     }
 
@@ -1163,9 +1158,10 @@
 
             const key = sales + "__" + client;
             if (!clientMap[key]) {
-              clientMap[key] = { sales: sales, client: client, months: {}, periodHint: 0 };
+              clientMap[key] = { sales: sales, client: client, months: {}, totalAmt: 0, periodHint: 0 };
             }
             if (periodHint > clientMap[key].periodHint) clientMap[key].periodHint = periodHint;
+            clientMap[key].totalAmt += amt;
             if (months.length) {
               const share = amt / months.length;
               months.forEach(function (m) {
@@ -1181,51 +1177,29 @@
             const data = clientMap[key];
             const allMonths = Object.keys(data.months).map(Number).sort((a, b) => a - b);
             const inRangeMonths = allMonths.filter(inRange);
-            // 區間外：只取「選定起始月之前」的月份（六月前），結束月之後不列入區間外
-            const preMonths = allMonths.filter(m => m < startM);
-            const postMonths = allMonths.filter(m => m > endM); // 僅供參考，不當作區間外顯示
-            // 欠款月數：整份資料該客戶所有有金額的月份總數（不分區間）
+            const extraMonths = allMonths.filter(m => !inRange(m));
             const totalCount = Math.max(allMonths.length, data.periodHint || 0);
-            // 六月之前：有單獨月份（≥1）或累積 ≥2 個月 → 也列入
-            const preCount = preMonths.length;
-            const hasPreSignificant = preCount >= 1; // 單獨 or 累積都算（≥1 已含 ≥2）
-            // 符合條件：總月數達標，或 起始月之前有欠款月份
-            const qualified = (totalCount >= minMonths) || hasPreSignificant;
-            if (totalCount < minMonths && !hasPreSignificant) shortCount += 1;
+            const qualified = totalCount >= minMonths;
+            if (!qualified) shortCount += 1;
             if (!qualified && !showShort) continue;
             if (!allMonths.length && !data.periodHint) continue;
-
-            // 總金額：只加總「選定區間內」的金額
-            let inRangeAmt = 0;
-            inRangeMonths.forEach(function (m) {
-              const shares = data.months[m] || [];
-              inRangeAmt += shares.reduce(function (s, v) { return s + v; }, 0);
-            });
-
             results.push({
               sales: data.sales,
               client: data.client,
               count: totalCount,
               monthList: inRangeMonths.map(m => m + "月份").join("、") || "—",
-              // 區間外只顯示起始月之前的月份
-              extraList: preMonths.length
-                ? preMonths.map(m => m + "月份").join("、")
+              extraList: extraMonths.length
+                ? extraMonths.map(m => m + "月份").join("、")
                 : (!allMonths.length && data.periodHint ? ("表列期數" + data.periodHint + "個月") : ""),
-              startM: startM,
-              endM: endM,
-              total: Math.round(inRangeAmt),
+              startM: allMonths[0] || startM,
+              endM: allMonths[allMonths.length - 1] || endM,
+              total: Math.round(data.totalAmt),
               qualified: qualified,
-              // 解約／區間外：有起始月之前的月份
-              cancelled: preMonths.length > 0,
-              hasPre: hasPreSignificant
+              cancelled: extraMonths.length > 0 && inRangeMonths.length < minMonths
             });
           }
 
           results.sort((a, b) => {
-            // 同一業務放一起
-            const salesCmp = (a.sales || "").localeCompare(b.sales || "", "zh-Hant");
-            if (salesCmp !== 0) return salesCmp;
-            // 同業務內：符合條件優先 → 欠款月數多 → 客戶名稱
             if (a.qualified !== b.qualified) return a.qualified ? -1 : 1;
             return b.count - a.count || a.client.localeCompare(b.client, "zh-Hant");
           });
@@ -1262,7 +1236,7 @@
         const encoded = encodeURIComponent(item.client);
         html += `<tr style="${rowStyle}">
           <td>${escapeHtml(item.sales)}</td>
-          <td style="font-weight: bold; color: #1e40af; text-align: left;">${safeClient}${item.qualified ? (item.cancelled || item.hasPre ? ' <span style="color:#b45309; font-weight:600; font-size:11px;">起始月前欠款</span>' : "") : ' <span style="color:#64748b; font-weight:500; font-size:11px;">未達期數</span>'}</td>
+          <td style="font-weight: bold; color: #1e40af; text-align: left;">${safeClient}${item.qualified ? (item.cancelled ? ' <span style="color:#b45309; font-weight:600; font-size:11px;">解約／區間外</span>' : "") : ' <span style="color:#64748b; font-weight:500; font-size:11px;">未達期數</span>'}</td>
           <td style="color: #b91c1c; font-weight: bold;">${item.count} 個月</td>
           <td style="text-align: left; font-size: 13px;">${escapeHtml(item.monthList)}</td>
           <td style="text-align: left; font-size: 13px;">${extraCell}</td>
@@ -1301,7 +1275,7 @@
       }
       
       const wsData = [
-        ["業務", "客戶名稱", "欠款月數（全部）", "區間內月份", "區間外月份", "總金額（區間內）"]
+        ["業務", "客戶名稱", "欠款月數", "區間內月份", "區間外月份", "欠款總金額"]
       ];
 
       currentFilteredData.forEach(item => {
@@ -1548,8 +1522,6 @@
         '統 一 編號：' + taxid,
         '             設 ' + regAddr,
         '             住 ' + resAddr,
-        '       ',
-        '',
         '  爲聲請發支付命令事：',
         '    一、 請求標的',
         '      (一) 債務人應給付債權人（即聲請人) 新台幣' + req + ' 元整，',
@@ -1714,6 +1686,31 @@
         const cell = (className, text) => { const element = document.createElement('div'); element.className = className; element.textContent = text; grid.append(element); return element; };
         cell('cert-corner', '').innerHTML = '<span>格</span><span>行</span>';
         for (let column = 1; column <= 20; column++) cell('cert-column', column);
+        for (let row = 0; row < 10; row++) {
+          cell('cert-row-number', rowNumbers[row]);
+          const text = rows[pageIndex * 10 + row] || [];
+          for (let column = 0; column < 20; column++) cell('cert-cell', text[column] || '');
+        }
+        output.append(page);
+      }
+      const oversized = [...output.querySelectorAll('.cert-party-data, .cert-party-note')].some(element => element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1);
+      output.dataset.overflow = String(oversized);
+      const status = document.getElementById('cert-layout-status');
+      status.dataset.error = String(oversized);
+      status.textContent = oversized ? '寄收件人資料超出公版固定欄位，請縮短名稱或地址後再列印。' : '共 ' + count + ' 頁；每頁 20 格 × 10 行，依 Word 公版排列。';
+    }
+    async function printCert() {
+      await document.fonts.ready; paginateCert();
+      if (document.getElementById('cert-pages').dataset.overflow === 'true') { alert('寄收件人資料超出公版固定欄位。請縮短名稱或地址後再列印。'); return; }
+      window.print();
+    }
+    window.addEventListener('beforeprint', paginateCert);
+    document.fonts.ready.then(paginateCert);
+    restoreView();
+  </script>
+</div>
+</body>
+</html>for (let column = 1; column <= 20; column++) cell('cert-column', column);
         for (let row = 0; row < 10; row++) {
           cell('cert-row-number', rowNumbers[row]);
           const text = rows[pageIndex * 10 + row] || [];

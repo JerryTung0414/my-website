@@ -132,6 +132,25 @@
     .cert-party-line > span:first-child { white-space: nowrap; }
     .cert-name-seal { display: inline-block; border: .2mm solid black; margin-left: 2mm; padding: 0 .5mm; }
     .cert-comm { font-size: 7.5pt; }
+
+    /* 存證金額試算 */
+    .amount-calc { background: #fff; border-radius: 16px; padding: 16px 18px 14px; margin: 0 0 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); min-width: 0; }
+    .amount-calc-title { font-size: 16px; font-weight: 700; color: #1e293b; }
+    .amount-calc-sub, .amount-calc-note, .amount-calc-map { font-size: 12px; color: #64748b; line-height: 1.55; margin-top: 4px; }
+    .amount-calc-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 8px 10px; margin: 12px 0 10px; }
+    .amount-calc-fields label, .calc-table label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; color: #475569; }
+    .amount-calc-fields input, .calc-table input { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 7px 8px; font-size: 13px; font-weight: 500; color: #334155; background: #fff; }
+    .amount-calc-actions { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-bottom: 6px; }
+    .amount-calc-actions .chk { font-size: 13px; color: #334155; display: flex; gap: 6px; align-items: center; font-weight: 600; }
+    .calc-mini { background: #eef4ff; color: #1d4ed8; border: none; border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .calc-mini:hover { background: #dbeafe; }
+    .calc-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 820px; }
+    .calc-table th, .calc-table td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: center; background: #fff; }
+    .calc-table th { background: #f8fafc; color: #334155; font-weight: 600; white-space: nowrap; }
+    .calc-table input { padding: 4px 6px; }
+    .calc-table .num { background: #eff6ff; font-weight: 700; color: #1e3a8a; white-space: nowrap; }
+    .calc-total-row td { background: #ecfdf5; font-weight: 800; color: #065f46; }
+    .calc-table .muted { color: #94a3b8; }
     .cert-grid { display: grid; grid-template-columns: 9mm repeat(20, minmax(0, 1fr)); grid-template-rows: repeat(11, 12mm); border-left: .2mm solid black; }
     .cert-grid > div { border-right: .2mm solid black; border-bottom: .2mm solid black; display: flex; align-items: center; justify-content: center; min-width: 0; }
     .cert-grid .cert-cell { font-size: 18pt; font-weight: normal; line-height: 1; white-space: pre; }
@@ -615,7 +634,7 @@
     <!-- ==================== 模組：支付命令 ==================== -->
     <div id="view-pay-order-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
-      
+      <div id="calc-slot-pay"></div>
       <div class="split-container">
         <div class="editor-pane no-print">
           <div class="section-title">支付命令 內容填寫</div>
@@ -721,6 +740,7 @@
     <!-- ==================== 模組：存證信函 ==================== -->
     <div id="view-cert-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
+      <div id="calc-slot-cert"></div>
       <div class="split-container">
         <div class="editor-pane no-print">
           <div class="section-title">存證信函內容填寫</div>
@@ -896,6 +916,7 @@
       } else if (viewName === 'legal-list') {
         titleElem.textContent = '存證名單整理'; subElem.textContent = '匯入催款報表，自動從【款項】抓取月份並篩選欠款滿 3 個月客戶';
       }
+      mountAmountCalc(viewName);
     }
 
     function restoreView() {
@@ -1706,6 +1727,339 @@
     }
     window.addEventListener('beforeprint', paginateCert);
     document.fonts.ready.then(paginateCert);
+
+    /* ================= 存證金額試算（與 Excel 相同公式） ================= */
+    let calcChargeDirty = false;
+    let calcDimLock = false;
+    let calcBusy = false;
+
+    function calcParseDate(value) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+      if (!m) return null;
+      return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    }
+    function calcFmt(date) {
+      if (!date) return '';
+      const z = n => String(n).padStart(2, '0');
+      return date.getFullYear() + '-' + z(date.getMonth() + 1) + '-' + z(date.getDate());
+    }
+    function calcNum(value) {
+      const n = Number(String(value == null ? '' : value).replace(/,/g, '').trim());
+      return isFinite(n) ? n : 0;
+    }
+    function calcEdate(date, months) {
+      const day = date.getDate();
+      const next = new Date(date.getFullYear(), date.getMonth() + months, 1);
+      const last = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+      next.setDate(Math.min(day, last));
+      return next;
+    }
+    function calcMonthCount(start, end) {
+      if (!start || !end || end < start) return 0;
+      let months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      if (end.getDate() < start.getDate()) months -= 1;
+      return months + 1;
+    }
+    function calcDayCount(start, end) {
+      if (!start || !end || end < start) return 0;
+      const a = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+      const b = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+      return Math.round((b - a) / 86400000) + 1;
+    }
+    function calcDaysInMonth(date) {
+      return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    }
+    function calcShow(n) {
+      const rounded = Math.abs(n - Math.round(n)) < 1e-6 ? Math.round(n) : n;
+      return rounded.toLocaleString('en-US');
+    }
+    function calcBilledRow(index) {
+      const tail = index < 2
+        ? '<td><input type="date" class="calc-u-date calc-u-start" data-u="' + index + '"></td>'
+          + '<td><input type="date" class="calc-u-date calc-u-end" data-u="' + index + '"></td>'
+          + '<td class="num" id="calc-count-' + index + '">0</td>'
+          + '<td class="num" id="calc-amt-' + index + '">0</td>'
+          + '<td class="muted">' + (index === 0 ? '月' : '日') + '</td>'
+        : '<td></td><td></td><td></td><td></td><td></td>';
+      return '<tr><td><input type="date" class="calc-b-date"></td><td><input type="number" class="calc-b-amt" min="0" step="1"></td>' + tail + '</tr>';
+    }
+    function calcSuggest(lastBilled, chargeEnd) {
+      if (!chargeEnd) return { month: ['', ''], day: ['', ''], dim: '' };
+      const dim = String(calcDaysInMonth(chargeEnd));
+      if (!lastBilled) return { month: ['', ''], day: ['', ''], dim: dim };
+      const start = new Date(lastBilled.getFullYear(), lastBilled.getMonth() + 1, 1);
+      if (start > chargeEnd) return { month: ['', ''], day: ['', ''], dim: dim };
+      const endMonthStart = new Date(chargeEnd.getFullYear(), chargeEnd.getMonth(), 1);
+      const prevEnd = new Date(endMonthStart.getFullYear(), endMonthStart.getMonth(), 0);
+      const month = start <= prevEnd ? [calcFmt(start), calcFmt(prevEnd)] : ['', ''];
+      const dayStart = start > endMonthStart ? start : endMonthStart;
+      const day = dayStart <= chargeEnd ? [calcFmt(dayStart), calcFmt(chargeEnd)] : ['', ''];
+      return { month: month, day: day, dim: dim };
+    }
+    function calcLatestBilled() {
+      let latest = null;
+      document.querySelectorAll('#calc-body .calc-b-date').forEach(input => {
+        const date = calcParseDate(input.value);
+        if (date && (!latest || date > latest)) latest = date;
+      });
+      return latest;
+    }
+    function calcBilledDates() {
+      const dates = [];
+      document.querySelectorAll('#calc-body .calc-b-date').forEach(input => {
+        const date = calcParseDate(input.value);
+        if (date) dates.push(date);
+      });
+      dates.sort((a, b) => a - b);
+      return dates;
+    }
+    function calcRocPeriod(dates) {
+      if (!dates.length) return '';
+      const piece = date => toFull(date.getFullYear() - 1911) + '年' + toFull(date.getMonth() + 1) + '月份';
+      const first = piece(dates[0]);
+      const last = piece(dates[dates.length - 1]);
+      return first === last ? first : first + '至' + last;
+    }
+    function calcAddRow() {
+      const body = document.getElementById('calc-body');
+      if (!body || body.querySelectorAll('tr').length >= 12) return;
+      body.insertAdjacentHTML('beforeend', calcBilledRow(body.querySelectorAll('tr').length));
+    }
+    function calcCollect() {
+      const billed = [];
+      document.querySelectorAll('#calc-body tr').forEach(row => {
+        const date = row.querySelector('.calc-b-date');
+        const amt = row.querySelector('.calc-b-amt');
+        billed.push({ date: date ? date.value : '', amt: amt ? amt.value : '' });
+      });
+      const unbilled = [0, 1].map(i => ({
+        start: (document.querySelector('.calc-u-start[data-u="' + i + '"]') || {}).value || '',
+        end: (document.querySelector('.calc-u-end[data-u="' + i + '"]') || {}).value || ''
+      }));
+      return {
+        made: document.getElementById('calc-made').value,
+        company: document.getElementById('calc-company').value,
+        monthly: document.getElementById('calc-monthly').value,
+        cStart: document.getElementById('calc-c-start').value,
+        cEnd: document.getElementById('calc-c-end').value,
+        gift: document.getElementById('calc-gift').value,
+        chargeEnd: document.getElementById('calc-charge-end').value,
+        dim: document.getElementById('calc-dim').value,
+        auto: document.getElementById('calc-auto').checked,
+        link: document.getElementById('calc-link').checked,
+        dirty: calcChargeDirty,
+        dimLock: calcDimLock,
+        billed: billed,
+        unbilled: unbilled
+      };
+    }
+    function calcSave() {
+      try { localStorage.setItem('amountCalcV1', JSON.stringify(calcCollect())); } catch (e) {}
+    }
+    function calcLoad() {
+      let data = null;
+      try { data = JSON.parse(localStorage.getItem('amountCalcV1') || 'null'); } catch (e) {}
+      if (!data) {
+        document.getElementById('calc-made').value = calcFmt(new Date());
+        document.getElementById('calc-gift').value = '0';
+        document.getElementById('calc-auto').checked = true;
+        document.getElementById('calc-link').checked = true;
+        return;
+      }
+      calcChargeDirty = !!data.dirty;
+      calcDimLock = !!data.dimLock;
+      document.getElementById('calc-made').value = data.made || '';
+      document.getElementById('calc-company').value = data.company || '';
+      document.getElementById('calc-monthly').value = data.monthly || '';
+      document.getElementById('calc-c-start').value = data.cStart || '';
+      document.getElementById('calc-c-end').value = data.cEnd || '';
+      document.getElementById('calc-gift').value = data.gift || '0';
+      document.getElementById('calc-charge-end').value = data.chargeEnd || '';
+      document.getElementById('calc-dim').value = data.dim || '';
+      document.getElementById('calc-auto').checked = data.auto !== false;
+      document.getElementById('calc-link').checked = data.link !== false;
+      const rows = Array.isArray(data.billed) ? data.billed : [];
+      while (document.querySelectorAll('#calc-body tr').length < Math.max(5, rows.length)) calcAddRow();
+      document.querySelectorAll('#calc-body tr').forEach((row, i) => {
+        const item = rows[i] || {};
+        const date = row.querySelector('.calc-b-date');
+        const amt = row.querySelector('.calc-b-amt');
+        if (date) date.value = item.date || '';
+        if (amt) amt.value = item.amt || '';
+      });
+      if (data.auto === false && Array.isArray(data.unbilled)) {
+        data.unbilled.forEach((item, i) => {
+          const start = document.querySelector('.calc-u-start[data-u="' + i + '"]');
+          const end = document.querySelector('.calc-u-end[data-u="' + i + '"]');
+          if (start) start.value = item.start || '';
+          if (end) end.value = item.end || '';
+        });
+      }
+    }
+    function calcApply(result) {
+      if (!document.getElementById('calc-link').checked || !result.active) return;
+      const debt = document.getElementById('cert-debt-amount');
+      const full = document.getElementById('cert-full-amount');
+      const name = document.getElementById('cert-receiver-name');
+      const period = document.getElementById('cert-period');
+      if (debt) debt.value = String(result.billed);
+      if (full) full.value = String(result.unbilled);
+      if (name && result.company) name.value = result.company;
+      if (period && result.period) period.value = result.period;
+      const text = result.total.toLocaleString('en-US');
+      const target = document.getElementById('pay-target-amount');
+      const req = document.getElementById('pay-req-amount');
+      const resp = document.getElementById('pay-respondent');
+      if (target) target.value = text;
+      if (req) req.value = text;
+      if (resp && result.company) resp.value = result.company;
+      updateCertDoc();
+      updatePayOrder();
+    }
+    function recalcAmount() {
+      if (calcBusy || !document.getElementById('amount-calc')) return;
+      calcBusy = true;
+      const monthly = calcNum(document.getElementById('calc-monthly').value);
+      const chargeEnd = calcParseDate(document.getElementById('calc-charge-end').value);
+      if (document.getElementById('calc-auto').checked) {
+        const suggested = calcSuggest(calcLatestBilled(), chargeEnd);
+        const mStart = document.querySelector('.calc-u-start[data-u="0"]');
+        const mEnd = document.querySelector('.calc-u-end[data-u="0"]');
+        const dStart = document.querySelector('.calc-u-start[data-u="1"]');
+        const dEnd = document.querySelector('.calc-u-end[data-u="1"]');
+        if (mStart) mStart.value = suggested.month[0];
+        if (mEnd) mEnd.value = suggested.month[1];
+        if (dStart) dStart.value = suggested.day[0];
+        if (dEnd) dEnd.value = suggested.day[1];
+        if (!calcDimLock && suggested.dim) document.getElementById('calc-dim').value = suggested.dim;
+      }
+      const dim = calcNum(document.getElementById('calc-dim').value);
+      const ranges = [0, 1].map(i => ({
+        start: calcParseDate((document.querySelector('.calc-u-start[data-u="' + i + '"]') || {}).value),
+        end: calcParseDate((document.querySelector('.calc-u-end[data-u="' + i + '"]') || {}).value)
+      }));
+      const monthN = calcMonthCount(ranges[0].start, ranges[0].end);
+      const dayN = calcDayCount(ranges[1].start, ranges[1].end);
+      const monthAmt = monthly * monthN;
+      const dayAmt = dim > 0 && dayN > 0 ? Math.round((monthly / dim) * dayN) : 0;
+      document.getElementById('calc-count-0').textContent = String(monthN);
+      document.getElementById('calc-count-1').textContent = String(dayN);
+      document.getElementById('calc-amt-0').textContent = calcShow(monthAmt);
+      document.getElementById('calc-amt-1').textContent = calcShow(dayAmt);
+      let billed = 0;
+      let anyBilled = false;
+      document.querySelectorAll('#calc-body .calc-b-amt').forEach(input => {
+        if (String(input.value).trim() !== '') anyBilled = true;
+        billed += calcNum(input.value);
+      });
+      const unbilled = monthAmt + dayAmt;
+      const total = billed + unbilled;
+      document.getElementById('calc-billed-sub').textContent = calcShow(billed);
+      document.getElementById('calc-unbilled-sub').textContent = calcShow(unbilled);
+      document.getElementById('calc-total').textContent = calcShow(total);
+      const company = document.getElementById('calc-company').value.trim();
+      const dates = calcBilledDates();
+      const active = !!(company || monthly || anyBilled || dates.length);
+      const period = calcRocPeriod(dates);
+      const map = document.getElementById('calc-map');
+      if (map) {
+        map.textContent = active
+          ? '已帶入存證：已出帳未繳納 ' + calcShow(billed) + '、滿額費用（剩餘期間）' + calcShow(unbilled)
+            + '。支付命令標的與請求金額 ' + calcShow(total) + '。'
+          : '填好每月最高金額、合約迄日和已出帳後，未出帳區間、小計、總計會自動算出，並帶入存證信函與支付命令。';
+      }
+      calcBusy = false;
+      calcSave();
+      calcApply({
+        active: active,
+        company: company,
+        billed: Math.round(billed),
+        unbilled: Math.round(unbilled),
+        total: Math.round(total),
+        period: period
+      });
+    }
+    function onCalcInput(event) {
+      if (calcBusy) return;
+      const target = event.target;
+      if (!target || !target.id && !target.classList) return;
+      if (target.id === 'calc-charge-end') { calcChargeDirty = true; calcDimLock = false; }
+      if (target.id === 'calc-dim') calcDimLock = true;
+      if (target.classList && target.classList.contains('calc-u-date')) {
+        document.getElementById('calc-auto').checked = false;
+      }
+      if (target.id === 'calc-c-end' && !calcChargeDirty) {
+        document.getElementById('calc-charge-end').value = target.value;
+        calcDimLock = false;
+      }
+      recalcAmount();
+    }
+    function mountAmountCalc(viewName) {
+      const slot = viewName === 'pay-order-editor'
+        ? document.getElementById('calc-slot-pay')
+        : viewName === 'cert-editor'
+          ? document.getElementById('calc-slot-cert')
+          : null;
+      if (!slot) return;
+      let panel = document.getElementById('amount-calc');
+      if (!panel) {
+        panel = document.createElement('section');
+        panel.id = 'amount-calc';
+        panel.className = 'amount-calc no-print';
+        panel.innerHTML = ''
+          + '<div class="amount-calc-title">存證金額試算</div>'
+          + '<div class="amount-calc-sub">公式與 Excel 相同：整月＝每月最高金額 × 月數；未滿月＝四捨五入（每月最高金額 ÷ 當月天數 × 天數）。算完直接寫進這份存證信函和支付命令。</div>'
+          + '<div class="amount-calc-fields">'
+          + '<label>製作日期<input type="date" id="calc-made"></label>'
+          + '<label>公司名稱<input type="text" id="calc-company" placeholder="收件人／相對人"></label>'
+          + '<label>每月最高金額<input type="number" id="calc-monthly" min="0" step="1" placeholder="4200"></label>'
+          + '<label>合約起日<input type="date" id="calc-c-start"></label>'
+          + '<label>合約迄日<input type="date" id="calc-c-end"></label>'
+          + '<label>贈送月數<input type="number" id="calc-gift" min="0" step="1" value="0"></label>'
+          + '<label>計算迄日<input type="date" id="calc-charge-end" title="未出帳算到這一天"></label>'
+          + '<label>當月天數<input type="number" id="calc-dim" min="1" max="31" step="1" placeholder="31"></label>'
+          + '</div>'
+          + '<div class="amount-calc-actions">'
+          + '<label class="chk"><input type="checkbox" id="calc-auto" checked>自動帶未出帳區間</label>'
+          + '<label class="chk"><input type="checkbox" id="calc-link" checked>連動存證與支付命令</label>'
+          + '<button type="button" class="calc-mini" id="calc-gift-btn">迄日扣掉贈送月</button>'
+          + '<button type="button" class="calc-mini" id="calc-reset-end">迄日改回合約迄日</button>'
+          + '<button type="button" class="calc-mini" id="calc-add-row">加一列已出帳</button>'
+          + '</div>'
+          + '<p class="amount-calc-note">*注意贈送月數：預設算到合約迄日（已出帳的次月起到迄日，最後一個月改按天數）。贈送月不計費時，按「迄日扣掉贈送月」。</p>'
+          + '<div class="tracker-wrapper"><table class="calc-table"><thead><tr>'
+          + '<th>已出帳日期</th><th>金額</th><th>未出帳起</th><th>未出帳迄</th><th>月/天</th><th>試算金額</th><th>備註</th>'
+          + '</tr></thead><tbody id="calc-body"></tbody><tfoot>'
+          + '<tr><td>小計</td><td class="num" id="calc-billed-sub">0</td><td colspan="3">小計</td><td class="num" id="calc-unbilled-sub">0</td><td></td></tr>'
+          + '<tr class="calc-total-row"><td colspan="5">總計</td><td id="calc-total">0</td><td></td></tr>'
+          + '</tfoot></table></div>'
+          + '<p class="amount-calc-map" id="calc-map"></p>';
+        for (let i = 0; i < 5; i++) panel.querySelector('#calc-body').insertAdjacentHTML('beforeend', calcBilledRow(i));
+        panel.addEventListener('input', onCalcInput);
+        panel.addEventListener('change', onCalcInput);
+        panel.addEventListener('click', event => {
+          if (event.target.id === 'calc-add-row') { calcAddRow(); calcSave(); }
+          if (event.target.id === 'calc-gift-btn') {
+            const end = calcParseDate(document.getElementById('calc-c-end').value);
+            if (!end) { alert('請先填合約迄日'); return; }
+            calcChargeDirty = true;
+            calcDimLock = false;
+            document.getElementById('calc-charge-end').value = calcFmt(calcEdate(end, -calcNum(document.getElementById('calc-gift').value)));
+            recalcAmount();
+          }
+          if (event.target.id === 'calc-reset-end') {
+            calcChargeDirty = false;
+            calcDimLock = false;
+            document.getElementById('calc-charge-end').value = document.getElementById('calc-c-end').value;
+            recalcAmount();
+          }
+        });
+        slot.appendChild(panel);
+        calcLoad();
+        recalcAmount();
+      } else if (panel.parentElement !== slot) slot.appendChild(panel);
+    }
+
     restoreView();
   </script>
 </div>

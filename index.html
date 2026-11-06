@@ -1879,7 +1879,11 @@
       document.getElementById('calc-auto').checked = data.auto !== false;
       document.getElementById('calc-link').checked = data.link !== false;
       const rows = Array.isArray(data.billed) ? data.billed : [];
-      while (document.querySelectorAll('#calc-body tr').length < Math.max(5, rows.length)) calcAddRow();
+      let lastFilled = -1;
+      rows.forEach((item, i) => {
+        if ((item.date || '').trim() || String(item.amt || '').trim()) lastFilled = i;
+      });
+      while (document.querySelectorAll('#calc-body tr').length < Math.max(3, lastFilled + 1)) calcAddRow();
       document.querySelectorAll('#calc-body tr').forEach((row, i) => {
         const item = rows[i] || {};
         const date = row.querySelector('.calc-b-date');
@@ -1903,7 +1907,7 @@
       const name = document.getElementById('cert-receiver-name');
       const period = document.getElementById('cert-period');
       if (debt) debt.value = String(result.billed);
-      if (full) full.value = String(result.unbilled);
+      if (full) full.value = String(result.total);
       if (name && result.company) name.value = result.company;
       if (period && result.period) period.value = result.period;
       const text = result.total.toLocaleString('en-US');
@@ -1964,7 +1968,7 @@
       const map = document.getElementById('calc-map');
       if (map) {
         map.textContent = active
-          ? '已帶入存證：已出帳未繳納 ' + calcShow(billed) + '、滿額費用（剩餘期間）' + calcShow(unbilled)
+          ? '已帶入存證：已出帳未繳納 ' + calcShow(billed) + '、滿額費用（總額）' + calcShow(total)
             + '。支付命令標的與請求金額 ' + calcShow(total) + '。'
           : '填好每月最高金額、合約迄日和已出帳後，未出帳區間、小計、總計會自動算出，並帶入存證信函與支付命令。';
       }
@@ -2034,7 +2038,7 @@
           + '<tr class="calc-total-row"><td colspan="5">總計</td><td id="calc-total">0</td><td></td></tr>'
           + '</tfoot></table></div>'
           + '<p class="amount-calc-map" id="calc-map"></p>';
-        for (let i = 0; i < 5; i++) panel.querySelector('#calc-body').insertAdjacentHTML('beforeend', calcBilledRow(i));
+        for (let i = 0; i < 3; i++) panel.querySelector('#calc-body').insertAdjacentHTML('beforeend', calcBilledRow(i));
         panel.addEventListener('input', onCalcInput);
         panel.addEventListener('change', onCalcInput);
         panel.addEventListener('click', event => {

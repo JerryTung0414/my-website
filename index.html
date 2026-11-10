@@ -111,12 +111,12 @@
     #view-cert-editor .preview-pane { min-width: 0; }
     #cert-pages { flex: none; }
     .a4-paper { background: white; color: black; box-shadow: 0 4px 12px #0002; }
-    #cert-pages .a4-paper { width: 210mm; height: 297mm; padding: 0; margin: 0 auto 6mm; position: relative; flex: none; }
+    #cert-pages .a4-paper { width: 210mm; height: 297mm; padding: 0; margin: 0 auto 6mm; position: relative; flex: none; overflow: hidden; }
     #cert-pages .a4-paper, #cert-pages .a4-paper * { font-family: "DFKai-SB", "標楷體", "BiauKai", serif; box-sizing: border-box; }
-    .cert-form { position: absolute; left: 22mm; top: 27.5mm; width: 176mm; }
-    .cert-title { position: absolute; top: 19mm; left: 22mm; width: 176mm; font-size: 16pt; font-weight: bold; text-align: center; letter-spacing: 5mm; }
+    .cert-form { position: absolute; left: 22.95mm; top: 27.82mm; width: 176.3mm; }
+    .cert-title { position: absolute; top: 19.2mm; left: 22.95mm; width: 176.3mm; font-size: 16pt; font-weight: bold; text-align: center; letter-spacing: 5mm; }
     .cert-copy-label { position: absolute; top: 32mm; left: 8mm; width: 12mm; text-align: center; font-size: 12pt; line-height: 1.6; font-weight: bold; }
-    .cert-head { height: 50.5mm; display: grid; grid-template-columns: 57mm 1fr; border: .25mm solid black; }
+    .cert-head { height: 50.66mm; display: grid; grid-template-columns: 56.83mm 1fr; border: .26mm solid black; }
     .cert-post-number { border-right: .25mm solid black; padding: 7mm 4mm; font-size: 14pt; font-weight: bold; }
     .cert-post-office { text-align: right; letter-spacing: 3mm; margin-bottom: 12mm; }
     .cert-post-serial { display: flex; justify-content: space-between; }
@@ -151,16 +151,17 @@
     .calc-table .num { background: #eff6ff; font-weight: 700; color: #1e3a8a; white-space: nowrap; }
     .calc-total-row td { background: #ecfdf5; font-weight: 800; color: #065f46; }
     .calc-table .muted { color: #94a3b8; }
-    .cert-grid { display: grid; grid-template-columns: 9mm repeat(20, minmax(0, 1fr)); grid-template-rows: repeat(11, 12mm); border-left: .2mm solid black; }
-    .cert-grid > div { border-right: .2mm solid black; border-bottom: .2mm solid black; display: flex; align-items: center; justify-content: center; min-width: 0; }
+    .cert-grid { display: grid; width: 176.3mm; grid-template-columns: 8.996mm repeat(15, 8.361mm) repeat(5, 8.378mm); grid-template-rows: repeat(11, 12mm); }
+    .cert-grid > div { border-right: .26mm solid black; border-bottom: .26mm solid black; display: flex; align-items: center; justify-content: center; min-width: 0; }
+    .cert-grid > div:nth-child(21n + 1) { border-left: .26mm solid black; }
     .cert-grid .cert-cell { font-size: 18pt; font-weight: normal; line-height: 1; white-space: pre; }
     .cert-grid .cert-column, .cert-grid .cert-row-number { font-size: 8pt; font-weight: bold; }
     .cert-grid .cert-column { font-family: Arial, sans-serif; }
     .cert-grid .cert-corner { position: relative; font-size: 8pt; print-color-adjust: exact; background: linear-gradient(to top right, transparent calc(50% - .12mm), black 50%, transparent calc(50% + .12mm)); }
     .cert-corner span:first-child { position: absolute; top: 1mm; right: 1mm; }
     .cert-corner span:last-child { position: absolute; bottom: 1mm; left: 1mm; }
-    .cert-bottom { height: 67mm; border: .25mm solid black; border-top: 0; display: grid; grid-template-columns: 134mm 1fr; font-size: 10pt; font-weight: bold; }
-    .cert-fees-notes { display: grid; grid-template-rows: 32mm 1fr; min-width: 0; }
+    .cert-bottom { height: 66.63mm; border: .26mm solid black; border-top: 0; display: grid; grid-template-columns: 133.97mm 1fr; font-size: 10pt; font-weight: bold; }
+    .cert-fees-notes { display: grid; grid-template-rows: 32.15mm 1fr; min-width: 0; }
     .cert-fees { position: relative; padding: 1mm 0; border-bottom: .25mm solid black; font-size: 9pt; line-height: 4.6mm; }
     .cert-fee-line { display: grid; grid-template-columns: 35mm 29mm 33mm 1fr; height: 4.6mm; white-space: nowrap; }
     .cert-fee-line > span { white-space: pre; }
@@ -175,14 +176,14 @@
     .cert-notes-text p { padding-left: 7mm; text-indent: -7mm; }
     .cert-correction { display: flex; justify-content: space-between; align-items: center; gap: 1mm; }
     .cert-correction small { font-size: 6.5pt; width: 40mm; text-indent: 0; }
-    .cert-stamp-box { border-left: .25mm solid black; display: grid; grid-template-rows: 21.5mm 28.5mm 1fr; font-size: 12pt; }
+    .cert-stamp-box { border-left: .26mm solid black; display: grid; grid-template-rows: 21.4mm 28.2mm 1fr; font-size: 12pt; }
     .cert-stamp-top, .cert-stamp-bottom { display: grid; grid-template-columns: 1fr 1fr; }
     .cert-stamp-top > span, .cert-stamp-bottom > span { display: grid; place-items: center; }
     .cert-stamp-top > span:first-child, .cert-stamp-bottom > span:first-child { border-right: .2mm solid black; }
     .cert-stamp-middle { border-top: .2mm solid black; border-bottom: .2mm solid black; display: grid; place-items: center; line-height: 1.8; letter-spacing: 3mm; }
-    .cert-seam { position: absolute; top: 278mm; width: 19mm; height: 19mm; border: .25mm dotted black; border-radius: 50%; display: grid; place-items: center; font-size: 8pt; font-weight: bold; }
-    .cert-seam-left { left: 61mm; }
-    .cert-seam-right { left: 121mm; }
+    .cert-seam { position: absolute; top: 276.8mm; width: 22mm; height: 22mm; border: .26mm dotted black; border-radius: 50%; display: grid; place-items: center; font-size: 8pt; font-weight: bold; }
+    .cert-seam-left { left: 61.5mm; }
+    .cert-seam-right { left: 121.8mm; }
     .cert-page-caption { font-size: 13px; margin: 0 0 8px; text-align: center; }
     .cert-print-help, #cert-layout-status { font-size: 13px; line-height: 1.6; margin-bottom: 8px; }
     #cert-layout-status[data-error="true"] { color: #b91c1c; font-weight: bold; }

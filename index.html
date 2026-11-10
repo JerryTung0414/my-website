@@ -1,6 +1,7 @@
 <!DOCTYPE html><html lang="zh-TW"><head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <title>行政作業 · 客服快捷入口</title>
   <style id="legal-admin-css">
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
@@ -111,8 +112,12 @@
     #view-cert-editor .preview-pane { min-width: 0; }
     #cert-pages { flex: none; }
     .a4-paper { background: white; color: black; box-shadow: 0 4px 12px #0002; }
-    #cert-pages .a4-paper { width: 210mm; height: 297mm; padding: 0; margin: 0 auto 6mm; position: relative; flex: none; overflow: hidden; }
-    #cert-pages .a4-paper, #cert-pages .a4-paper * { font-family: "DFKai-SB", "標楷體", "BiauKai", serif; box-sizing: border-box; }
+    #cert-pages .a4-paper { width: 210mm; height: 297mm; padding: 0; margin: 0; position: relative; flex: none; overflow: hidden; }
+    @media screen {
+      #cert-pages .a4-paper { margin: 0 auto 6mm; }
+    }
+    #cert-pages .a4-paper, #cert-pages .a4-paper *,
+    #cert-print-root .a4-paper, #cert-print-root .a4-paper * { font-family: "DFKai-SB", "標楷體", "BiauKai", serif; box-sizing: border-box; }
     .cert-form { position: absolute; left: 22.95mm; top: 27.82mm; width: 176.3mm; }
     .cert-title { position: absolute; top: 19.2mm; left: 22.95mm; width: 176.3mm; font-size: 16pt; font-weight: bold; text-align: center; letter-spacing: 5mm; }
     .cert-copy-label { position: absolute; top: 32mm; left: 8mm; width: 12mm; text-align: center; font-size: 12pt; line-height: 1.6; font-weight: bold; }
@@ -245,24 +250,76 @@
       #view-cert-editor .split-container { flex-direction: column; }
       #view-cert-editor .editor-pane, #view-cert-editor .preview-pane { width: 100%; }
     }
+    @page { size: A4 portrait; margin: 0; }
     @page cert-letter { size: A4 portrait; margin: 0; }
 
     @media print {
-      body { background: #fff !important; }
-      .sidebar, .top-header, .editor-pane, .preview-toolbar, .back-btn, .no-print, .seo-tabs { display: none !important; }
-      .main { padding: 0 !important; }
-      .split-container { display: block !important; }
-      .preview-pane { padding: 0 !important; background: transparent !important; box-shadow: none !important; }
-      .a4-sheet, .a4-paper { box-shadow: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: auto !important; }
+      html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important; min-height: 0 !important; display: block !important; }
+      #legal-admin-root, .main, #view-cert-editor, .split-container, .preview-pane, #cert-pages {
+        display: block !important; overflow: visible !important; float: none !important; position: static !important;
+        width: auto !important; max-width: none !important; min-width: 0 !important;
+        height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important;
+        box-shadow: none !important; border-radius: 0 !important; background: transparent !important;
+      }
+      .sidebar, .top-header, .editor-pane, .preview-toolbar, .back-btn, .no-print, .seo-tabs,
+      #calc-slot-cert, #calc-slot-pay, .cert-page-caption,
+      #view-home, #view-tool-seo, #view-tool-seal, #view-tool-legal, #view-legal-list, #view-pay-order-editor { display: none !important; }
+      .a4-sheet { box-shadow: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: auto !important; }
       .pay-order-a4 { box-shadow: none !important; margin: 0 !important; }
       .workspace-pane { padding: 0 !important; box-shadow: none !important; }
-      body:has(#view-cert-editor:not([style*="display: none"])) { display: block; }
-      #view-cert-editor .preview-pane { display: block; overflow: visible; min-height: 0; border-radius: 0; }
-      #cert-pages .a4-paper { page: cert-letter; width: 210mm !important; height: 297mm !important; min-height: 297mm !important; padding: 0 !important; margin: 0 !important; break-after: page; break-inside: avoid; }
-      #cert-pages .a4-paper:last-child { break-after: auto; }
+      #cert-pages { width: auto !important; max-width: none !important; container-type: normal !important; }
+      #cert-pages .a4-paper {
+        page: auto !important;
+        zoom: 1 !important;
+        width: 210mm !important;
+        height: 296mm !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        box-shadow: none !important;
+        break-after: auto !important;
+        page-break-after: auto !important;
+        break-before: auto !important;
+        page-break-before: auto !important;
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+      }
+      #cert-pages .a4-paper:last-child,
+      #cert-pages .a4-paper ~ .a4-paper { break-before: auto !important; page-break-before: auto !important; break-after: auto !important; page-break-after: auto !important; }
+      body.printing-cert #legal-admin-root { display: none !important; }
+      #cert-print-root { display: none; }
+      body.printing-cert #cert-print-root {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+      }
+      body.printing-cert #cert-print-root .a4-paper {
+        page: auto !important;
+        zoom: 1 !important;
+        width: 210mm !important;
+        height: 296mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        position: relative !important;
+        background: #fff !important;
+        box-shadow: none !important;
+        break-before: auto !important;
+        page-break-before: auto !important;
+        break-after: auto !important;
+        page-break-after: auto !important;
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+      }
+      body.printing-cert #cert-print-root .a4-paper + .a4-paper {
+        break-before: page !important;
+        page-break-before: always !important;
+      }
       @page pay-order { size: A4 portrait; margin: 0; }
       .pay-order-a4 {
-        page: pay-order;
         width: 210mm !important;
         height: 297mm !important;
         padding: 33.2mm 31.75mm 20mm 31.75mm !important;
@@ -806,7 +863,7 @@
             <span style="font-weight: 700; font-size: 15px;">✉️ 存證信函 A4 分頁預覽</span>
             <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="printCert()">🖨️ 列印</button>
           </div>
-          <p class="no-print cert-print-help">列印請選 A4、縮放 100%，並關閉頁首及頁尾；也可在列印視窗另存 PDF。</p>
+          <p class="no-print cert-print-help">列印請選 A4、縮放 100%、邊界「無」，並關閉頁首頁尾。</p>
           <p id="cert-layout-status" class="no-print" role="status"></p>
           <div id="cert-pages" aria-label="存證信函分頁預覽"></div>
           <div id="cert-source" hidden>
@@ -1722,11 +1779,15 @@
       status.textContent = oversized ? '寄收件人資料超出公版固定欄位，請縮短名稱或地址後再列印。' : '共 ' + count + ' 頁；每頁 20 格 × 10 行，依 Word 公版排列。';
     }
     async function printCert() {
-      await document.fonts.ready; paginateCert();
-      if (document.getElementById('cert-pages').dataset.overflow === 'true') { alert('寄收件人資料超出公版固定欄位。請縮短名稱或地址後再列印。'); return; }
+      await document.fonts.ready;
+      paginateCert();
+      const source = document.getElementById('cert-pages');
+      if (source.dataset.overflow === 'true') {
+        alert('寄收件人資料超出公版固定欄位。請縮短名稱或地址後再列印。');
+        return;
+      }
       window.print();
     }
-    window.addEventListener('beforeprint', paginateCert);
     document.fonts.ready.then(paginateCert);
 
     /* ================= 存證金額試算（與 Excel 相同公式） ================= */

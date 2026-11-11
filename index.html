@@ -530,8 +530,8 @@
             <div class="tracker-toolbar no-print">
               <input type="search" id="tracker-search" placeholder="搜尋客戶名稱" oninput="renderTracker()">
               <label class="tracker-check">
-                <input type="checkbox" id="tracker-hide-notified" checked onchange="onTrackerHideChange()">
-                隱藏已通知
+                <input type="checkbox" id="tracker-hide-started" checked onchange="onTrackerHideChange()">
+                隱藏已起算（滿 2 天）
               </label>
               <span class="tracker-count" id="tracker-count"></span>
             </div>
@@ -1591,8 +1591,8 @@
         dateColumns.push(`${d.getMonth()+1}月${d.getDate()}日`);
         d.setDate(d.getDate() + 1);
       }
-      const hideBox = document.getElementById('tracker-hide-notified');
-      if (hideBox) hideBox.checked = localStorage.getItem('keywordTrackerHideNotified') !== '0';
+      const hideBox = document.getElementById('tracker-hide-started');
+      if (hideBox) hideBox.checked = localStorage.getItem('keywordTrackerHideStarted') !== '0';
       bindTrackerTable();
       renderTracker();
     }
@@ -1630,9 +1630,10 @@
       return Number(matched[1]) * 100 + Number(matched[2]);
     }
 
-    function latestTrackerStatus(client) {
+    function latestTrackerMark(client) {
       const rec = trackerData[client] || {};
       let best = '';
+      let bestDate = '';
       let bestRank = -Infinity;
       Object.keys(rec).forEach(date => {
         const val = rec[date];
@@ -1642,14 +1643,33 @@
         if (rank >= bestRank) {
           bestRank = rank;
           best = val;
+          bestDate = date;
         }
       });
-      return best;
+      return { value: best, date: bestDate };
+    }
+
+    function trackerDaysAgo(label) {
+      const matched = String(label).match(/(\d+)月(\d+)日/);
+      if (!matched) return 0;
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      let year = today.getFullYear();
+      const month = Number(matched[1]) - 1;
+      const day = Number(matched[2]);
+      if (month > today.getMonth() + 1) year -= 1;
+      const marked = new Date(year, month, day);
+      return Math.round((today.getTime() - marked.getTime()) / 86400000);
+    }
+
+    function shouldHideStarted(client) {
+      const mark = latestTrackerMark(client);
+      return mark.value === '起算' && trackerDaysAgo(mark.date) >= 2;
     }
 
     function onTrackerHideChange() {
-      const box = document.getElementById('tracker-hide-notified');
-      localStorage.setItem('keywordTrackerHideNotified', box && box.checked ? '1' : '0');
+      const box = document.getElementById('tracker-hide-started');
+      localStorage.setItem('keywordTrackerHideStarted', box && box.checked ? '1' : '0');
       renderTracker();
     }
 
@@ -1680,14 +1700,13 @@
 
       const todayStr = `${new Date().getMonth()+1}月${new Date().getDate()}日`;
       const query = (document.getElementById('tracker-search')?.value || '').trim().toLowerCase();
-      const hideNotified = document.getElementById('tracker-hide-notified') ? document.getElementById('tracker-hide-notified').checked : true;
+      const hideStarted = document.getElementById('tracker-hide-started') ? document.getElementById('tracker-hide-started').checked : true;
       const clients = Object.keys(trackerData);
-      let hiddenNotified = 0;
+      let hiddenStarted = 0;
       const visible = [];
       clients.forEach(client => {
-        const notified = latestTrackerStatus(client) === '通知';
-        if (notified && hideNotified) {
-          hiddenNotified += 1;
+        if (hideStarted && shouldHideStarted(client)) {
+          hiddenStarted += 1;
           return;
         }
         if (query && client.toLowerCase().indexOf(query) === -1) return;
@@ -1697,7 +1716,7 @@
       const count = document.getElementById('tracker-count');
       if (count) {
         count.textContent = '作業中 ' + visible.length + ' 家'
-          + (hiddenNotified ? ' · 已隱藏通知 ' + hiddenNotified + ' 家' : '')
+          + (hiddenStarted ? ' · 已隱藏起算 ' + hiddenStarted + ' 家' : '')
           + (clients.length ? ' · 全部 ' + clients.length + ' 家' : '');
       }
 
@@ -1706,7 +1725,7 @@
       html += '<\/tr><\/thead><tbody>';
 
       if (!visible.length) {
-        html += `<tr><td class="tracker-empty" colspan="${dateColumns.length + 1}">${clients.length ? '目前沒有要顯示的客戶。取消「隱藏已通知」或換個搜尋。' : '尚無客戶。先在左側貼上今日名單。'}<\/td><\/tr>`;
+        html += `<tr><td class="tracker-empty" colspan="${dateColumns.length + 1}">${clients.length ? '目前沒有要顯示的客戶。取消「隱藏已起算」或換個搜尋。' : '尚無客戶。先在左側貼上今日名單。'}<\/td><\/tr>`;
       }
 
       visible.forEach(client => {

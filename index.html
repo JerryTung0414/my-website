@@ -97,7 +97,7 @@
       .tracker-wrapper { max-height: 70vh; }
     }
     
-    .bg-empty { background: #fff; color: #64748b; }
+    .bg-empty { background: #fff; color: #fff; }
     .bg-fail { background: #92400e; color: #fff; }
     .bg-blue { background: #bae6fd; color: #0f172a; }
     .bg-yellow { background: #fef08a; color: #0f172a; }
@@ -144,6 +144,10 @@
       background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
       background-position: calc(100% - 11px) 14px, calc(100% - 7px) 14px;
       background-size: 4px 4px, 4px 4px; background-repeat: no-repeat;
+    }
+    #seo-tab-tracker .tracker-select.bg-empty {
+      color: transparent;
+      background-image: none;
     }
     #seo-tab-tracker .tracker-select:focus { outline: 2px solid #1c64f2; outline-offset: -2px; }
     #seo-tab-tracker .tracker-select option { background: #fff; color: #0f172a; font-weight: 600; }
@@ -588,7 +592,6 @@
           <span class="tracker-count" id="tracker-count"></span>
         </div>
         <div class="tracker-legend" aria-label="狀態顏色">
-          <span class="bg-empty" style="border:1px solid #e2e8f0;">空白</span>
           <span class="bg-blue">1–5</span>
           <span class="bg-yellow">6–7</span>
           <span class="bg-purple">起算</span>
@@ -1809,7 +1812,7 @@
     }
 
     const TRACKER_OPTIONS = [
-      ['', '空白'],
+      ['', '\u00a0'],
       ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'],
       ['起算', '起算'],
       ['通知', '通知'],

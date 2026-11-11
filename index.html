@@ -70,17 +70,34 @@
     .seo-tab-btn.active { background: #eef4ff; color: #1c64f2; }
     .seo-tab-btn:hover:not(.active) { background: #f8fafc; color: #334155; }
     
-    .tracker-wrapper { overflow-x: auto; border: 1px solid #cbd5e1; border-radius: 8px; margin-top: 10px; }
-    .tracker-table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
-    .tracker-table th, .tracker-table td { border: 1px solid #cbd5e1; text-align: center; white-space: nowrap; padding: 8px 12px; }
-    .tracker-table th { background: #f8fafc; font-weight: 600; color: #334155; }
+    .tracker-wrapper { overflow: auto; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; max-height: calc(100vh - 248px); min-height: 420px; }
+    .tracker-layout { display: flex; gap: 16px; align-items: flex-start; }
+    .tracker-side { width: 250px; flex-shrink: 0; }
+    .tracker-side textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.45; color: #334155; resize: vertical; min-height: 140px; }
+    .tracker-help { font-size: 12px; color: #64748b; line-height: 1.5; margin-bottom: 8px; }
+    .tracker-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+    .tracker-toolbar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+    .tracker-toolbar input[type="search"] { border: 1px solid #cbd5e1; border-radius: 8px; padding: 7px 10px; font-size: 13px; min-width: 180px; color: #334155; }
+    .tracker-check { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #334155; cursor: pointer; }
+    .tracker-count { font-size: 12px; color: #64748b; }
+    .tracker-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .tracker-legend span { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 3px 8px; }
+    .tracker-table { border-collapse: separate; border-spacing: 0; min-width: 100%; font-size: 12px; }
+    .tracker-table th, .tracker-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; text-align: center; white-space: nowrap; padding: 0; }
+    .tracker-table th { position: sticky; top: 0; z-index: 3; background: #f8fafc; font-weight: 700; color: #334155; padding: 8px 6px; }
     .tracker-table th.today-col { background: #dbeafe; color: #1e40af; }
-    .tracker-table td:first-child { position: sticky; left: 0; background: #fff; font-weight: bold; z-index: 1; text-align: left; border-right: 2px solid #cbd5e1; }
-    .tracker-table th:first-child { position: sticky; left: 0; z-index: 2; border-right: 2px solid #cbd5e1; }
-    .tracker-select { width: 100%; height: 100%; min-height: 32px; border: none; outline: none; padding: 0 8px; text-align: center; font-weight: 600; cursor: pointer; -webkit-appearance: none; appearance: none; }
-    .tracker-select option { background: #fff; color: #000; font-weight: normal; }
+    .tracker-table td:first-child { position: sticky; left: 0; background: #fff; font-weight: 700; z-index: 1; text-align: left; padding: 6px 10px; max-width: 168px; overflow: hidden; text-overflow: ellipsis; border-right: 2px solid #cbd5e1; color: #1e293b; }
+    .tracker-table th:first-child { position: sticky; left: 0; z-index: 4; border-right: 2px solid #cbd5e1; text-align: left; padding-left: 10px; }
+    .tracker-select { width: 100%; height: 32px; min-width: 78px; border: none; outline: none; padding: 0 4px; text-align: center; font-weight: 700; font-size: 12px; cursor: pointer; background: transparent; color: inherit; -webkit-appearance: none; appearance: none; }
+    .tracker-select option { background: #fff; color: #0f172a; font-weight: 600; }
+    .tracker-empty { padding: 28px 12px !important; color: #94a3b8; font-weight: 500; text-align: center !important; }
+    @media (max-width: 960px) {
+      .tracker-layout { flex-direction: column; }
+      .tracker-side { width: 100%; }
+      .tracker-wrapper { max-height: 70vh; }
+    }
     
-    .bg-empty { background: transparent; }
+    .bg-empty { background: #fff; color: #64748b; }
     .bg-fail { background: #92400e; color: #fff; }
     .bg-blue { background: #bae6fd; color: #0f172a; }
     .bg-yellow { background: #fef08a; color: #0f172a; }
@@ -494,17 +511,33 @@
       </div>
 
       <div id="seo-tab-tracker" class="workspace-pane" style="display: none;">
-        <div class="split-container">
-          <div class="editor-pane no-print" style="width: 280px;">
+        <div class="tracker-layout">
+          <div class="tracker-side no-print">
             <div class="section-title">載入今日名單</div>
-            <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">每日貼上 10~20 家客戶名單，系統將自動全域剔除 (G)(g)(Y)，過濾重複並自動推進天數。</p>
-            <textarea id="tracker-paste-input" rows="15" placeholder="貼上今日名單..."></textarea>
+            <p class="tracker-help">貼上今天達標的客戶。系統會去掉名稱裡的 (G)(g)(Y)，同一家不重複，並依前一天的數字往下一天推進。</p>
+            <textarea id="tracker-paste-input" rows="8" placeholder="貼上今日名單..."></textarea>
             <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="processTrackerList()">載入今日達標名單</button>
+            <div class="tracker-legend" aria-label="狀態顏色">
+              <span class="bg-blue">1–5</span>
+              <span class="bg-yellow">6–7</span>
+              <span class="bg-purple">起算</span>
+              <span class="bg-red">通知</span>
+              <span class="bg-fail">未達成</span>
+              <span class="bg-grey">途中未達成</span>
+            </div>
           </div>
-          
-          <div class="tracker-wrapper" style="flex: 1;">
-            <table class="tracker-table" id="tracker-table">
-            </table>
+          <div class="tracker-main">
+            <div class="tracker-toolbar no-print">
+              <input type="search" id="tracker-search" placeholder="搜尋客戶名稱" oninput="renderTracker()">
+              <label class="tracker-check">
+                <input type="checkbox" id="tracker-hide-notified" checked onchange="onTrackerHideChange()">
+                隱藏已通知
+              </label>
+              <span class="tracker-count" id="tracker-count"></span>
+            </div>
+            <div class="tracker-wrapper">
+              <table class="tracker-table" id="tracker-table"></table>
+            </div>
           </div>
         </div>
       </div>
@@ -1544,6 +1577,11 @@
         }
       }
       trackerData = cleanedData;
+      for (const client in trackerData) {
+        for (const date in trackerData[client]) {
+          if (trackerData[client][date] === '中未達標') trackerData[client][date] = '途中未達成';
+        }
+      }
       saveTrackerData();
       
       dateColumns = [];
@@ -1553,6 +1591,9 @@
         dateColumns.push(`${d.getMonth()+1}月${d.getDate()}日`);
         d.setDate(d.getDate() + 1);
       }
+      const hideBox = document.getElementById('tracker-hide-notified');
+      if (hideBox) hideBox.checked = localStorage.getItem('keywordTrackerHideNotified') !== '0';
+      bindTrackerTable();
       renderTracker();
     }
 
@@ -1571,33 +1612,116 @@
       if (['6','7'].includes(val)) return 'bg-yellow';
       if (val === '通知') return 'bg-red';
       if (val === '起算') return 'bg-purple';
-      if (val === '中未達標') return 'bg-grey';
+      if (val === '途中未達成' || val === '中未達標') return 'bg-grey';
       return 'bg-empty';
     }
+
+    function escTracker(value) {
+      return String(value)
+        .replace(/&/g, "\u0026amp;")
+        .replace(/</g, "\u0026lt;")
+        .replace(/>/g, "\u0026gt;")
+        .replace(/"/g, "\u0026quot;");
+    }
+
+    function trackerDateRank(label) {
+      const matched = String(label).match(/(\d+)月(\d+)日/);
+      if (!matched) return -1;
+      return Number(matched[1]) * 100 + Number(matched[2]);
+    }
+
+    function latestTrackerStatus(client) {
+      const rec = trackerData[client] || {};
+      let best = '';
+      let bestRank = -Infinity;
+      Object.keys(rec).forEach(date => {
+        const val = rec[date];
+        if (!val) return;
+        const idx = dateColumns.indexOf(date);
+        const rank = idx >= 0 ? 1000 + idx : trackerDateRank(date);
+        if (rank >= bestRank) {
+          bestRank = rank;
+          best = val;
+        }
+      });
+      return best;
+    }
+
+    function onTrackerHideChange() {
+      const box = document.getElementById('tracker-hide-notified');
+      localStorage.setItem('keywordTrackerHideNotified', box && box.checked ? '1' : '0');
+      renderTracker();
+    }
+
+    function bindTrackerTable() {
+      const table = document.getElementById('tracker-table');
+      if (!table || table.dataset.bound === '1') return;
+      table.dataset.bound = '1';
+      table.addEventListener('change', function (event) {
+        const sel = event.target;
+        if (!sel || !sel.classList || !sel.classList.contains('tracker-select')) return;
+        updateTrackerCell(sel.getAttribute('data-client'), sel.getAttribute('data-date'), sel.value);
+      });
+    }
+
+    const TRACKER_OPTIONS = [
+      ['', '空白'],
+      ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'],
+      ['起算', '起算'],
+      ['通知', '通知'],
+      ['未達成', '未達成'],
+      ['途中未達成', '途中未達成']
+    ];
 
     function renderTracker() {
       const table = document.getElementById('tracker-table');
       if (!table) return;
-      
+      bindTrackerTable();
+
       const todayStr = `${new Date().getMonth()+1}月${new Date().getDate()}日`;
-      
+      const query = (document.getElementById('tracker-search')?.value || '').trim().toLowerCase();
+      const hideNotified = document.getElementById('tracker-hide-notified') ? document.getElementById('tracker-hide-notified').checked : true;
+      const clients = Object.keys(trackerData);
+      let hiddenNotified = 0;
+      const visible = [];
+      clients.forEach(client => {
+        const notified = latestTrackerStatus(client) === '通知';
+        if (notified && hideNotified) {
+          hiddenNotified += 1;
+          return;
+        }
+        if (query && client.toLowerCase().indexOf(query) === -1) return;
+        visible.push(client);
+      });
+
+      const count = document.getElementById('tracker-count');
+      if (count) {
+        count.textContent = '作業中 ' + visible.length + ' 家'
+          + (hiddenNotified ? ' · 已隱藏通知 ' + hiddenNotified + ' 家' : '')
+          + (clients.length ? ' · 全部 ' + clients.length + ' 家' : '');
+      }
+
       let html = '<thead><tr><th>客戶名稱<\/th>';
       dateColumns.forEach(date => { html += `<th class="${date === todayStr ? 'today-col' : ''}">${date}<\/th>`; });
       html += '<\/tr><\/thead><tbody>';
 
-      const options = ['', '未達成', '1', '2', '3', '4', '5', '6', '7', '通知', '起算', '中未達標'];
-      
-      const clients = Object.keys(trackerData);
-      clients.forEach(client => {
-        html += `<tr><td>${client}<\/td>`;
+      if (!visible.length) {
+        html += `<tr><td class="tracker-empty" colspan="${dateColumns.length + 1}">${clients.length ? '目前沒有要顯示的客戶。取消「隱藏已通知」或換個搜尋。' : '尚無客戶。先在左側貼上今日名單。'}<\/td><\/tr>`;
+      }
+
+      visible.forEach(client => {
+        const safe = escTracker(client);
+        html += `<tr><td title="${safe}">${safe}<\/td>`;
         dateColumns.forEach(date => {
           const val = trackerData[client][date] || '';
           const bgClass = getSelectColorClass(val);
-          html += `<td class="${bgClass}"><select class="tracker-select ${bgClass}" onchange="updateTrackerCell('${client}', '${date}', this.value)">`;
-          options.forEach(opt => { html += `<option value="${opt}" ${val === opt ? 'selected' : ''}>${opt}<\/option>`; });
-          html += `<\/select><\/td>`;
+          html += `<td class="${bgClass}"><select class="tracker-select ${bgClass}" data-client="${safe}" data-date="${escTracker(date)}" aria-label="${safe} ${date}">`;
+          TRACKER_OPTIONS.forEach(pair => {
+            html += `<option value="${pair[0]}" ${val === pair[0] ? 'selected' : ''}>${pair[1]}<\/option>`;
+          });
+          html += '<\/select><\/td>';
         });
-        html += `<\/tr>`;
+        html += '<\/tr>';
       });
       html += '<\/tbody>';
       table.innerHTML = html;

@@ -1695,6 +1695,24 @@
       return Number(matched[1]) * 100 + Number(matched[2]);
     }
 
+    function trackerAddedTime(client) {
+      const rec = trackerData[client] || {};
+      let earliest = null;
+      Object.keys(rec).forEach(date => {
+        if (!rec[date]) return;
+        const parsed = parseTrackerDate(date);
+        if (!parsed) return;
+        if (!earliest || parsed.getTime() < earliest) earliest = parsed.getTime();
+      });
+      return earliest == null ? Number.MAX_SAFE_INTEGER : earliest;
+    }
+
+    function compareTrackerClients(a, b) {
+      const diff = trackerAddedTime(a) - trackerAddedTime(b);
+      if (diff) return diff;
+      return a.localeCompare(b, 'zh-Hant');
+    }
+
     function latestTrackerMark(client) {
       const rec = trackerData[client] || {};
       let best = '';
@@ -1849,7 +1867,7 @@
       const dates = visibleDateColumns();
       const query = (document.getElementById('tracker-search')?.value || '').trim().toLowerCase();
       const hideStarted = document.getElementById('tracker-hide-started') ? document.getElementById('tracker-hide-started').checked : true;
-      const clients = Object.keys(trackerData).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+      const clients = Object.keys(trackerData).sort(compareTrackerClients);
       const active = [];
       const archived = [];
       clients.forEach(client => {

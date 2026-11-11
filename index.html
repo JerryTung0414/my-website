@@ -105,6 +105,57 @@
     .bg-purple { background: #6b21a8; color: #fff; }
     .bg-grey { background: #475569; color: #fff; }
 
+    /* 達程表：在原作業區裡作業，不另開版型 */
+    #seo-tab-tracker.tracker-pane { display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+    .tracker-load { display: grid; grid-template-columns: minmax(0, 1.4fr) auto; gap: 8px 12px; align-items: end; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; }
+    .tracker-load .section-title { margin-bottom: 4px; }
+    .tracker-load .tracker-help { margin: 0; grid-column: 1 / -1; }
+    .tracker-load textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.45; color: #334155; resize: vertical; min-height: 72px; background: #fff; }
+    .tracker-load .card-btn { height: 36px; white-space: nowrap; }
+    .tracker-toolbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+    .tracker-toolbar input[type="search"], .tracker-toolbar input[type="text"], .tracker-toolbar select.tracker-span {
+      border: 1px solid #cbd5e1; border-radius: 8px; padding: 7px 10px; font-size: 13px; color: #334155; background: #fff;
+    }
+    .tracker-toolbar input[type="search"] { min-width: 160px; }
+    .tracker-toolbar input[type="text"] { width: 148px; }
+    .tracker-check { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #334155; cursor: pointer; }
+    .tracker-count, .tracker-status { font-size: 12px; color: #64748b; }
+    .tracker-status { color: #15803d; font-weight: 700; min-height: 16px; }
+    .tracker-legend { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tracker-legend span { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 3px 8px; }
+    #seo-tab-tracker .tracker-wrapper { overflow: auto; border: 1px solid #cbd5e1; border-radius: 10px; background: #fff; max-height: calc(100vh - 360px); min-height: 380px; }
+    #seo-tab-tracker .tracker-table { border-collapse: separate; border-spacing: 0; min-width: 100%; font-size: 12px; }
+    #seo-tab-tracker .tracker-table th, #seo-tab-tracker .tracker-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; text-align: center; white-space: nowrap; padding: 0; }
+    #seo-tab-tracker .tracker-table th { position: sticky; top: 0; z-index: 3; background: #f8fafc; font-weight: 700; color: #334155; padding: 8px 4px; font-size: 12px; }
+    #seo-tab-tracker .tracker-table th.today-col { background: #dbeafe; color: #1e40af; }
+    #seo-tab-tracker .tracker-table td.tracker-name, #seo-tab-tracker .tracker-table th.tracker-name {
+      position: sticky; left: 0; z-index: 2; text-align: left; background: #fff; border-right: 2px solid #cbd5e1; min-width: 168px; max-width: 220px;
+    }
+    #seo-tab-tracker .tracker-table th.tracker-name { z-index: 5; background: #f8fafc; padding-left: 10px; }
+    .tracker-name-line { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 4px 8px 0; }
+    .tracker-name-line span { font-weight: 700; color: #1e293b; overflow: hidden; text-overflow: ellipsis; }
+    .tracker-name-note { padding: 0 8px 4px; font-size: 11px; font-weight: 600; color: #7e22ce; }
+    .tracker-remove { border: none; background: transparent; color: #94a3b8; font-size: 11px; font-weight: 700; cursor: pointer; padding: 0; }
+    .tracker-remove:hover { color: #b91c1c; }
+    #seo-tab-tracker .tracker-select {
+      width: 100%; height: 32px; min-width: 98px; border: none; outline: none; padding: 0 16px 0 4px; text-align: center;
+      font-weight: 700; font-size: 12px; cursor: pointer; color: inherit; background-color: transparent;
+      -webkit-appearance: none; appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+      background-position: calc(100% - 11px) 14px, calc(100% - 7px) 14px;
+      background-size: 4px 4px, 4px 4px; background-repeat: no-repeat;
+    }
+    #seo-tab-tracker .tracker-select:focus { outline: 2px solid #1c64f2; outline-offset: -2px; }
+    #seo-tab-tracker .tracker-select option { background: #fff; color: #0f172a; font-weight: 600; }
+    #seo-tab-tracker .tracker-fold-row td { background: #f8fafc; text-align: left; }
+    .tracker-fold-btn { width: 100%; border: none; background: transparent; color: #6b21a8; font-size: 13px; font-weight: 700; text-align: left; padding: 10px 12px; cursor: pointer; }
+    .tracker-fold-btn:hover { background: #faf5ff; }
+    #seo-tab-tracker .tracker-empty { padding: 28px 12px !important; color: #94a3b8; font-weight: 500; text-align: center !important; }
+    @media (max-width: 960px) {
+      .tracker-load { grid-template-columns: 1fr; }
+      #seo-tab-tracker .tracker-wrapper { max-height: 68vh; }
+    }
+
     /* =============== 用印單 A4 版型 =============== */
     .a4-sheet { background: #fff; margin: 0 auto; width: 100%; max-width: 740px; min-height: 940px; padding: 40px 45px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); color: #000; font-family: "標楷體", "BiauKai", "DFKai-SB", "Microsoft JhengHei", serif; }
     .sober-header-svg-wrap { width: 100%; margin-bottom: 10px; }
@@ -510,35 +561,44 @@
         </div>
       </div>
 
-      <div id="seo-tab-tracker" class="workspace-pane" style="display: none;">
-        <div class="tracker-layout">
-          <div class="tracker-side no-print">
-            <div class="section-title">載入今日名單</div>
-            <p class="tracker-help">貼上今天達標的客戶。系統會去掉名稱裡的 (G)(g)(Y)，同一家不重複，並依前一天的數字往下一天推進。</p>
-            <textarea id="tracker-paste-input" rows="8" placeholder="貼上今日名單..."></textarea>
-            <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="processTrackerList()">載入今日達標名單</button>
-            <div class="tracker-legend" aria-label="狀態顏色">
-              <span class="bg-blue">1–5</span>
-              <span class="bg-yellow">6–7</span>
-              <span class="bg-purple">起算</span>
-              <span class="bg-red">通知</span>
-              <span class="bg-fail">未達成</span>
-              <span class="bg-grey">途中未達成</span>
-            </div>
+      <div id="seo-tab-tracker" class="workspace-pane tracker-pane" style="display: none;">
+        <div class="tracker-load no-print">
+          <div>
+            <div class="section-title">今日達標名單</div>
+            <textarea id="tracker-paste-input" rows="3" placeholder="一行一家。可直接從報表貼上，例如：&#10;王小明&#10;大安診所(G)"></textarea>
           </div>
-          <div class="tracker-main">
-            <div class="tracker-toolbar no-print">
-              <input type="search" id="tracker-search" placeholder="搜尋客戶名稱" oninput="renderTracker()">
-              <label class="tracker-check">
-                <input type="checkbox" id="tracker-hide-started" checked onchange="onTrackerHideChange()">
-                隱藏已起算（滿 2 天）
-              </label>
-              <span class="tracker-count" id="tracker-count"></span>
-            </div>
-            <div class="tracker-wrapper">
-              <table class="tracker-table" id="tracker-table"></table>
-            </div>
-          </div>
+          <button class="card-btn" style="background:#059669;" onclick="processTrackerList()">載入今日達標</button>
+          <p class="tracker-help">載入後會去掉名稱裡的 (G)(g)(Y)，同一家不重複，並依最近的數字推進到今天。下面每一格都是下拉選單，可以直接改。起算當天和接下來 2 個工作日仍留在表上，之後才收合（六、日不算）。</p>
+        </div>
+        <div class="tracker-toolbar no-print">
+          <input type="search" id="tracker-search" placeholder="搜尋客戶" oninput="renderTracker()">
+          <input type="text" id="tracker-add-name" placeholder="手動新增客戶" onkeydown="if(event.key==='Enter')addTrackerClient()">
+          <button type="button" class="card-btn" style="padding:7px 12px;" onclick="addTrackerClient()">加入</button>
+          <label class="tracker-check">日期
+            <select id="tracker-span" class="tracker-span" onchange="onTrackerSpanChange()">
+              <option value="7">近 7 日</option>
+              <option value="14">近 14 日</option>
+              <option value="21">近 21 日</option>
+            </select>
+          </label>
+          <label class="tracker-check">
+            <input type="checkbox" id="tracker-hide-started" checked onchange="onTrackerHideChange()">
+            起算滿 2 個工作日後收合
+          </label>
+          <span class="tracker-count" id="tracker-count"></span>
+        </div>
+        <div class="tracker-legend" aria-label="狀態顏色">
+          <span class="bg-empty" style="border:1px solid #e2e8f0;">空白</span>
+          <span class="bg-blue">1–5</span>
+          <span class="bg-yellow">6–7</span>
+          <span class="bg-purple">起算</span>
+          <span class="bg-red">通知</span>
+          <span class="bg-fail">未達成</span>
+          <span class="bg-grey">途中未達成</span>
+        </div>
+        <p class="tracker-status" id="tracker-status"></p>
+        <div class="tracker-wrapper">
+          <table class="tracker-table" id="tracker-table"></table>
         </div>
       </div>
     </div>
@@ -1586,13 +1646,15 @@
       
       dateColumns = [];
       const d = new Date();
-      d.setDate(d.getDate() - 14); 
-      for (let i = 0; i <= 16; i++) {
-        dateColumns.push(`${d.getMonth()+1}月${d.getDate()}日`);
+      d.setDate(d.getDate() - 21);
+      for (let i = 0; i <= 23; i++) {
+        dateColumns.push(`${d.getMonth() + 1}月${d.getDate()}日`);
         d.setDate(d.getDate() + 1);
       }
       const hideBox = document.getElementById('tracker-hide-started');
       if (hideBox) hideBox.checked = localStorage.getItem('keywordTrackerHideStarted') !== '0';
+      const spanBox = document.getElementById('tracker-span');
+      if (spanBox) spanBox.value = localStorage.getItem('keywordTrackerSpan') || '7';
       bindTrackerTable();
       renderTracker();
     }
@@ -1649,28 +1711,79 @@
       return { value: best, date: bestDate };
     }
 
-    function trackerDaysAgo(label) {
-      const matched = String(label).match(/(\d+)月(\d+)日/);
-      if (!matched) return 0;
+    let trackerArchiveOpen = false;
+
+    function startOfToday() {
       const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    }
+
+    function parseTrackerDate(label) {
+      const matched = String(label).match(/(\d+)月(\d+)日/);
+      if (!matched) return null;
+      const today = startOfToday();
       let year = today.getFullYear();
       const month = Number(matched[1]) - 1;
       const day = Number(matched[2]);
       if (month > today.getMonth() + 1) year -= 1;
-      const marked = new Date(year, month, day);
-      return Math.round((today.getTime() - marked.getTime()) / 86400000);
+      return new Date(year, month, day);
+    }
+
+    function addWorkingDays(date, days) {
+      const cursor = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      let left = days;
+      while (left > 0) {
+        cursor.setDate(cursor.getDate() + 1);
+        const dow = cursor.getDay();
+        if (dow !== 0 && dow !== 6) left -= 1;
+      }
+      return cursor;
+    }
+
+    function hideOnDate(marked) {
+      const secondWorkingDay = addWorkingDays(marked, 2);
+      const hideOn = new Date(secondWorkingDay.getFullYear(), secondWorkingDay.getMonth(), secondWorkingDay.getDate());
+      hideOn.setDate(hideOn.getDate() + 1);
+      return hideOn;
     }
 
     function shouldHideStarted(client) {
       const mark = latestTrackerMark(client);
-      return mark.value === '起算' && trackerDaysAgo(mark.date) >= 2;
+      if (mark.value !== '起算' || !mark.date) return false;
+      const marked = parseTrackerDate(mark.date);
+      if (!marked) return false;
+      return startOfToday().getTime() >= hideOnDate(marked).getTime();
+    }
+
+    function trackerFoldNote(client) {
+      const mark = latestTrackerMark(client);
+      if (mark.value !== '起算' || !mark.date) return '';
+      const marked = parseTrackerDate(mark.date);
+      if (!marked) return '';
+      const hideOn = hideOnDate(marked);
+      if (startOfToday().getTime() >= hideOn.getTime()) return '已可收合';
+      return `${hideOn.getMonth() + 1}/${hideOn.getDate()} 收合`;
     }
 
     function onTrackerHideChange() {
       const box = document.getElementById('tracker-hide-started');
       localStorage.setItem('keywordTrackerHideStarted', box && box.checked ? '1' : '0');
       renderTracker();
+    }
+
+    function onTrackerSpanChange() {
+      const box = document.getElementById('tracker-span');
+      localStorage.setItem('keywordTrackerSpan', box ? box.value : '7');
+      renderTracker();
+    }
+
+    function visibleDateColumns() {
+      const span = Number(localStorage.getItem('keywordTrackerSpan') || '7');
+      const back = span === 21 ? 21 : span === 14 ? 14 : 7;
+      const todayStr = `${startOfToday().getMonth() + 1}月${startOfToday().getDate()}日`;
+      const idx = dateColumns.indexOf(todayStr);
+      if (idx < 0) return dateColumns.slice();
+      return dateColumns.slice(Math.max(0, idx - back), Math.min(dateColumns.length, idx + 3));
     }
 
     function bindTrackerTable() {
@@ -1682,10 +1795,21 @@
         if (!sel || !sel.classList || !sel.classList.contains('tracker-select')) return;
         updateTrackerCell(sel.getAttribute('data-client'), sel.getAttribute('data-date'), sel.value);
       });
+      table.addEventListener('click', function (event) {
+        const rm = event.target.closest('[data-remove]');
+        if (rm) {
+          removeTrackerClient(rm.getAttribute('data-remove'));
+          return;
+        }
+        if (event.target.closest('[data-archive-toggle]')) {
+          trackerArchiveOpen = !trackerArchiveOpen;
+          renderTracker();
+        }
+      });
     }
 
     const TRACKER_OPTIONS = [
-      ['', ' '],
+      ['', '空白'],
       ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5'], ['6', '6'], ['7', '7'],
       ['起算', '起算'],
       ['通知', '通知'],
@@ -1693,57 +1817,101 @@
       ['途中未達成', '途中未達成']
     ];
 
+    function trackerRowHtml(client, dates) {
+      const safe = escTracker(client);
+      const note = trackerFoldNote(client);
+      let html = `<tr><td class="tracker-name" title="${safe}"><div class="tracker-name-line"><span>${safe}<\/span><button type="button" class="tracker-remove" data-remove="${safe}">移除<\/button><\/div>${note ? `<div class="tracker-name-note">${note}<\/div>` : ''}<\/td>`;
+      dates.forEach(date => {
+        const val = (trackerData[client] && trackerData[client][date]) || '';
+        const bgClass = getSelectColorClass(val);
+        html += `<td class="${bgClass}"><select class="tracker-select ${bgClass}" data-client="${safe}" data-date="${escTracker(date)}" aria-label="${safe} ${escTracker(date)}">`;
+        TRACKER_OPTIONS.forEach(pair => {
+          html += `<option value="${escTracker(pair[0])}"${val === pair[0] ? ' selected' : ''}>${pair[1]}<\/option>`;
+        });
+        html += '<\/select><\/td>';
+      });
+      return html + '<\/tr>';
+    }
+
     function renderTracker() {
       const table = document.getElementById('tracker-table');
       if (!table) return;
       bindTrackerTable();
+      const wrap = table.parentElement;
+      const keepTop = wrap ? wrap.scrollTop : 0;
+      const keepLeft = wrap ? wrap.scrollLeft : 0;
 
-      const todayStr = `${new Date().getMonth()+1}月${new Date().getDate()}日`;
+      const today = startOfToday();
+      const todayStr = `${today.getMonth() + 1}月${today.getDate()}日`;
+      const dates = visibleDateColumns();
       const query = (document.getElementById('tracker-search')?.value || '').trim().toLowerCase();
       const hideStarted = document.getElementById('tracker-hide-started') ? document.getElementById('tracker-hide-started').checked : true;
-      const clients = Object.keys(trackerData);
-      let hiddenStarted = 0;
-      const visible = [];
+      const clients = Object.keys(trackerData).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+      const active = [];
+      const archived = [];
       clients.forEach(client => {
-        if (hideStarted && shouldHideStarted(client)) {
-          hiddenStarted += 1;
-          return;
-        }
-        if (query && client.toLowerCase().indexOf(query) === -1) return;
-        visible.push(client);
+        const match = !query || client.toLowerCase().indexOf(query) !== -1;
+        if (!match) return;
+        if (!query && hideStarted && shouldHideStarted(client)) archived.push(client);
+        else active.push(client);
       });
 
       const count = document.getElementById('tracker-count');
       if (count) {
-        count.textContent = '作業中 ' + visible.length + ' 家'
-          + (hiddenStarted ? ' · 已隱藏起算 ' + hiddenStarted + ' 家' : '')
+        count.textContent = '作業中 ' + active.length + ' 家'
+          + (archived.length ? ' · 已收合 ' + archived.length + ' 家' : '')
           + (clients.length ? ' · 全部 ' + clients.length + ' 家' : '');
       }
 
-      let html = '<thead><tr><th>客戶名稱<\/th>';
-      dateColumns.forEach(date => { html += `<th class="${date === todayStr ? 'today-col' : ''}">${date}<\/th>`; });
-      html += '<\/tr><\/thead><tbody>';
-
-      if (!visible.length) {
-        html += `<tr><td class="tracker-empty" colspan="${dateColumns.length + 1}">${clients.length ? '目前沒有要顯示的客戶。取消「隱藏已起算」或換個搜尋。' : '尚無客戶。先在左側貼上今日名單。'}<\/td><\/tr>`;
-      }
-
-      visible.forEach(client => {
-        const safe = escTracker(client);
-        html += `<tr><td title="${safe}">${safe}<\/td>`;
-        dateColumns.forEach(date => {
-          const val = trackerData[client][date] || '';
-          const bgClass = getSelectColorClass(val);
-          html += `<td class="${bgClass}"><select class="tracker-select ${bgClass}" data-client="${safe}" data-date="${escTracker(date)}" aria-label="${safe} ${date}">`;
-          TRACKER_OPTIONS.forEach(pair => {
-            html += `<option value="${pair[0]}" ${val === pair[0] ? 'selected' : ''}>${pair[1]}<\/option>`;
-          });
-          html += '<\/select><\/td>';
-        });
-        html += '<\/tr>';
+      let html = '<thead><tr><th class="tracker-name">客戶名稱<\/th>';
+      dates.forEach(date => {
+        const label = date.replace('月', '/').replace('日', '');
+        html += `<th class="${date === todayStr ? 'today-col' : ''}">${date === todayStr ? '今天 ' : ''}${label}<\/th>`;
       });
+      html += '<\/tr><\/thead><tbody>';
+      if (!active.length) {
+        html += `<tr><td class="tracker-empty" colspan="${dates.length + 1}">${clients.length ? '目前沒有要作業的客戶。可搜尋，或展開下方已收合名單。' : '尚無客戶。先貼上今日名單，或手動加入。'}<\/td><\/tr>`;
+      } else {
+        active.forEach(client => { html += trackerRowHtml(client, dates); });
+      }
       html += '<\/tbody>';
+      if (archived.length) {
+        html += '<tbody><tr class="tracker-fold-row"><td colspan="' + (dates.length + 1) + '"><button type="button" class="tracker-fold-btn" data-archive-toggle>'
+          + (trackerArchiveOpen ? '收起' : '展開')
+          + '已收合 ' + archived.length + ' 家 · 起算已過 2 個工作日，點開仍可修改<\/button><\/td><\/tr>';
+        if (trackerArchiveOpen) archived.forEach(client => { html += trackerRowHtml(client, dates); });
+        html += '<\/tbody>';
+      }
       table.innerHTML = html;
+      if (wrap) {
+        wrap.scrollTop = keepTop;
+        wrap.scrollLeft = keepLeft;
+      }
+    }
+
+    function setTrackerStatus(text) {
+      const el = document.getElementById('tracker-status');
+      if (el) el.textContent = text || '';
+    }
+
+    function addTrackerClient() {
+      const input = document.getElementById('tracker-add-name');
+      const name = (input ? input.value : '').replace(/[(（][GgYy][)）]/gi, '').trim();
+      if (!name) { setTrackerStatus('請先輸入客戶名稱。'); return; }
+      if (!trackerData[name]) trackerData[name] = {};
+      if (input) input.value = '';
+      saveTrackerData();
+      renderTracker();
+      setTrackerStatus('已加入「' + name + '」，可直接在表格選狀態。');
+    }
+
+    function removeTrackerClient(name) {
+      if (!name || !trackerData[name]) return;
+      if (!confirm('移除「' + name + '」？這家的達程紀錄會刪掉。')) return;
+      delete trackerData[name];
+      saveTrackerData();
+      renderTracker();
+      setTrackerStatus('已移除「' + name + '」。');
     }
 
     function getNextStatus(name, todayStr) {
@@ -1760,19 +1928,23 @@
 
     function processTrackerList() {
       const text = document.getElementById('tracker-paste-input').value;
-      if (!text.trim()) { alert('請貼上名單'); return; }
+      if (!text.trim()) { setTrackerStatus('請先貼上名單。'); return; }
       const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-      const todayStr = `${new Date().getMonth()+1}月${new Date().getDate()}日`;
+      const todayStr = `${startOfToday().getMonth() + 1}月${startOfToday().getDate()}日`;
+      const seen = new Set();
+      let count = 0;
       lines.forEach(line => {
         let name = line.replace(/[(（][GgYy][)）]/gi, '').trim();
-        if (!name) return;
+        if (!name || seen.has(name)) return;
+        seen.add(name);
         if (!trackerData[name]) trackerData[name] = {};
         trackerData[name][todayStr] = getNextStatus(name, todayStr);
+        count += 1;
       });
       saveTrackerData();
       renderTracker();
       document.getElementById('tracker-paste-input').value = '';
-      alert('已更新今日達標狀態！');
+      setTrackerStatus('已更新今日達標 ' + count + ' 家。');
     }
 
     // ==========================================

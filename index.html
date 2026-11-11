@@ -331,6 +331,56 @@
       #pay-page-2.pay-order-a4 { padding-top: 30.1mm !important; }
       .pay-order-a4:last-of-type { break-after: auto; }
     }
+  
+    /* 排名過濾：沿用既有作業區，不另做獨立工具站 */
+    #seo-tab-filter textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #334155;
+      resize: vertical;
+      min-height: 320px;
+      background: #fff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .rank-lead { font-size: 13px; color: #64748b; margin: -4px 0 14px; line-height: 1.55; }
+    .rank-split { align-items: stretch; }
+    .rank-split > .editor-pane { width: 420px; }
+    .rank-out { flex: 1; width: auto !important; min-width: 0; display: flex; flex-direction: column; }
+    .rank-pane-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 700; color: #1e293b; }
+    .rank-pane-head strong { font-size: 12px; font-weight: 700; color: #1e40af; background: #eef4ff; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+    .rank-text-btn { border: none; background: transparent; color: #64748b; font-size: 12px; font-weight: 700; padding: 4px 2px; }
+    .rank-text-btn:hover { color: #1c64f2; }
+    .rank-hint { font-size: 12px; color: #64748b; margin-top: 8px; line-height: 1.5; }
+    .rank-status { font-size: 12px; color: #15803d; margin-top: 8px; min-height: 18px; font-weight: 600; }
+    .rank-controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 12px; }
+    .rank-controls label, .rank-format-label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: #475569; }
+    .rank-controls select { border: 1px solid #cbd5e1; border-radius: 8px; padding: 7px 10px; font-size: 13px; color: #334155; background: #fff; min-width: 96px; }
+    .rank-format { display: flex; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; }
+    .rank-format button { border: none; background: #fff; color: #475569; padding: 7px 12px; font-size: 13px; font-weight: 650; }
+    .rank-format button + button { border-left: 1px solid #e2e8f0; }
+    .rank-format button.active { background: #eef4ff; color: #1c64f2; }
+    .rank-preview { border: 1px solid #e2e8f0; border-radius: 10px; overflow: auto; max-height: 380px; background: #f8fafc; }
+    .rank-preview-head, .rank-row { display: grid; grid-template-columns: minmax(0, 1fr) 88px; gap: 8px; padding: 8px 12px; align-items: center; }
+    .rank-preview-head { position: sticky; top: 0; background: #f1f5f9; color: #64748b; font-size: 12px; font-weight: 700; }
+    .rank-row { border-top: 1px solid #e2e8f0; background: #fff; color: #1e293b; font-size: 13px; }
+    .rank-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rank-row strong { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+    .rank-row strong.empty { color: #94a3b8; font-weight: 500; }
+    .rank-empty { padding: 36px 16px; text-align: center; color: #94a3b8; font-size: 13px; }
+    .rank-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .rank-actions .card-btn { padding: 8px 12px; font-size: 13px; }
+    .rank-btn-sec { background: #fff !important; color: #1e40af !important; border: 1px solid #bfdbfe !important; }
+    .rank-btn-sec:hover:not(:disabled) { background: #eff6ff !important; }
+    .rank-actions .card-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    @media (max-width: 960px) {
+      .rank-split { flex-direction: column; }
+      .rank-split > .editor-pane, .rank-out { width: 100% !important; }
+    }
+
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -369,7 +419,7 @@
         <div>
           <div class="card-icon">📊</div>
           <div class="card-title">關鍵字作業</div>
-          <div class="card-desc">包含當日關鍵字排名過濾，以及全新【關鍵字完成率達程表】。</div>
+          <div class="card-desc">貼上排名表格，選擇日期欄後複製關鍵字或排名，以及【關鍵字完成率達程表】。</div>
         </div>
         <button class="card-btn" onclick="switchView('tool-seo')">進入</button>
       </div>
@@ -398,23 +448,49 @@
       <div class="back-btn" onclick="switchView('home')">← 返回作業列表</div>
       
       <div class="seo-tabs no-print">
-        <button class="seo-tab-btn active" id="tab-btn-filter" onclick="switchSeoTab('filter')">當日排名過濾</button>
+        <button class="seo-tab-btn active" id="tab-btn-filter" onclick="switchSeoTab('filter')">排名過濾與複製</button>
         <button class="seo-tab-btn" id="tab-btn-tracker" onclick="switchSeoTab('tracker')">關鍵字完成率達程表</button>
       </div>
 
       <div id="seo-tab-filter" class="workspace-pane">
-        <div class="section-title">SEO 關鍵字當日排名過濾</div>
-        <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">直接將系統上的多日表格複製貼在下方：</p>
-        <textarea id="raw-input" rows="7" placeholder="貼上報表文字內容..."></textarea>
-        
-        <div style="display: flex; align-items: center; gap: 12px; margin: 16px 0;">
-          <label style="font-size: 13px; color: #475569; font-weight: bold;">提取日期：</label>
-          <select id="day-select" style="width: auto; padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1;"></select>
-          <button class="card-btn" onclick="runFilter()">擷取當日數據</button>
-          <button class="card-btn" style="background:#64748b;" onclick="copyResult()">一鍵複製結果</button>
+        <div class="section-title">排名過濾與複製</div>
+        <p class="rank-lead">從排名頁面直接全選複製，貼到左側。選好日期欄後，可分別複製關鍵字、排名，或兩欄一起貼進校對名單。資料只在這台瀏覽器裡處理。</p>
+        <div class="split-container rank-split">
+          <div class="editor-pane">
+            <div class="rank-pane-head">
+              <span>貼上原始排名</span>
+              <button type="button" class="rank-text-btn" onclick="clearRankInput()">清除</button>
+            </div>
+            <textarea id="raw-input" rows="16" spellcheck="false" placeholder="貼上排名表格。可從網頁拖曳選取後按 Ctrl+C，不必先整理成 Excel。" oninput="refreshRankTool()"></textarea>
+            <p class="rank-hint">支援 Tab、逗號與連續空格。排名結尾的 n、s 會自動去掉。</p>
+          </div>
+          <div class="editor-pane rank-out">
+            <div class="rank-pane-head">
+              <span>選擇與複製</span>
+              <strong id="rank-count">0 個關鍵字</strong>
+            </div>
+            <div class="rank-controls">
+              <label>日期欄
+                <select id="rank-day" onchange="onRankDayChange()"></select>
+              </label>
+              <div>
+                <span class="rank-format-label">複製格式</span>
+                <div class="rank-format" role="group" aria-label="複製格式">
+                  <button type="button" id="rank-fmt-tab" class="active" onclick="setRankFormat('tab')">分兩欄</button>
+                  <button type="button" id="rank-fmt-line" onclick="setRankFormat('line')">文字列</button>
+                </div>
+              </div>
+            </div>
+            <div class="rank-preview" id="rank-preview" aria-live="polite"></div>
+            <div class="rank-actions">
+              <button type="button" class="card-btn rank-btn-sec" id="rank-copy-keywords" onclick="copyRank('keywords')" disabled>只複製關鍵字</button>
+              <button type="button" class="card-btn rank-btn-sec" id="rank-copy-ranks" onclick="copyRank('ranks')" disabled>只複製排名</button>
+              <button type="button" class="card-btn rank-btn-sec" id="rank-copy-ranks100" onclick="copyRank('ranks100')" disabled>複製排名（0 改為 100）</button>
+              <button type="button" class="card-btn" id="rank-copy-all" onclick="copyRank('all')" disabled>複製全部關鍵字＋排名</button>
+            </div>
+            <p class="rank-status" id="rank-status"></p>
+          </div>
         </div>
-
-        <textarea id="clean-output" rows="7" readonly placeholder="提取結果將出現在這裡（可直接貼入 Excel）..."></textarea>
       </div>
 
       <div id="seo-tab-tracker" class="workspace-pane" style="display: none;">
@@ -505,7 +581,7 @@
           </div>
           <div class="a4-sheet" id="print-area">
             <div class="sober-header-svg-wrap">
-              <img id="sober-header-logo" src="./logo.jpg" onerror="this.src='./Logo.jpg'" alt="搜博科技股份有限公司 Logo">
+              <img id="sober-header-logo" src="./Logo.jpg" alt="搜博科技股份有限公司 Logo">
             </div>
             <div class="doc-form-title">用 印 申 請 單</div>
             <div class="doc-form-no">編號：</div>
@@ -961,7 +1037,7 @@
       if (viewName === 'home') {
         titleElem.textContent = '請選擇作業類型'; subElem.textContent = '客服部日常行政作業入口';
       } else if (viewName === 'tool-seo') {
-        titleElem.textContent = '關鍵字排名過濾與追蹤'; subElem.textContent = '當日排名自動過濾及【關鍵字完成率達程表】管理';
+        titleElem.textContent = '關鍵字排名過濾與追蹤'; subElem.textContent = '貼上排名、選擇日期欄、一鍵複製，以及【關鍵字完成率達程表】';
         initTracker();
       } else if (viewName === 'tool-legal') {
         titleElem.textContent = '法務作業項目'; subElem.textContent = '存證信函、支付命令與相關法律文件管理';
@@ -2125,6 +2201,169 @@
         recalcAmount();
       } else if (panel.parentElement !== slot) slot.appendChild(panel);
     }
+
+
+    let rankFormat = "tab";
+    let rankDayTouched = false;
+    let rankStatusTimer = 0;
+
+    function cleanRankCell(raw) {
+      const t = String(raw || "").trim();
+      if (!t || t === "-" || t === "－") return "-";
+      return t.replace(/[ＮｎＳｓns]$/i, "");
+    }
+
+    function parseRankRows(text) {
+      const rows = [];
+      String(text || "").split(/\r?\n/).forEach(rawLine => {
+        const line = rawLine.trim();
+        if (!line) return;
+        const cols = line.split(/\t|\s{2,}|,/).map(c => c.trim());
+        while (cols.length && cols[cols.length - 1] === "") cols.pop();
+        if (cols.length < 2) return;
+        if (cols[0].includes("Google") || cols[0].includes("前10筆")) return;
+        if (cols[0] === "關鍵字") return;
+        const numeric = cols.filter(c => /^\d+$/.test(c)).length;
+        if (/^\d+$/.test(cols[0]) && numeric >= Math.min(3, cols.length)) return;
+        rows.push(cols);
+      });
+      return rows;
+    }
+
+    function currentRankDay(maxDay) {
+      const sel = document.getElementById("rank-day");
+      let day = rankDayTouched ? parseInt(sel && sel.value, 10) : maxDay;
+      if (!day || day < 1) day = 1;
+      if (day > maxDay) day = maxDay;
+      return day;
+    }
+
+    function escapeRankHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function refreshRankTool() {
+      const input = document.getElementById("raw-input");
+      const sel = document.getElementById("rank-day");
+      const preview = document.getElementById("rank-preview");
+      const count = document.getElementById("rank-count");
+      if (!input || !sel || !preview || !count) return;
+
+      const rows = parseRankRows(input.value);
+      const maxDay = Math.max(1, ...rows.map(r => Math.max(1, r.length - 1)));
+      if (sel.options.length !== maxDay) {
+        const prev = sel.value;
+        sel.innerHTML = "";
+        for (let i = 1; i <= maxDay; i++) {
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = i + " 日";
+          sel.appendChild(opt);
+        }
+        if (prev) sel.value = prev;
+      }
+      const day = currentRankDay(maxDay);
+      sel.value = String(day);
+      count.textContent = rows.length + " 個關鍵字";
+
+      ["keywords", "ranks", "ranks100", "all"].forEach(mode => {
+        const btn = document.getElementById("rank-copy-" + mode);
+        if (btn) btn.disabled = rows.length === 0;
+      });
+
+      if (!rows.length) {
+        preview.innerHTML = '<div class="rank-empty">貼上資料後，關鍵字與所選日期的排名會列在這裡。</div>';
+        return;
+      }
+
+      const headDay = document.getElementById("rank-day");
+      const dayLabel = (headDay && headDay.options[headDay.selectedIndex]) ? headDay.options[headDay.selectedIndex].textContent : (day + " 日");
+      let htmlRows = '<div class="rank-preview-head"><span>關鍵字</span><span style="text-align:right;">' + escapeRankHtml(dayLabel) + '排名</span></div>';
+      rows.forEach(row => {
+        const rank = cleanRankCell(row[day] || "");
+        const empty = rank === "-" ? " empty" : "";
+        htmlRows += '<div class="rank-row"><span title="' + escapeRankHtml(row[0]) + '">' + escapeRankHtml(row[0]) + '</span><strong class="' + empty.trim() + '">' + escapeRankHtml(rank) + '</strong></div>';
+      });
+      preview.innerHTML = htmlRows;
+    }
+
+    function onRankDayChange() {
+      rankDayTouched = true;
+      refreshRankTool();
+    }
+
+    function setRankFormat(fmt) {
+      rankFormat = fmt === "line" ? "line" : "tab";
+      const tab = document.getElementById("rank-fmt-tab");
+      const line = document.getElementById("rank-fmt-line");
+      if (tab) tab.classList.toggle("active", rankFormat === "tab");
+      if (line) line.classList.toggle("active", rankFormat === "line");
+    }
+
+    function clearRankInput() {
+      const input = document.getElementById("raw-input");
+      if (input) input.value = "";
+      rankDayTouched = false;
+      const status = document.getElementById("rank-status");
+      if (status) status.textContent = "";
+      refreshRankTool();
+    }
+
+    function rankPayload(mode) {
+      const input = document.getElementById("raw-input");
+      const rows = parseRankRows(input ? input.value : "");
+      const maxDay = Math.max(1, ...rows.map(r => Math.max(1, r.length - 1)));
+      const day = currentRankDay(maxDay);
+      const keywords = rows.map(r => r[0]);
+      const ranks = rows.map(r => cleanRankCell(r[day] || ""));
+      if (mode === "keywords") return keywords.join("\n");
+      if (mode === "ranks") return ranks.join("\n");
+      if (mode === "ranks100") return ranks.map(r => (r === "0" ? "100" : r)).join("\n");
+      if (rankFormat === "line") return rows.map((r, i) => r[0] + "：" + ranks[i]).join("\n");
+      return rows.map((r, i) => r[0] + "\t" + ranks[i]).join("\n");
+    }
+
+    async function copyRank(mode) {
+      const text = rankPayload(mode);
+      if (!text) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const area = document.createElement("textarea");
+          area.value = text;
+          area.style.position = "fixed";
+          area.style.opacity = "0";
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand("copy");
+          area.remove();
+        }
+      } catch (err) {
+        const status = document.getElementById("rank-status");
+        if (status) status.textContent = "複製失敗，請再試一次。";
+        return;
+      }
+      const labels = {
+        keywords: "關鍵字已複製",
+        ranks: "排名已複製",
+        ranks100: "排名已複製（0 已改為 100）",
+        all: "關鍵字與排名已複製，可以直接貼上"
+      };
+      const status = document.getElementById("rank-status");
+      if (status) status.textContent = labels[mode] || "已複製";
+      window.clearTimeout(rankStatusTimer);
+      rankStatusTimer = window.setTimeout(() => {
+        if (status && status.textContent === (labels[mode] || "已複製")) status.textContent = "";
+      }, 1600);
+    }
+
+    refreshRankTool();
+
 
     restoreView();
   </script>

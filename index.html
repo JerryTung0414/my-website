@@ -119,6 +119,13 @@
     .tracker-toolbar input[type="search"] { min-width: 160px; }
     .tracker-toolbar input[type="text"] { width: 148px; }
     .tracker-check { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #334155; cursor: pointer; }
+    .tracker-month { display: inline-flex; align-items: center; gap: 6px; }
+    .tracker-month strong { min-width: 108px; text-align: center; font-size: 14px; color: #1e293b; }
+    .tracker-month-btn { width: 32px; height: 32px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #1e40af; font-size: 18px; line-height: 1; cursor: pointer; }
+    .tracker-month-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .tracker-backup { display: inline-flex; align-items: center; gap: 8px; }
+    #seo-tab-tracker .tracker-table th.weekend-col { background: #f1f5f9; color: #64748b; }
+    #seo-tab-tracker td.tracker-latest, #seo-tab-tracker th.tracker-latest { min-width: 64px; font-weight: 800; }
     .tracker-count, .tracker-status { font-size: 12px; color: #64748b; }
     .tracker-status { color: #15803d; font-weight: 700; min-height: 16px; }
     .tracker-legend { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -572,23 +579,27 @@
             <textarea id="tracker-paste-input" rows="3" placeholder="一行一家。可直接從報表貼上，例如：&#10;王小明&#10;大安診所(G)"></textarea>
           </div>
           <button class="card-btn" style="background:#059669;" onclick="processTrackerList()">載入今日達標</button>
-          <p class="tracker-help">載入後會去掉名稱裡的 (G)(g)(Y)，同一家不重複，並依最近的數字推進到今天。下面每一格都是下拉選單，可以直接改。起算當天和接下來 2 個工作日仍留在表上，之後才收合（六、日不算）。</p>
+          <p class="tracker-help">一次顯示一個月。月底還在統計的客戶，月初會帶出最新狀態，舊月份的格子都留著，可用左右箭頭翻回去。資料存在這台瀏覽器，不會自己清掉；換電腦前請下載備份。</p>
         </div>
         <div class="tracker-toolbar no-print">
           <input type="search" id="tracker-search" placeholder="搜尋客戶" oninput="renderTracker()">
           <input type="text" id="tracker-add-name" placeholder="手動新增客戶" onkeydown="if(event.key==='Enter')addTrackerClient()">
           <button type="button" class="card-btn" style="padding:7px 12px;" onclick="addTrackerClient()">加入</button>
-          <label class="tracker-check">日期
-            <select id="tracker-span" class="tracker-span" onchange="onTrackerSpanChange()">
-              <option value="7">近 7 日</option>
-              <option value="14">近 14 日</option>
-              <option value="21">近 21 日</option>
-            </select>
-          </label>
+          <div class="tracker-month">
+            <button type="button" class="tracker-month-btn" onclick="shiftTrackerMonth(-1)" aria-label="上個月">‹</button>
+            <strong id="tracker-month-label">本月</strong>
+            <button type="button" class="tracker-month-btn" id="tracker-month-next" onclick="shiftTrackerMonth(1)" aria-label="下個月">›</button>
+          </div>
           <label class="tracker-check">
             <input type="checkbox" id="tracker-hide-started" checked onchange="onTrackerHideChange()">
             起算滿 2 個工作日後收合
           </label>
+          <span class="tracker-backup">
+            <button type="button" class="card-btn rank-btn-sec" style="padding:7px 12px;" onclick="downloadTrackerBackup()">下載備份</button>
+            <label class="card-btn rank-btn-sec" style="padding:7px 12px; cursor:pointer;">補回備份
+              <input type="file" id="tracker-import" accept="application/json,.json" hidden onchange="importTrackerBackup(this)">
+            </label>
+          </span>
           <span class="tracker-count" id="tracker-count"></span>
         </div>
         <div class="tracker-legend" aria-label="狀態顏色">
@@ -1622,44 +1633,59 @@
     }
 
     let trackerData = {};
-    let dateColumns = [];
+    let trackerMonth = null;
+
+    function currentMonthParts() {
+      const today = startOfToday();
+      return { y: today.getFullYear(), m: today.getMonth() + 1 };
+    }
+
+    function isoFromDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
 
     function initTracker() {
       try {
         const stored = localStorage.getItem('keywordTrackerData');
         if (stored) trackerData = JSON.parse(stored);
-      } catch(e) {}
+      } catch (e) {}
 
       const cleanedData = {};
       for (let key in trackerData) {
         let cleanKey = key.replace(/[(（][GgYy][)）]/gi, '').trim();
-        if (!cleanedData[cleanKey]) {
-          cleanedData[cleanKey] = trackerData[key];
-        } else {
-          Object.assign(cleanedData[cleanKey], trackerData[key]);
-        }
+        if (!cleanedData[cleanKey]) cleanedData[cleanKey] = trackerData[key];
+        else Object.assign(cleanedData[cleanKey], trackerData[key]);
       }
       trackerData = cleanedData;
-      for (const client in trackerData) {
-        for (const date in trackerData[client]) {
-          if (trackerData[client][date] === '中未達標') trackerData[client][date] = '途中未達成';
-        }
-      }
+      migrateTrackerDates();
       saveTrackerData();
-      
-      dateColumns = [];
-      const d = new Date();
-      d.setDate(d.getDate() - 21);
-      for (let i = 0; i <= 23; i++) {
-        dateColumns.push(`${d.getMonth() + 1}月${d.getDate()}日`);
-        d.setDate(d.getDate() + 1);
-      }
+      trackerMonth = currentMonthParts();
       const hideBox = document.getElementById('tracker-hide-started');
       if (hideBox) hideBox.checked = localStorage.getItem('keywordTrackerHideStarted') !== '0';
-      const spanBox = document.getElementById('tracker-span');
-      if (spanBox) spanBox.value = localStorage.getItem('keywordTrackerSpan') || '7';
       bindTrackerTable();
       renderTracker();
+    }
+
+    function migrateTrackerDates() {
+      Object.keys(trackerData).forEach(client => {
+        const rec = trackerData[client] || {};
+        const next = {};
+        Object.keys(rec).forEach(key => {
+          let val = rec[key];
+          if (val === '中未達標') val = '途中未達成';
+          const parsed = parseTrackerDate(key);
+          const iso = parsed ? isoFromDate(parsed) : '';
+          if (!iso) {
+            if (val) next[key] = val;
+            return;
+          }
+          if (!next[iso]) next[iso] = val;
+        });
+        trackerData[client] = next;
+      });
     }
 
     function saveTrackerData() { localStorage.setItem('keywordTrackerData', JSON.stringify(trackerData)); }
@@ -1713,20 +1739,23 @@
       return a.localeCompare(b, 'zh-Hant');
     }
 
-    function latestTrackerMark(client) {
+    function latestTrackerMark(client, until) {
       const rec = trackerData[client] || {};
       let best = '';
       let bestDate = '';
-      let bestRank = -Infinity;
+      let bestTime = -Infinity;
+      const limit = until ? until.getTime() : Infinity;
       Object.keys(rec).forEach(date => {
         const val = rec[date];
         if (!val) return;
-        const idx = dateColumns.indexOf(date);
-        const rank = idx >= 0 ? 1000 + idx : trackerDateRank(date);
-        if (rank >= bestRank) {
-          bestRank = rank;
+        const parsed = parseTrackerDate(date);
+        if (!parsed) return;
+        const time = parsed.getTime();
+        if (time > limit) return;
+        if (time >= bestTime) {
+          bestTime = time;
           best = val;
-          bestDate = date;
+          bestDate = isoFromDate(parsed);
         }
       });
       return { value: best, date: bestDate };
@@ -1740,6 +1769,8 @@
     }
 
     function parseTrackerDate(label) {
+      const iso = String(label).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
       const matched = String(label).match(/(\d+)月(\d+)日/);
       if (!matched) return null;
       const today = startOfToday();
@@ -1792,19 +1823,45 @@
       renderTracker();
     }
 
-    function onTrackerSpanChange() {
-      const box = document.getElementById('tracker-span');
-      localStorage.setItem('keywordTrackerSpan', box ? box.value : '7');
+    function monthIsoDates(y, m) {
+      const last = new Date(y, m, 0).getDate();
+      const dates = [];
+      for (let day = 1; day <= last; day++) dates.push(isoFromDate(new Date(y, m - 1, day)));
+      return dates;
+    }
+
+    function shiftTrackerMonth(delta) {
+      if (!trackerMonth) trackerMonth = currentMonthParts();
+      const cur = currentMonthParts();
+      let y = trackerMonth.y;
+      let m = trackerMonth.m + delta;
+      if (m < 1) { m = 12; y -= 1; }
+      if (m > 12) { m = 1; y += 1; }
+      if (y > cur.y || (y === cur.y && m > cur.m)) return;
+      trackerMonth = { y: y, m: m };
       renderTracker();
     }
 
-    function visibleDateColumns() {
-      const span = Number(localStorage.getItem('keywordTrackerSpan') || '7');
-      const back = span === 21 ? 21 : span === 14 ? 14 : 7;
-      const todayStr = `${startOfToday().getMonth() + 1}月${startOfToday().getDate()}日`;
-      const idx = dateColumns.indexOf(todayStr);
-      if (idx < 0) return dateColumns.slice();
-      return dateColumns.slice(Math.max(0, idx - back), Math.min(dateColumns.length, idx + 3));
+    function isCurrentTrackerMonth() {
+      const cur = currentMonthParts();
+      return trackerMonth && trackerMonth.y === cur.y && trackerMonth.m === cur.m;
+    }
+
+    function clientVisibleInMonth(client) {
+      const rec = trackerData[client] || {};
+      const dates = monthIsoDates(trackerMonth.y, trackerMonth.m);
+      if (dates.some(date => rec[date])) return true;
+      if (!isCurrentTrackerMonth()) return false;
+      const mark = latestTrackerMark(client);
+      if (!mark.value) return true;
+      return ['1', '2', '3', '4', '5', '6', '7', '通知', '未達成', '途中未達成', '起算'].indexOf(mark.value) !== -1;
+    }
+
+    function latestShownMark(client) {
+      const end = isCurrentTrackerMonth()
+        ? startOfToday()
+        : new Date(trackerMonth.y, trackerMonth.m, 0);
+      return latestTrackerMark(client, end);
     }
 
     function bindTrackerTable() {
@@ -1841,7 +1898,11 @@
     function trackerRowHtml(client, dates) {
       const safe = escTracker(client);
       const note = trackerFoldNote(client);
+      const shown = latestShownMark(client);
+      const latestClass = getSelectColorClass(shown.value);
+      const latestText = shown.value ? escTracker(shown.value) : '';
       let html = `<tr><td class="tracker-name" title="${safe}"><div class="tracker-name-line"><span>${safe}<\/span><button type="button" class="tracker-remove" data-remove="${safe}">移除<\/button><\/div>${note ? `<div class="tracker-name-note">${note}<\/div>` : ''}<\/td>`;
+      html += `<td class="tracker-latest ${latestClass}">${latestText}<\/td>`;
       dates.forEach(date => {
         const val = (trackerData[client] && trackerData[client][date]) || '';
         const bgClass = getSelectColorClass(val);
@@ -1857,17 +1918,21 @@
     function renderTracker() {
       const table = document.getElementById('tracker-table');
       if (!table) return;
+      if (!trackerMonth) trackerMonth = currentMonthParts();
       bindTrackerTable();
       const wrap = table.parentElement;
       const keepTop = wrap ? wrap.scrollTop : 0;
       const keepLeft = wrap ? wrap.scrollLeft : 0;
 
-      const today = startOfToday();
-      const todayStr = `${today.getMonth() + 1}月${today.getDate()}日`;
-      const dates = visibleDateColumns();
+      const todayIso = isoFromDate(startOfToday());
+      const dates = monthIsoDates(trackerMonth.y, trackerMonth.m);
+      const label = document.getElementById('tracker-month-label');
+      if (label) label.textContent = trackerMonth.y + '年' + trackerMonth.m + '月';
+      const nextBtn = document.getElementById('tracker-month-next');
+      if (nextBtn) nextBtn.disabled = isCurrentTrackerMonth();
       const query = (document.getElementById('tracker-search')?.value || '').trim().toLowerCase();
       const hideStarted = document.getElementById('tracker-hide-started') ? document.getElementById('tracker-hide-started').checked : true;
-      const clients = Object.keys(trackerData).sort(compareTrackerClients);
+      const clients = Object.keys(trackerData).filter(clientVisibleInMonth).sort(compareTrackerClients);
       const active = [];
       const archived = [];
       clients.forEach(client => {
@@ -1881,23 +1946,25 @@
       if (count) {
         count.textContent = '作業中 ' + active.length + ' 家'
           + (archived.length ? ' · 已收合 ' + archived.length + ' 家' : '')
-          + (clients.length ? ' · 全部 ' + clients.length + ' 家' : '');
+          + (clients.length ? ' · 本月 ' + clients.length + ' 家' : '');
       }
 
-      let html = '<thead><tr><th class="tracker-name">客戶名稱<\/th>';
+      let html = '<thead><tr><th class="tracker-name">客戶名稱<\/th><th class="tracker-latest">最新<\/th>';
       dates.forEach(date => {
-        const label = date.replace('月', '/').replace('日', '');
-        html += `<th class="${date === todayStr ? 'today-col' : ''}">${date === todayStr ? '今天 ' : ''}${label}<\/th>`;
+        const parsed = parseTrackerDate(date);
+        const dow = parsed.getDay();
+        const cls = date === todayIso ? 'today-col' : (dow === 0 || dow === 6 ? 'weekend-col' : '');
+        html += `<th class="${cls}">${parsed.getDate()}<\/th>`;
       });
       html += '<\/tr><\/thead><tbody>';
       if (!active.length) {
-        html += `<tr><td class="tracker-empty" colspan="${dates.length + 1}">${clients.length ? '目前沒有要作業的客戶。可搜尋，或展開下方已收合名單。' : '尚無客戶。先貼上今日名單，或手動加入。'}<\/td><\/tr>`;
+        html += `<tr><td class="tracker-empty" colspan="${dates.length + 2}">${Object.keys(trackerData).length ? '這個月沒有要顯示的客戶。可換月，或搜尋客戶名稱。' : '尚無客戶。先貼上今日名單，或手動加入。'}<\/td><\/tr>`;
       } else {
         active.forEach(client => { html += trackerRowHtml(client, dates); });
       }
       html += '<\/tbody>';
       if (archived.length) {
-        html += '<tbody><tr class="tracker-fold-row"><td colspan="' + (dates.length + 1) + '"><button type="button" class="tracker-fold-btn" data-archive-toggle>'
+        html += '<tbody><tr class="tracker-fold-row"><td colspan="' + (dates.length + 2) + '"><button type="button" class="tracker-fold-btn" data-archive-toggle>'
           + (trackerArchiveOpen ? '收起' : '展開')
           + '已收合 ' + archived.length + ' 家 · 起算已過 2 個工作日，點開仍可修改<\/button><\/td><\/tr>';
         if (trackerArchiveOpen) archived.forEach(client => { html += trackerRowHtml(client, dates); });
@@ -1935,13 +2002,23 @@
       setTrackerStatus('已移除「' + name + '」。');
     }
 
-    function getNextStatus(name, todayStr) {
+    function getNextStatus(name, todayIso) {
+      const today = parseTrackerDate(todayIso);
       let lastCount = 0;
-      const todayIdx = dateColumns.indexOf(todayStr);
-      for (let i = todayIdx - 1; i >= 0 && i >= todayIdx - 5; i--) {
-        let val = trackerData[name][dateColumns[i]];
-        if (['1','2','3','4','5','6','7'].includes(val)) { lastCount = parseInt(val); break; }
-      }
+      let lastTime = -Infinity;
+      const rec = trackerData[name] || {};
+      Object.keys(rec).forEach(date => {
+        const val = rec[date];
+        if (['1', '2', '3', '4', '5', '6', '7'].indexOf(val) === -1) return;
+        const parsed = parseTrackerDate(date);
+        if (!parsed || parsed.getTime() >= today.getTime()) return;
+        const gap = Math.round((today.getTime() - parsed.getTime()) / 86400000);
+        if (gap < 1 || gap > 5) return;
+        if (parsed.getTime() >= lastTime) {
+          lastTime = parsed.getTime();
+          lastCount = parseInt(val, 10);
+        }
+      });
       if (lastCount >= 1 && lastCount < 7) return String(lastCount + 1);
       if (lastCount === 7) return '通知';
       return '1';
@@ -1951,7 +2028,8 @@
       const text = document.getElementById('tracker-paste-input').value;
       if (!text.trim()) { setTrackerStatus('請先貼上名單。'); return; }
       const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-      const todayStr = `${startOfToday().getMonth() + 1}月${startOfToday().getDate()}日`;
+      const todayIso = isoFromDate(startOfToday());
+      trackerMonth = currentMonthParts();
       const seen = new Set();
       let count = 0;
       lines.forEach(line => {
@@ -1959,13 +2037,67 @@
         if (!name || seen.has(name)) return;
         seen.add(name);
         if (!trackerData[name]) trackerData[name] = {};
-        trackerData[name][todayStr] = getNextStatus(name, todayStr);
+        trackerData[name][todayIso] = getNextStatus(name, todayIso);
         count += 1;
       });
       saveTrackerData();
       renderTracker();
       document.getElementById('tracker-paste-input').value = '';
-      setTrackerStatus('已更新今日達標 ' + count + ' 家。');
+      setTrackerStatus('已更新今日達標 ' + count + ' 家。先前月份的紀錄都還在。');
+    }
+
+    function downloadTrackerBackup() {
+      const payload = JSON.stringify({ version: 1, savedAt: new Date().toISOString(), clients: trackerData });
+      const blob = new Blob([payload], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '達程表備份-' + isoFromDate(startOfToday()) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      setTrackerStatus('備份已下載。換電腦或清掉瀏覽資料前，請留著這個檔。');
+    }
+
+    function importTrackerBackup(input) {
+      const file = input.files && input.files[0];
+      input.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function () {
+        try {
+          const parsed = JSON.parse(String(reader.result || ''));
+          const incoming = parsed && parsed.clients && typeof parsed.clients === 'object' ? parsed.clients : parsed;
+          if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) {
+            setTrackerStatus('這個檔案不是達程表備份。');
+            return;
+          }
+          let added = 0;
+          Object.keys(incoming).forEach(rawName => {
+            const name = String(rawName).replace(/[(（][GgYy][)）]/gi, '').trim();
+            const rec = incoming[rawName];
+            if (!name || !rec || typeof rec !== 'object') return;
+            if (!trackerData[name]) trackerData[name] = {};
+            Object.keys(rec).forEach(date => {
+              let val = rec[date];
+              if (!val) return;
+              if (val === '中未達標') val = '途中未達成';
+              const parsedDate = parseTrackerDate(date);
+              const key = parsedDate ? isoFromDate(parsedDate) : String(date);
+              if (!trackerData[name][key]) {
+                trackerData[name][key] = val;
+                added += 1;
+              }
+            });
+          });
+          saveTrackerData();
+          renderTracker();
+          setTrackerStatus(added ? '已補回 ' + added + ' 格。已經寫過的格子不會被蓋回去。' : '備份裡沒有缺少的紀錄，現有資料沒有改動。');
+        } catch (e) {
+          setTrackerStatus('備份檔讀取失敗。');
+        }
+      };
+      reader.readAsText(file);
     }
 
     // ==========================================

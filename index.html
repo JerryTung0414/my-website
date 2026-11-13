@@ -53,11 +53,8 @@
 
     /* 右側預覽區 */
     .preview-pane { flex: 1; background: #cbd5e1; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; min-height: 850px; box-shadow: 0 4px 16px rgba(0,0,0,0.03); overflow-x: auto; }
-    .preview-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
-    .doc-download-bar { display: flex; gap: 10px; margin: 0 0 14px; position: sticky; top: 0; z-index: 40; background: #fff; padding: 10px; border-radius: 12px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12); border: 1px solid #dbe3ef; }
-    .doc-download-bar .card-btn { flex: 1; text-align: center; font-size: 16px; font-weight: 700; padding: 12px 10px; }
-    .doc-dl-pdf { background: #059669 !important; }
-    .doc-dl-word { background: #1d4ed8 !important; }
+    .preview-toolbar { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 16px; gap: 12px; }
+    .preview-toolbar > :first-child { min-width: 0; }
     .badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #dbeafe; color: #1e40af; }
     .preview-actions { display: flex; align-items: center; gap: 8px; }
     .action-btn-export { color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
@@ -619,10 +616,6 @@
     <!-- ==================== 模組：用印單 ==================== -->
     <div id="view-tool-seal" style="display: none;">
       <div class="back-btn" onclick="switchView('home')">← 返回作業列表</div>
-      <div class="doc-download-bar no-print">
-        <button type="button" class="card-btn doc-dl-pdf" onclick="downloadPdf()">下載 PDF</button>
-        <button type="button" class="card-btn doc-dl-word" onclick="downloadWordDoc()">下載 Word</button>
-      </div>
             <div class="split-container">
         <div class="editor-pane">
           <div class="section-title">用印單資料設定</div>
@@ -878,10 +871,6 @@
     <!-- ==================== 模組：支付命令 ==================== -->
     <div id="view-pay-order-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
-      <div class="doc-download-bar no-print">
-        <button type="button" class="card-btn doc-dl-pdf" onclick="window.print()">下載 PDF</button>
-        <button type="button" class="card-btn doc-dl-word" onclick="downloadWordDoc()">下載 Word</button>
-      </div>
             <div id="calc-slot-pay"></div>
       <div class="split-container">
         <div class="editor-pane no-print">
@@ -966,15 +955,15 @@
               <input type="text" id="pay-day" value="15" oninput="updatePayOrder()">
             </div>
           </div>
-          <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="window.print()">下載 PDF（列印）</button>
-          <button class="card-btn" style="width: 100%; margin-top: 8px; background: #1d4ed8;" onclick="downloadWordDoc()">下載 Word</button>
         </div>
 
         <div class="preview-pane" style="align-items: center;">
-          <div class="preview-toolbar no-print" style="width: 100%; max-width: 794px;">
+          <div class="preview-toolbar no-print">
             <span style="font-weight: 700; font-size: 15px;">📜 支付命令狀 1:1 兩頁預覽</span>
-            <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="window.print()">下載 PDF</button>
-            <button class="card-btn" style="background:#1d4ed8; padding:6px 16px;" onclick="downloadWordDoc()">下載 Word</button>
+            <div class="preview-actions">
+              <button type="button" class="action-btn-export action-btn-pdf" onclick="window.print()">下載 PDF</button>
+              <button type="button" class="action-btn-export action-btn-word" onclick="downloadWordDoc()">下載 Word</button>
+            </div>
           </div>
           <div class="pay-order-a4" id="pay-page-1">
             <div class="pay-title">民事申請支付命令狀</div>
@@ -990,10 +979,6 @@
     <!-- ==================== 模組：存證信函 ==================== -->
     <div id="view-cert-editor" style="display: none;">
       <div class="back-btn" onclick="switchView('tool-legal')">← 返回法務目錄</div>
-      <div class="doc-download-bar no-print">
-        <button type="button" class="card-btn doc-dl-pdf" onclick="printCert()">下載 PDF</button>
-        <button type="button" class="card-btn doc-dl-word" onclick="downloadWordDoc()">下載 Word</button>
-      </div>
             <div id="calc-slot-cert"></div>
       <div class="split-container">
         <div class="editor-pane no-print">
@@ -1052,14 +1037,14 @@
               <input type="text" id="cert-full-amount" value="１４６１２０" oninput="updateCertDoc()">
             </div>
           </div>
-          <button class="card-btn" style="width: 100%; margin-top: 10px; background: #059669;" onclick="printCert()">下載 PDF（列印）</button>
-          <button class="card-btn" style="width: 100%; margin-top: 8px; background: #1d4ed8;" onclick="downloadWordDoc()">下載 Word</button>
         </div>
         <div class="preview-pane">
           <div class="preview-toolbar no-print">
             <span style="font-weight: 700; font-size: 15px;">✉️ 存證信函 A4 分頁預覽</span>
-            <button class="card-btn" style="background:#059669; padding:6px 16px;" onclick="printCert()">下載 PDF</button>
-            <button class="card-btn" style="background:#1d4ed8; padding:6px 16px;" onclick="downloadWordDoc()">下載 Word</button>
+            <div class="preview-actions">
+              <button type="button" class="action-btn-export action-btn-pdf" onclick="printCert()">下載 PDF</button>
+              <button type="button" class="action-btn-export action-btn-word" onclick="downloadWordDoc()">下載 Word</button>
+            </div>
           </div>
           <p class="no-print cert-print-help">列印請選 A4、縮放 100%、邊界「無」，並關閉頁首頁尾。</p>
           <p id="cert-layout-status" class="no-print" role="status"></p>

@@ -23714,7 +23714,7 @@ EXTERNAL: "External" };
 			} } } },
 			sections: [{
 				properties: {
-					type: SectionType.NEXT_PAGE,
+					type: SectionType.CONTINUOUS,
 					page: {
 						size: {
 							width: PAGE_W,
@@ -23795,8 +23795,8 @@ EXTERNAL: "External" };
 			margins: {
 				top: 0,
 				bottom: 0,
-				left: 20,
-				right: 20
+				left: 0,
+				right: 0
 			},
 			children: [new Paragraph({
 				alignment: AlignmentType.CENTER,
@@ -24014,6 +24014,16 @@ EXTERNAL: "External" };
 			},
 			columnWidths: widths,
 			layout: TableLayoutType.FIXED,
+			indent: {
+				size: LABEL_W,
+				type: WidthType.DXA
+			},
+			margins: {
+				top: 0,
+				bottom: 0,
+				left: 0,
+				right: 0
+			},
 			rows: gridRows
 		});
 		const feesW = mm(133.97);
@@ -24030,6 +24040,16 @@ EXTERNAL: "External" };
 			},
 			columnWidths: [feesW, stampW],
 			layout: TableLayoutType.FIXED,
+			indent: {
+				size: LABEL_W,
+				type: WidthType.DXA
+			},
+			margins: {
+				top: 0,
+				bottom: 0,
+				left: 0,
+				right: 0
+			},
 			rows: [new TableRow({
 				cantSplit: true,
 				height: {
@@ -24158,74 +24178,98 @@ EXTERNAL: "External" };
 				})]
 			})]
 		});
-		return [new Table({
-			width: {
-				size: LABEL_W + FORM_W,
-				type: WidthType.DXA
-			},
-			columnWidths: [LABEL_W, FORM_W],
-			layout: TableLayoutType.FIXED,
-			rows: [new TableRow({
-				cantSplit: true,
-				children: [new TableCell({
-					width: {
-						size: LABEL_W,
-						type: WidthType.DXA
-					},
-					borders: noBox,
-					verticalAlign: VerticalAlign.TOP,
-					margins: {
-						top: mm(12),
-						bottom: 0,
-						left: 0,
-						right: 0
-					},
-					children: [paragraph("副 正", {
-						size: 24,
-						bold: true,
-						align: AlignmentType.CENTER,
-						line: 384
-					}), paragraph("本", {
-						size: 24,
-						bold: true,
-						align: AlignmentType.CENTER,
-						line: 384
-					})]
-				}), new TableCell({
-					width: {
-						size: FORM_W,
-						type: WidthType.DXA
-					},
-					borders: noBox,
-					margins: {
-						top: 0,
-						bottom: 0,
-						left: 0,
-						right: 0
-					},
-					children: [
-						paragraph("郵局存證信函用紙", {
+		return [
+			new Table({
+				width: {
+					size: LABEL_W + FORM_W,
+					type: WidthType.DXA
+				},
+				columnWidths: [LABEL_W, FORM_W],
+				layout: TableLayoutType.FIXED,
+				rows: [new TableRow({
+					cantSplit: true,
+					children: [new TableCell({
+						width: {
+							size: LABEL_W,
+							type: WidthType.DXA
+						},
+						borders: noBox,
+						verticalAlign: VerticalAlign.TOP,
+						margins: {
+							top: mm(12),
+							bottom: 0,
+							left: 0,
+							right: 0
+						},
+						children: [paragraph("副 正", {
+							size: 24,
+							bold: true,
+							align: AlignmentType.CENTER,
+							line: 384
+						}), paragraph("本", {
+							size: 24,
+							bold: true,
+							align: AlignmentType.CENTER,
+							line: 384
+						})]
+					}), new TableCell({
+						width: {
+							size: FORM_W,
+							type: WidthType.DXA
+						},
+						borders: noBox,
+						margins: {
+							top: 0,
+							bottom: 0,
+							left: 0,
+							right: 0
+						},
+						children: [paragraph("郵局存證信函用紙", {
 							size: 32,
 							bold: true,
 							align: AlignmentType.CENTER,
 							line: 400,
 							after: 60,
 							spacing: 283
-						}),
-						header,
-						grid,
-						bottom,
-						paragraph("騎縫郵戳　　　　　　　　騎縫郵戳", {
-							size: 16,
-							bold: true,
-							align: AlignmentType.CENTER,
-							before: 40,
-							line: 240
-						})
-					]
+						}), header]
+					})]
 				})]
-			})]
-		})];
+			}),
+			grid,
+			bottom,
+			new Table({
+				width: {
+					size: FORM_W,
+					type: WidthType.DXA
+				},
+				columnWidths: [FORM_W],
+				layout: TableLayoutType.FIXED,
+				indent: {
+					size: LABEL_W,
+					type: WidthType.DXA
+				},
+				borders: noBox,
+				rows: [new TableRow({ children: [new TableCell({
+					width: {
+						size: FORM_W,
+						type: WidthType.DXA
+					},
+					borders: noBox,
+					margins: {
+						top: 40,
+						bottom: 0,
+						left: 0,
+						right: 0
+					},
+					children: [paragraph("騎縫郵戳　　　　　　　　騎縫郵戳", {
+						size: 16,
+						bold: true,
+						align: AlignmentType.CENTER,
+						line: 240
+					})]
+				})] })]
+			})
+		];
 	}
 	function buildCert(data) {
 		const pages = data.pages.length ? data.pages : [Array.from({ length: 10 }, () => "")];
@@ -24236,9 +24280,9 @@ EXTERNAL: "External" };
 				font: KAI,
 				size: 21
 			} } } },
-			sections: pages.map((rows) => ({
+			sections: pages.map((rows, index) => ({
 				properties: {
-					type: SectionType.NEXT_PAGE,
+					type: index === 0 ? SectionType.CONTINUOUS : SectionType.NEXT_PAGE,
 					page: {
 						size: {
 							width: PAGE_W,
@@ -24269,187 +24313,165 @@ EXTERNAL: "External" };
 		"4. 合約專用章"
 	];
 	function mark(on) {
-		return run(on ? "■ " : "□ ", 21, { bold: true });
+		return run(on ? "■" : "□", 21);
 	}
-	function labelCell(text, width) {
+	function sealText(text, options) {
+		return new Paragraph({
+			alignment: options?.align ?? AlignmentType.LEFT,
+			spacing: {
+				before: 0,
+				after: 0,
+				line: 276,
+				lineRule: LineRuleType.AUTO
+			},
+			children: [run(text.length ? text : " ", options?.size ?? 21, {
+				bold: options?.bold,
+				spacing: options?.spacing
+			})]
+		});
+	}
+	function sealCell(width, children, options) {
 		return new TableCell({
 			width: {
 				size: width,
 				type: WidthType.DXA
 			},
+			columnSpan: options?.span,
+			verticalMerge: options?.merge,
 			borders: box,
-			verticalAlign: VerticalAlign.CENTER,
+			verticalAlign: options?.top ? VerticalAlign.TOP : VerticalAlign.CENTER,
 			margins: {
-				top: 60,
-				bottom: 60,
-				left: 80,
+				top: 40,
+				bottom: 40,
+				left: 60,
 				right: 60
 			},
-			children: [paragraph(text, {
-				size: 21,
-				align: AlignmentType.CENTER,
-				line: 280
-			})]
+			children: children.length ? children : [sealText(" ")]
 		});
 	}
 	function buildSeal(data) {
-		const margin = mm(12);
+		const margin = mm(11);
 		const content = PAGE_W - margin * 2;
 		const labelW = Math.round(content * .2);
-		const valueW = content - labelW;
-		const choiceW = Math.round(valueW * .22);
-		const detailW = valueW - choiceW;
-		const big = (text, height) => new TableRow({
-			cantSplit: true,
-			height: {
-				value: height,
-				rule: HeightRule.ATLEAST
+		const rest = content - labelW;
+		const choiceW = Math.round(rest * .22);
+		const detailW = rest - choiceW;
+		const px = (value) => Math.round(value * 15);
+		const selected = data.sealType || "";
+		const checkLine = new Paragraph({
+			spacing: {
+				before: 20,
+				after: 20,
+				line: 276,
+				lineRule: LineRuleType.AUTO
 			},
-			children: [labelCell(text === "文件名稱" ? "文件名稱" : "用印事由", labelW), new TableCell({
-				width: {
-					size: valueW,
-					type: WidthType.DXA
-				},
-				borders: box,
-				verticalAlign: VerticalAlign.TOP,
-				margins: {
-					top: 80,
-					bottom: 80,
-					left: 100,
-					right: 80
-				},
-				children: [paragraph(text === "文件名稱" ? data.docName || " " : data.purpose || " ", {
-					size: 21,
-					line: 320
-				})]
-			})]
+			children: SEAL_TYPES.flatMap((option, index) => [mark(selected.includes(String(index + 1))), run(index === SEAL_TYPES.length - 1 ? ` ${option}` : ` ${option}   `, 21)])
 		});
-		const method = new Table({
+		const choice = (on, label) => new Paragraph({
+			alignment: AlignmentType.CENTER,
+			spacing: {
+				before: 0,
+				after: 0,
+				line: 276,
+				lineRule: LineRuleType.AUTO
+			},
+			children: [mark(on), run(` ${label}`, 21)]
+		});
+		const form = new Table({
 			width: {
-				size: valueW,
+				size: content,
 				type: WidthType.DXA
 			},
-			columnWidths: [choiceW, detailW],
+			columnWidths: [
+				labelW,
+				choiceW,
+				detailW
+			],
 			layout: TableLayoutType.FIXED,
+			margins: {
+				top: 0,
+				bottom: 0,
+				left: 0,
+				right: 0
+			},
 			rows: [
 				new TableRow({
+					cantSplit: true,
 					height: {
-						value: mm(8),
+						value: px(90),
 						rule: HeightRule.ATLEAST
 					},
-					children: [new TableCell({
-						width: {
-							size: choiceW,
-							type: WidthType.DXA
-						},
-						borders: {
-							top: none,
-							left: none,
-							bottom: thin,
-							right: thin
-						},
-						verticalAlign: VerticalAlign.CENTER,
-						children: [new Paragraph({
-							alignment: AlignmentType.CENTER,
-							spacing: {
-								before: 0,
-								after: 0
-							},
-							children: [mark(true), run("蓋印", 21)]
-						})]
-					}), new TableCell({
-						width: {
-							size: detailW,
-							type: WidthType.DXA
-						},
-						borders: {
-							top: none,
-							right: none,
-							left: none,
-							bottom: thin
-						},
-						verticalAlign: VerticalAlign.CENTER,
-						margins: { left: 80 },
-						children: [paragraph(`蓋印日期： ${data.dateRoc || "　　年　　月　　日"}`, {
-							size: 21,
-							line: 280
-						})]
+					children: [sealCell(labelW, [sealText("文件名稱", {
+						align: AlignmentType.CENTER,
+						spacing: 30
+					})]), sealCell(rest, [sealText(data.docName || " ")], {
+						span: 2,
+						top: true
 					})]
 				}),
 				new TableRow({
+					cantSplit: true,
 					height: {
-						value: mm(8),
+						value: px(100),
 						rule: HeightRule.ATLEAST
 					},
-					children: [new TableCell({
-						width: {
-							size: choiceW,
-							type: WidthType.DXA
-						},
-						borders: {
-							top: none,
-							left: none,
-							bottom: none,
-							right: thin
-						},
-						verticalAlign: VerticalAlign.CENTER,
-						verticalMerge: VerticalMergeType.RESTART,
-						children: [new Paragraph({
-							alignment: AlignmentType.CENTER,
-							spacing: {
-								before: 40,
-								after: 0
-							},
-							children: [mark(false), run("借印", 21)]
-						})]
-					}), new TableCell({
-						width: {
-							size: detailW,
-							type: WidthType.DXA
-						},
-						borders: {
-							top: none,
-							right: none,
-							left: none,
-							bottom: thin
-						},
-						margins: { left: 80 },
-						children: [paragraph("借出期間：借出日 1xx/xx/xx 使用日 1xx/xx/xx 歸還日 ________", {
-							size: 18,
-							line: 260
-						})]
+					children: [sealCell(labelW, [sealText("用印事由", {
+						align: AlignmentType.CENTER,
+						spacing: 30
+					})]), sealCell(rest, [sealText(data.purpose || " ")], {
+						span: 2,
+						top: true
 					})]
 				}),
 				new TableRow({
+					cantSplit: true,
 					height: {
-						value: mm(8),
+						value: px(32),
 						rule: HeightRule.ATLEAST
 					},
-					children: [new TableCell({
-						width: {
-							size: choiceW,
-							type: WidthType.DXA
-						},
-						borders: {
-							top: none,
-							left: none,
-							bottom: none,
-							right: thin
-						},
-						verticalMerge: VerticalMergeType.CONTINUE,
-						children: [paragraph(" ")]
-					}), new TableCell({
-						width: {
-							size: detailW,
-							type: WidthType.DXA
-						},
-						borders: noBox,
-						margins: { left: 80 },
-						children: [paragraph("申請人借出簽名：", {
-							size: 18,
-							line: 260
-						})]
-					})]
+					children: [
+						sealCell(labelW, [sealText("用印方式", {
+							align: AlignmentType.CENTER,
+							spacing: 30
+						})], { merge: VerticalMergeType.RESTART }),
+						sealCell(choiceW, [choice(true, "蓋印")]),
+						sealCell(detailW, [sealText(`蓋印日期： ${data.dateRoc || "　　年　　月　　日"}`)])
+					]
+				}),
+				new TableRow({
+					cantSplit: true,
+					height: {
+						value: px(30),
+						rule: HeightRule.ATLEAST
+					},
+					children: [
+						sealCell(labelW, [sealText(" ")], { merge: VerticalMergeType.CONTINUE }),
+						sealCell(choiceW, [choice(false, "借印")], { merge: VerticalMergeType.RESTART }),
+						sealCell(detailW, [sealText("借出期間：借出日 1xx/xx/xx 使用日 1xx/xx/xx 歸還日 ________", { size: 18 })])
+					]
+				}),
+				new TableRow({
+					cantSplit: true,
+					height: {
+						value: px(30),
+						rule: HeightRule.ATLEAST
+					},
+					children: [
+						sealCell(labelW, [sealText(" ")], { merge: VerticalMergeType.CONTINUE }),
+						sealCell(choiceW, [sealText(" ")], { merge: VerticalMergeType.CONTINUE }),
+						sealCell(detailW, [sealText("申請人借出簽名：", { size: 18 })])
+					]
+				}),
+				new TableRow({
+					cantSplit: true,
+					height: {
+						value: px(34),
+						rule: HeightRule.ATLEAST
+					},
+					children: [sealCell(labelW, [sealText("使用印信別", {
+						align: AlignmentType.CENTER,
+						spacing: 16
+					})]), sealCell(rest, [checkLine], { span: 2 })]
 				})
 			]
 		});
@@ -24469,10 +24491,10 @@ EXTERNAL: "External" };
 		const weightSum = weights.reduce((total, weight) => total + weight, 0);
 		const matrixW = weights.map((weight) => Math.round(content * weight / weightSum));
 		matrixW[matrixW.length - 1] += content - matrixW.reduce((total, width) => total + width, 0);
-		const headRow = new TableRow({
-			tableHeader: true,
+		const matrixHead = new TableRow({
+			cantSplit: true,
 			height: {
-				value: mm(8),
+				value: px(28),
 				rule: HeightRule.ATLEAST
 			},
 			children: [
@@ -24486,20 +24508,11 @@ EXTERNAL: "External" };
 				"G",
 				"T",
 				"P",
-				""
-			].map((text, index) => new TableCell({
-				width: {
-					size: matrixW[index] ?? 100,
-					type: WidthType.DXA
-				},
-				borders: box,
-				verticalAlign: VerticalAlign.CENTER,
-				children: [paragraph(text || " ", {
-					size: 18,
-					align: AlignmentType.CENTER,
-					line: 240
-				})]
-			}))
+				" "
+			].map((text, index) => sealCell(matrixW[index] ?? 80, [sealText(text, {
+				size: 18,
+				align: AlignmentType.CENTER
+			})]))
 		});
 		const matrixRows = [
 			"主辦",
@@ -24507,164 +24520,48 @@ EXTERNAL: "External" };
 			"裁決"
 		].map((title, rowIndex) => {
 			const cells = [];
-			for (let index = 0; index < 5; index++) cells.push(new TableCell({
-				width: {
-					size: matrixW[index] ?? 100,
-					type: WidthType.DXA
-				},
-				borders: box,
-				verticalMerge: rowIndex === 0 ? VerticalMergeType.RESTART : VerticalMergeType.CONTINUE,
-				children: [paragraph(" ")]
-			}));
-			if (rowIndex < 2) {
-				for (let index = 5; index < 10; index++) cells.push(new TableCell({
-					width: {
-						size: matrixW[index] ?? 100,
-						type: WidthType.DXA
-					},
-					borders: box,
-					children: [paragraph(" ")]
-				}));
-				cells.push(new TableCell({
-					width: {
-						size: matrixW[10] ?? 100,
-						type: WidthType.DXA
-					},
-					borders: box,
-					verticalAlign: VerticalAlign.CENTER,
-					children: [paragraph(title, {
-						size: 16,
-						align: AlignmentType.CENTER,
-						line: 220
-					})]
-				}));
-			} else {
-				cells.push(new TableCell({
-					columnSpan: 5,
-					width: {
-						size: matrixW.slice(5, 10).reduce((total, width) => total + width, 0),
-						type: WidthType.DXA
-					},
-					borders: box,
-					children: [paragraph(" ")]
-				}));
-				cells.push(new TableCell({
-					width: {
-						size: matrixW[10] ?? 100,
-						type: WidthType.DXA
-					},
-					borders: box,
-					verticalAlign: VerticalAlign.CENTER,
-					children: [paragraph(title, {
-						size: 16,
-						align: AlignmentType.CENTER,
-						line: 220
-					})]
-				}));
+			for (let index = 0; index < 5; index += 1) cells.push(sealCell(matrixW[index] ?? 80, [sealText(" ")], { merge: rowIndex === 0 ? VerticalMergeType.RESTART : VerticalMergeType.CONTINUE }));
+			if (rowIndex < 2) for (let index = 5; index < 10; index += 1) cells.push(sealCell(matrixW[index] ?? 80, [sealText(" ")]));
+			else {
+				const spanW = matrixW.slice(5, 10).reduce((total, width) => total + width, 0);
+				cells.push(sealCell(spanW, [sealText(" ")], { span: 5 }));
 			}
+			cells.push(sealCell(matrixW[10] ?? 80, [sealText(title, {
+				size: 16,
+				align: AlignmentType.CENTER
+			})]));
 			return new TableRow({
 				cantSplit: true,
 				height: {
-					value: mm(8),
-					rule: HeightRule.ATLEAST
+					value: px(26),
+					rule: HeightRule.EXACT
 				},
 				children: cells
 			});
 		});
-		const selected = data.sealType || "";
-		const checks = new Paragraph({
-			spacing: {
-				before: 40,
-				after: 40,
-				line: 320,
-				lineRule: LineRuleType.AUTO
-			},
-			children: SEAL_TYPES.flatMap((option, index) => [mark(selected.includes(String(index + 1))), run(index === SEAL_TYPES.length - 1 ? option : `${option}　　`, 21)])
-		});
-		const form = new Table({
+		const matrix = new Table({
 			width: {
 				size: content,
 				type: WidthType.DXA
 			},
-			columnWidths: [labelW, valueW],
+			columnWidths: matrixW,
 			layout: TableLayoutType.FIXED,
-			rows: [
-				big("文件名稱", mm(22)),
-				big("用印事由", mm(24)),
-				new TableRow({
-					cantSplit: true,
-					children: [labelCell("用印方式", labelW), new TableCell({
-						width: {
-							size: valueW,
-							type: WidthType.DXA
-						},
-						borders: box,
-						margins: {
-							top: 0,
-							bottom: 0,
-							left: 0,
-							right: 0
-						},
-						children: [method]
-					})]
-				}),
-				new TableRow({
-					cantSplit: true,
-					height: {
-						value: mm(12),
-						rule: HeightRule.ATLEAST
-					},
-					children: [labelCell("使用印信別", labelW), new TableCell({
-						width: {
-							size: valueW,
-							type: WidthType.DXA
-						},
-						borders: box,
-						margins: {
-							top: 60,
-							bottom: 60,
-							left: 80,
-							right: 60
-						},
-						children: [checks]
-					})]
-				}),
-				new TableRow({
-					cantSplit: true,
-					children: [new TableCell({
-						columnSpan: 2,
-						width: {
-							size: content,
-							type: WidthType.DXA
-						},
-						borders: box,
-						margins: {
-							top: 0,
-							bottom: 0,
-							left: 0,
-							right: 0
-						},
-						children: [new Table({
-							width: {
-								size: content,
-								type: WidthType.DXA
-							},
-							columnWidths: matrixW,
-							layout: TableLayoutType.FIXED,
-							rows: [headRow, ...matrixRows]
-						})]
-					})]
-				})
-			]
+			margins: {
+				top: 0,
+				bottom: 0,
+				left: 0,
+				right: 0
+			},
+			rows: [matrixHead, ...matrixRows]
 		});
 		const children = [];
 		if (data.logo && data.logo.byteLength > 0) {
 			const width = Math.round(content / 1440 * 96);
-			const height = Math.max(28, Math.round(width * 49 / 548));
+			const height = Math.max(22, Math.round(width * 49 / 548));
 			children.push(new Paragraph({
 				spacing: {
 					before: 0,
-					after: 80
+					after: 60
 				},
 				children: [new ImageRun({
 					type: "jpg",
@@ -24676,20 +24573,22 @@ EXTERNAL: "External" };
 				})]
 			}));
 		}
-		children.push(paragraph("用 印 申 請 單", {
-			size: 33,
-			bold: true,
-			align: AlignmentType.CENTER,
-			before: 80,
-			after: 40,
-			line: 400,
-			spacing: 40
-		}), paragraph("編號：", {
+		children.push(new Paragraph({
+			alignment: AlignmentType.CENTER,
+			spacing: {
+				before: 80,
+				after: 40,
+				line: 400,
+				lineRule: LineRuleType.AUTO
+			},
+			children: [run("用 印 申 請 單", 33, {
+				bold: true,
+				spacing: 60
+			})]
+		}), sealText("編號：", {
 			size: 20,
-			align: AlignmentType.RIGHT,
-			after: 60,
-			line: 280
-		}), form);
+			align: AlignmentType.RIGHT
+		}), form, matrix);
 		return new File({
 			title: "用印申請單",
 			styles: { default: { document: { run: {
@@ -24698,7 +24597,7 @@ EXTERNAL: "External" };
 			} } } },
 			sections: [{
 				properties: {
-					type: SectionType.NEXT_PAGE,
+					type: SectionType.CONTINUOUS,
 					page: {
 						size: {
 							width: PAGE_W,

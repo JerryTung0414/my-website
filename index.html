@@ -1651,95 +1651,26 @@
       return y + '-' + m + '-' + day;
     }
 
-    // ========== Supabase 設定 ==========
-    const SUPABASE_URL = 'https://iriuzxuodhzaqdkgafg.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_0NczmSCwUmxFBQ02O3YCTg_ReH3RvRD';
-    let supabaseClient = null;
-
-    function getSupabase() {
-      if (!supabaseClient && window.supabase) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      }
-      return supabaseClient;
-    }
-
-    async function loadTrackerFromSupabase() {
-      const sb = getSupabase();
-      if (!sb) {
-        setTrackerStatus('Supabase 尚未載入');
-        return;
-      }
-      const { data, error } = await sb.from('keyword_progress').select('client_name, year, month, day_data');
-      if (error) {
-        console.error(error);
-        setTrackerStatus('讀取雲端失敗：' + error.message);
-        return;
-      }
-      trackerData = {};
-      (data || []).forEach(row => {
-        const name = row.client_name;
-        if (!trackerData[name]) trackerData[name] = {};
-        const prefix = row.year + '-' + String(row.month).padStart(2, '0') + '-';
-        Object.keys(row.day_data || {}).forEach(day => {
-          const d = String(day).padStart(2, '0');
-          trackerData[name][prefix + d] = row.day_data[day];
-        });
-      });
-      migrateTrackerDates();
-      renderTracker();
-      setTrackerStatus('已從雲端載入');
-    }
-
-    async function saveClientMonth(clientName, year, month, dayData) {
-      const sb = getSupabase();
-      if (!sb) return;
-      const { error } = await sb.from('keyword_progress').upsert({
-        client_name: clientName,
-        year: year,
-        month: month,
-        day_data: dayData,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'client_name,year,month' });
-      if (error) console.error('儲存失敗', error);
-    }
-
-    function saveTrackerData() {
-      // 將目前 trackerData 依客戶+月份拆開存入 Supabase
-      const byKey = {};
-      Object.keys(trackerData).forEach(client => {
-        Object.keys(trackerData[client] || {}).forEach(dateStr => {
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
-          const [y, m, d] = dateStr.split('-');
-          const key = client + '|' + y + '|' + m;
-          if (!byKey[key]) byKey[key] = { client, year: +y, month: +m, dayData: {} };
-          byKey[key].dayData[d] = trackerData[client][dateStr];
-        });
-      });
-      Object.values(byKey).forEach(item => {
-        if (Object.keys(item.dayData).length) {
-          saveClientMonth(item.client, item.year, item.month, item.dayData);
-        }
-      });
-    }
-
-    function subscribeRealtime() {
-      const sb = getSupabase();
-      if (!sb) return;
-      sb.channel('keyword_progress_changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'keyword_progress' }, () => {
-          loadTrackerFromSupabase();
-        })
-        .subscribe();
-    }
-
     function initTracker() {
+      try {
+        const stored = localStorage.getItem('keywordTrackerData');
+        if (stored) trackerData = JSON.parse(stored);
+      } catch (e) {}
+
+      const cleanedData = {};
+      for (let key in trackerData) {
+        let cleanKey = key.replace(/[(（][GgYy][)）]/gi, '').trim();
+        if (!cleanedData[cleanKey]) cleanedData[cleanKey] = trackerData[key];
+        else Object.assign(cleanedData[cleanKey], trackerData[key]);
+      }
+      trackerData = cleanedData;
+      migrateTrackerDates();
+      saveTrackerData();
       trackerMonth = currentMonthParts();
       const hideBox = document.getElementById('tracker-hide-started');
       if (hideBox) hideBox.checked = localStorage.getItem('keywordTrackerHideStarted') !== '0';
       bindTrackerTable();
-      loadTrackerFromSupabase().then(() => {
-        subscribeRealtime();
-      });
+      renderTracker();
     }
 
     function migrateTrackerDates() {
@@ -1761,7 +1692,7 @@
       });
     }
 
-    function saveTrackerData() { /* replaced by Supabase version above */ }
+    function saveTrackerData() { localStorage.setItem('keywordTrackerData', JSON.stringify(trackerData)); }
 
     function updateTrackerCell(clientName, dateStr, val) {
       if (!trackerData[clientName]) trackerData[clientName] = {};
@@ -2970,6 +2901,135 @@
     restoreView();
   </script>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+// ========== 強化版 Supabase 載入與資料遷移 ==========
+const SUPABASE_URL = 'https://iriuzxuodhzaqdkgafg.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_0NczmSCwUmxFBQ02O3YCTg_ReH3RvRD';
+
+function loadSupabaseScript() {
+  return new Promise((resolve, reject) => {
+    if (window.supabase) return resolve();
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('無法載入 Supabase 程式庫'));
+    document.head.appendChild(s);
+  });
+}
+
+async function initSupabaseTracker() {
+  try {
+    await loadSupabaseScript();
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 嘗試從 localStorage 遷移舊資料
+    let localData = null;
+    try {
+      const raw = localStorage.getItem('keywordTrackerData');
+      if (raw) localData = JSON.parse(raw);
+    } catch (e) {}
+
+    // 讀取雲端現有資料
+    const { data: cloudRows, error } = await sb.from('keyword_progress').select('client_name, year, month, day_data');
+    if (error) throw error;
+
+    const cloudMap = {};
+    (cloudRows || []).forEach(r => {
+      const key = r.client_name + '|' + r.year + '|' + r.month;
+      cloudMap[key] = r.day_data || {};
+    });
+
+    // 如果本地有資料且雲端比較少，就把本地資料上傳
+    if (localData && Object.keys(localData).length > 0) {
+      const toUpload = [];
+      Object.keys(localData).forEach(client => {
+        const dates = localData[client] || {};
+        const byMonth = {};
+        Object.keys(dates).forEach(dateStr => {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
+          const [y, m, d] = dateStr.split('-');
+          const k = client + '|' + y + '|' + m;
+          if (!byMonth[k]) byMonth[k] = { client, year: +y, month: +m, dayData: {} };
+          byMonth[k].dayData[d] = dates[dateStr];
+        });
+        Object.values(byMonth).forEach(item => {
+          const ck = item.client + '|' + item.year + '|' + item.month;
+          const existing = cloudMap[ck] || {};
+          // 合併：雲端沒有的才補上
+          const merged = { ...existing };
+          let changed = false;
+          Object.keys(item.dayData).forEach(d => {
+            if (!merged[d]) { merged[d] = item.dayData[d]; changed = true; }
+          });
+          if (changed) {
+            toUpload.push({
+              client_name: item.client,
+              year: item.year,
+              month: item.month,
+              day_data: merged,
+              updated_at: new Date().toISOString()
+            });
+          }
+        });
+      });
+      if (toUpload.length) {
+        await sb.from('keyword_progress').upsert(toUpload, { onConflict: 'client_name,year,month' });
+      }
+    }
+
+    // 重新載入完整雲端資料到 trackerData
+    const { data: finalData } = await sb.from('keyword_progress').select('client_name, year, month, day_data');
+    trackerData = {};
+    (finalData || []).forEach(row => {
+      if (!trackerData[row.client_name]) trackerData[row.client_name] = {};
+      const prefix = row.year + '-' + String(row.month).padStart(2,'0') + '-';
+      Object.keys(row.day_data || {}).forEach(day => {
+        trackerData[row.client_name][prefix + String(day).padStart(2,'0')] = row.day_data[day];
+      });
+    });
+
+    // 覆蓋原本的 saveTrackerData
+    window.saveTrackerData = function() {
+      const byKey = {};
+      Object.keys(trackerData).forEach(client => {
+        Object.keys(trackerData[client] || {}).forEach(dateStr => {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
+          const [y, m, d] = dateStr.split('-');
+          const key = client + '|' + y + '|' + m;
+          if (!byKey[key]) byKey[key] = { client_name: client, year: +y, month: +m, day_data: {} };
+          byKey[key].day_data[d] = trackerData[client][dateStr];
+        });
+      });
+      const rows = Object.values(byKey);
+      if (rows.length) {
+        sb.from('keyword_progress').upsert(rows.map(r => ({...r, updated_at: new Date().toISOString()})), { onConflict: 'client_name,year,month' });
+      }
+    };
+
+    // 即時同步
+    sb.channel('kp').on('postgres_changes', { event: '*', schema: 'public', table: 'keyword_progress' }, () => {
+      initSupabaseTracker();
+    }).subscribe();
+
+    if (typeof renderTracker === 'function') renderTracker();
+    if (typeof setTrackerStatus === 'function') setTrackerStatus('已連線雲端並同步');
+  } catch (err) {
+    console.error(err);
+    if (typeof setTrackerStatus === 'function') setTrackerStatus('雲端連線失敗：' + err.message);
+  }
+}
+
+// 改寫 initTracker，讓它呼叫新的初始化
+const originalInitTracker = window.initTracker;
+window.initTracker = function() {
+  trackerMonth = currentMonthParts ? currentMonthParts() : null;
+  const hideBox = document.getElementById('tracker-hide-started');
+  if (hideBox) hideBox.checked = localStorage.getItem('keywordTrackerHideStarted') !== '0';
+  if (typeof bindTrackerTable === 'function') bindTrackerTable();
+  initSupabaseTracker();
+};
+</script>
+
 </body>
 </html>

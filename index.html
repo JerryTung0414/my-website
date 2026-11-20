@@ -1651,26 +1651,95 @@
       return y + '-' + m + '-' + day;
     }
 
-    function initTracker() {
-      try {
-        const stored = localStorage.getItem('keywordTrackerData');
-        if (stored) trackerData = JSON.parse(stored);
-      } catch (e) {}
+    // ========== Supabase 設定 ==========
+    const SUPABASE_URL = 'https://iriuzxuodhzaqdkgafg.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_0NczmSCwUmxFBQ02O3YCTg_ReH3RvRD';
+    let supabaseClient = null;
 
-      const cleanedData = {};
-      for (let key in trackerData) {
-        let cleanKey = key.replace(/[(（][GgYy][)）]/gi, '').trim();
-        if (!cleanedData[cleanKey]) cleanedData[cleanKey] = trackerData[key];
-        else Object.assign(cleanedData[cleanKey], trackerData[key]);
+    function getSupabase() {
+      if (!supabaseClient && window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       }
-      trackerData = cleanedData;
+      return supabaseClient;
+    }
+
+    async function loadTrackerFromSupabase() {
+      const sb = getSupabase();
+      if (!sb) {
+        setTrackerStatus('Supabase 尚未載入');
+        return;
+      }
+      const { data, error } = await sb.from('keyword_progress').select('client_name, year, month, day_data');
+      if (error) {
+        console.error(error);
+        setTrackerStatus('讀取雲端失敗：' + error.message);
+        return;
+      }
+      trackerData = {};
+      (data || []).forEach(row => {
+        const name = row.client_name;
+        if (!trackerData[name]) trackerData[name] = {};
+        const prefix = row.year + '-' + String(row.month).padStart(2, '0') + '-';
+        Object.keys(row.day_data || {}).forEach(day => {
+          const d = String(day).padStart(2, '0');
+          trackerData[name][prefix + d] = row.day_data[day];
+        });
+      });
       migrateTrackerDates();
-      saveTrackerData();
+      renderTracker();
+      setTrackerStatus('已從雲端載入');
+    }
+
+    async function saveClientMonth(clientName, year, month, dayData) {
+      const sb = getSupabase();
+      if (!sb) return;
+      const { error } = await sb.from('keyword_progress').upsert({
+        client_name: clientName,
+        year: year,
+        month: month,
+        day_data: dayData,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'client_name,year,month' });
+      if (error) console.error('儲存失敗', error);
+    }
+
+    function saveTrackerData() {
+      // 將目前 trackerData 依客戶+月份拆開存入 Supabase
+      const byKey = {};
+      Object.keys(trackerData).forEach(client => {
+        Object.keys(trackerData[client] || {}).forEach(dateStr => {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
+          const [y, m, d] = dateStr.split('-');
+          const key = client + '|' + y + '|' + m;
+          if (!byKey[key]) byKey[key] = { client, year: +y, month: +m, dayData: {} };
+          byKey[key].dayData[d] = trackerData[client][dateStr];
+        });
+      });
+      Object.values(byKey).forEach(item => {
+        if (Object.keys(item.dayData).length) {
+          saveClientMonth(item.client, item.year, item.month, item.dayData);
+        }
+      });
+    }
+
+    function subscribeRealtime() {
+      const sb = getSupabase();
+      if (!sb) return;
+      sb.channel('keyword_progress_changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'keyword_progress' }, () => {
+          loadTrackerFromSupabase();
+        })
+        .subscribe();
+    }
+
+    function initTracker() {
       trackerMonth = currentMonthParts();
       const hideBox = document.getElementById('tracker-hide-started');
       if (hideBox) hideBox.checked = localStorage.getItem('keywordTrackerHideStarted') !== '0';
       bindTrackerTable();
-      renderTracker();
+      loadTrackerFromSupabase().then(() => {
+        subscribeRealtime();
+      });
     }
 
     function migrateTrackerDates() {
@@ -1692,7 +1761,7 @@
       });
     }
 
-    function saveTrackerData() { localStorage.setItem('keywordTrackerData', JSON.stringify(trackerData)); }
+    function saveTrackerData() { /* replaced by Supabase version above */ }
 
     function updateTrackerCell(clientName, dateStr, val) {
       if (!trackerData[clientName]) trackerData[clientName] = {};
@@ -2901,5 +2970,6 @@
     restoreView();
   </script>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </body>
 </html>
